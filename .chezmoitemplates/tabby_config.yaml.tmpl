@@ -65,7 +65,7 @@ profiles:
   - type: local
     name: PowerShell
     options:
-      command: {{ if eq .chezmoi.os "windows" }}pwsh.exe{{ else }}{{ lookPath "pwsh" }} -l{{ end }}
+      command: {{ if eq .chezmoi.os "windows" }}pwsh.exe{{ else }}{{ lookPath "pwsh" }}{{ end }}
       env: {}
       args:
         - '-l'
