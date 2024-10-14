@@ -1,0 +1,11 @@
+{{ $email := promptString "Override Default Git Email (Optional)" -}}
+
+{{- if eq .chezmoi.os "windows" }}
+cd:
+    command: {{ lookPath "pwsh.exe" }}
+{{- end }}
+data:
+    gitEmail: {{ if $email }}{{ $email }}{{ else }}376408+natescherer@users.noreply.github.com{{ end }}
+    modKey: {{ if eq .chezmoi.os "darwin" }}⌘{{ else }}Ctrl{{ end }}
+edit:
+    command: nano

@@ -1,0 +1,19 @@
+.vscode/
+.vscode/**
+LICENSE
+README.md
+
+{{ if ne .chezmoi.os "darwin" }}
+Library/
+Library/**
+{{ end }}
+
+{{ if ne .chezmoi.os "linux" }}
+.config/
+.config/**
+{{ end }}
+
+{{ if ne .chezmoi.os "windows" }}
+AppData/
+AppData/**
+{{ end }}
