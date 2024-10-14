@@ -1,0 +1,14 @@
+[core]
+    autocrlf = false
+    editor = nano
+[user]
+    name = Nate Scherer
+    email = {{ .gitEmail }}
+{{- if (or (eq .chezmoi.os "darwin") (eq .chezmoi.os "linux")) }}
+[credential]
+    helper = {{ lookPath "git-credential-manager" }}
+{{- end }}
+[credential "https://dev.azure.com"]
+    useHttpPath = true
+[alias]
+    gone = ! "git fetch -p && git for-each-ref --format '%(refname:short) %(upstream:track)' | awk '$2 == \"[gone]\" {print $1}' | xargs -r git branch -D"

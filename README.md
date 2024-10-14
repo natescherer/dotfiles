@@ -6,4 +6,5 @@ All configurations are set up to work for Windows, macOS, and Ubuntu. Feel free 
 
 Currently managed:
 
+- Git
 - Tabby
