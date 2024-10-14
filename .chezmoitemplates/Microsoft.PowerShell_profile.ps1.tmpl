@@ -1,0 +1,5 @@
+# Activate Vfox
+Invoke-Expression "$(vfox activate pwsh)"
+
+# Fix weird formatting in Get-ChildItem Output
+$PSStyle.Formatting.CustomTableHeaderLabel = $PSStyle.Formatting.TableHeader

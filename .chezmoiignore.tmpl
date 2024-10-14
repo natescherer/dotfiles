@@ -9,12 +9,19 @@ Library/
 Library/**
 {{ end }}
 
-{{ if ne .chezmoi.os "linux" }}
+{{ if (or (ne .chezmoi.os "linux") (ne .chezmoi.os "darwin")) }}
 .config/
 .config/**
+{{ end }}
+
+{{ if ne .chezmoi.os "linux" }}
+.config/tabby/
+.config/tabby/**
 {{ end }}
 
 {{ if ne .chezmoi.os "windows" }}
 AppData/
 AppData/**
+Documents/
+Documents/**
 {{ end }}
