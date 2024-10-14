@@ -1,0 +1,23 @@
+[cmd_duration]
+format = 'Last command took [$duration](bold yellow).'
+
+[directory]
+truncation_length = 0
+truncate_to_repo = false
+
+[hostname]
+format = "[$ssh_symbol$hostname]($style) "
+ssh_only = false
+
+[shell]
+disabled = false
+bash_indicator = "bash"
+powershell_indicator = "winps"
+pwsh_indicator = "pwsh"
+
+[status]
+disabled = false
+
+[username]
+show_always = true
+format = "[$user]($style)@"

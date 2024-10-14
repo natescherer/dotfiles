@@ -10,8 +10,8 @@ Library/**
 {{ end }}
 
 {{ if (or (ne .chezmoi.os "linux") (ne .chezmoi.os "darwin")) }}
-.config/
-.config/**
+.config/powershell/
+.config/powershell/**
 {{ end }}
 
 {{ if ne .chezmoi.os "linux" }}
