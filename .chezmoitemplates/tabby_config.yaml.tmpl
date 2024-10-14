@@ -2,19 +2,25 @@ version: 7
 profiles:
 {{- if eq .chezmoi.os "windows" }}
   - type: local
-    name: CMD
+    name: Clink
     icon: >-
       <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true"
       class="svg-inline--fa fa-windows fa-w-14 fa-2x" data-icon="windows"
       data-prefix="fab" focusable="false" role="img" viewBox="0 0 448 512"><path
-      fill="#fff" stroke="none" stroke-width="1" d="M0
+      fill="#0ff" stroke="none" stroke-width="1" d="M0
       93.7l183.6-25.3v177.4H0V93.7zm0 324.6l183.6 25.3V268.4H0v149.9zm203.8
       28L448 480V268.4H203.8v177.9zm0-380.6v180.1H448V32L203.8
       65.7z"></path></svg>
     options:
       command: cmd.exe
-      env: {}
-    id: local:custom:CMD:446aff92-df1c-41db-a149-c5372537bd83
+      args:
+        - /k
+        - >-
+          C:\Users\nates\AppData\Local\Programs\Tabby\resources\extras\clink\clink_x64.exe
+        - inject
+      env:
+        WT_SESSION: '0'
+    id: local:custom:Clink:f7f6333a-f1e6-4edb-92cc-49f8fff8b0b8
     group: da39983a-cae0-46e3-8729-8e39aecb7815
   - type: local
     name: Windows PowerShell
