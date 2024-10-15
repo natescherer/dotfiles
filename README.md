@@ -10,3 +10,11 @@ Currently managed:
 - [Tabby](https://tabby.sh/)
 - [PowerShell](https://github.com/PowerShell/PowerShell)
 - [Starship](https://starship.rs)
+
+## Activating
+
+```shell
+chezmoi init natescherer
+chezmoi diff
+chezmoi apply
+```
