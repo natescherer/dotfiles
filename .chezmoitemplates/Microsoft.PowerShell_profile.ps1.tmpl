@@ -6,3 +6,9 @@ Invoke-Expression "$(vfox activate pwsh)"
 
 # Fix weird formatting in Get-ChildItem Output
 $PSStyle.Formatting.CustomTableHeaderLabel = $PSStyle.Formatting.TableHeader
+
+{{- if eq .chezmoi.os "windows" }}
+# Override HOME, as it breaks devcontainer mounts if it is set on Windows
+$env:HOME=""
+
+{{- end }}
