@@ -4,9 +4,15 @@
 [user]
     name = Nate Scherer
     email = {{ .gitEmail }}
-{{- if (or (eq .chezmoi.os "darwin") (eq .chezmoi.os "linux")) }}
+{{- if eq .chezmoi.os "darwin" }}
 [credential]
     helper = {{ lookPath "git-credential-manager" }}
+{{- end }}
+{{- if eq .chezmoi.os "linux" }}
+[credential]
+    helper = 
+        credentialStore = secretservice
+        helper = /home/nate/.dotnet/tools/git-credential-manager
 {{- end }}
 [credential "https://dev.azure.com"]
     useHttpPath = true
