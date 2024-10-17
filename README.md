@@ -6,6 +6,7 @@ All configurations are set up to work for Windows, macOS, and Ubuntu. Feel free 
 
 Currently managed:
 
+- [Bash](https://www.gnu.org/software/bash/)
 - [Git](https://git-scm.com/)
 - [Tabby](https://tabby.sh/)
 - [PowerShell](https://github.com/PowerShell/PowerShell)

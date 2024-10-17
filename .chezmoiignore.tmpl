@@ -1,24 +1,29 @@
+# Ignore for all
 .gitattributes
 .vscode/
 .vscode/**
 LICENSE
 README.md
 
+# Ignore on Windows only
+{{ if eq .chezmoi.os "windows" }}
+.config/powershell/
+.config/powershell/**
+{{ end }}
+
+# Ignore on Linux and Windows
 {{ if ne .chezmoi.os "darwin" }}
 Library/
 Library/**
 {{ end }}
 
-{{ if (or (ne .chezmoi.os "linux") (ne .chezmoi.os "darwin")) }}
-.config/powershell/
-.config/powershell/**
-{{ end }}
-
+# Ignore on macOS and WIndows
 {{ if ne .chezmoi.os "linux" }}
 .config/tabby/
 .config/tabby/**
 {{ end }}
 
+# Ignore on Linux and macOS
 {{ if ne .chezmoi.os "windows" }}
 AppData/
 AppData/**
