@@ -66,11 +66,11 @@ if ! shopt -oq posix; then
     . /etc/bash_completion
   fi
 fi
+{{- if eq .chezmoi.os "linux" }}
 
-{{ if eq .chezmoi.os "linux" }}
 # Enable Homebrew
 eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-{{ end }}
+{{- end }}
 
 # Enable Starship
 eval "$(starship init bash)"

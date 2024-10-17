@@ -1,0 +1,3 @@
+{{- if eq .chezmoi.os "linux" }}
+export PATH="$PATH:{{.chezmoi.homeDir}}/.dotnet/tools"
+{{- end }}
