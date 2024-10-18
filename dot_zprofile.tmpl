@@ -1,14 +1,15 @@
-{{- if findExecutable "brew" (list "/opt") }}
+{{- if findExecutable "brew" (list "/opt/homebrew/bin" "/home/linuxbrew/.linuxbrew/bin") }}
 # Set PATH, MANPATH, etc., for Homebrew.
-eval "$({{ findExecutable "brew" (list "/opt") }} shellenv)"
+eval "$({{ findExecutable "brew" (list "/opt/homebrew/bin" "/home/linuxbrew/.linuxbrew/bin") }} shellenv)"
 
 # Shell completion for Homebrew
 autoload -Uz compinit
 compinit
 
 {{- end }}
-{{- if lookPath "pipx" }}
-# Add pipx bin to PATH
+
+# Add ~/.local/bin to PATH for pipx
 export PATH="$PATH:{{ .chezmoi.homeDir }}/.local/bin"
 
-{{- end }}
+# Add ~/bin to PATH for manually downloaded binaries
+export PATH="$PATH:{{ .chezmoi.homeDir }}//bin"

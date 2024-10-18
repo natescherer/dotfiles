@@ -72,8 +72,11 @@ fi
 eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
 {{- end }}
 
-# Enable Starship
-eval "$(starship init bash)"
+# Set default editor to nano
+export EDITOR="nano"
 
 # Enable vfox
 eval "$(vfox activate bash)"
+
+# Enable Starship
+eval "$(starship init bash)"
