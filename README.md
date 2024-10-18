@@ -12,7 +12,7 @@ Currently managed:
 - [Tabby](https://tabby.sh/)
 - [PowerShell](https://github.com/PowerShell/PowerShell)
 - [Starship](https://starship.rs)
-- [zsh](https://www.zsh.org/)
+- [Zsh](https://www.zsh.org/)
 
 ## Activating
 
