@@ -1,0 +1,8 @@
+# Allows title to be set from within the shell
+DISABLE_AUTO_TITLE="true"
+
+# Activate vfox
+eval "$(vfox activate zsh)"
+
+# Activate Starship
+eval "$(starship init zsh)"

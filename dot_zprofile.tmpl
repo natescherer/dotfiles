@@ -1,0 +1,14 @@
+{{- if findExecutable "brew" (list "/opt") }}
+# Set PATH, MANPATH, etc., for Homebrew.
+eval "$({{ findExecutable "brew" (list "/opt") }} shellenv)"
+
+# Shell completion for Homebrew
+autoload -Uz compinit
+compinit
+
+{{- end }}
+{{- if lookPath "pipx" }}
+# Add pipx bin to PATH
+export PATH="$PATH:{{ .chezmoi.homeDir }}/.local/bin"
+
+{{- end }}
