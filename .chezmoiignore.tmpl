@@ -7,24 +7,32 @@ README.md
 
 # Ignore on Windows only
 {{ if eq .chezmoi.os "windows" }}
+## macOS/Linux PowerShell settings
 .config/powershell/
 .config/powershell/**
 {{ end }}
 
 # Ignore on Linux and Windows
 {{ if ne .chezmoi.os "darwin" }}
+## macOS-only folders
 Library/
 Library/**
+
+## Karabiner settings
+.config/karabiner
+.config/karabiner/**
 {{ end }}
 
 # Ignore on macOS and WIndows
 {{ if ne .chezmoi.os "linux" }}
+## Linux Tabby settings
 .config/tabby/
 .config/tabby/**
 {{ end }}
 
 # Ignore on Linux and macOS
 {{ if ne .chezmoi.os "windows" }}
+# Windows-only folders
 AppData/
 AppData/**
 Documents/
