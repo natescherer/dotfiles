@@ -1,0 +1,16 @@
+set atblanks
+set autoindent
+set constantshow
+set cutfromcursor
+set indicator
+set linenumbers
+set softwrap
+
+# Theme
+set titlecolor white,purple
+set keycolor bold,lagoon
+set functioncolor cyan
+set numbercolor italic,mint
+
+# Syntax Highlighting
+include "~/.nano/*.nanorc"
