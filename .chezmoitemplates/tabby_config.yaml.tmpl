@@ -378,7 +378,6 @@ terminal:
         - '#ffffff'
   profile: {{ if eq .chezmoi.os "windows" }}local:custom:PowerShell:b59d02af-3e95-444a-8529-17194704a78b{{ else if (or (eq .chezmoi.os "darwin") (lookPath "zsh")) }}local:custom:zsh:81897cbb-ec4c-4e44-94c3-0b05294169ed{{ else }}local:custom:bash:0a2e816d-0b5c-49ea-90c8-48f1cea43a75{{ end }}
   showRecentProfiles: 0
-  showBuiltinProfiles: false
   showTabProfileIcon: true
   hideTabOptionsButton: true
   rightClick: menu
@@ -392,7 +391,22 @@ clickableLinks: {}
 accessibility: {}
 appearance: {}
 hacks: {}
-providerBlacklist: []
+providerBlacklist:
+  - local:binbash
+  - local:bincsh
+  - local:bindash
+  - local:binksh
+  - local:default
+  - local:usrlocalbinpwsh
+  - socket:template
+  - serial:port-devtty-debug-console
+  - serial:port-devtty-Bluetooth-Incoming-Port
+  - serial:template
+  - local:binsh
+  - ssh:template
+  - local:bintcsh
+  - telnet:template
+  - local:binzsh
 commandBlacklist: []
 enableWelcomeTab: false
 pluginBlacklist: []
