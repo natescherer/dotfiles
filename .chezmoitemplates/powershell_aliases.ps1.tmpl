@@ -7,5 +7,6 @@ function Invoke-GetChildItemWithOptions {
     Get-ChildItem -Force 
 }
 
+Set-Alias -Name k -Value kubectl
 Set-Alias -Name chezmoi-apply-both -Value Invoke-BothChezmoiApplys
 Set-Alias -Name ll -Value Invoke-GetChildItemWithOptions
