@@ -391,7 +391,14 @@ clickableLinks: {}
 accessibility: {}
 appearance: {}
 hacks: {}
-providerBlacklist:
+providerBlacklist: []
+commandBlacklist: []
+enableWelcomeTab: false
+pluginBlacklist: []
+profileDefaults:
+  ssh:
+    disableDynamicTitle: true
+profileBlacklist:
   - local:binbash
   - local:bincsh
   - local:bindash
@@ -407,11 +414,4 @@ providerBlacklist:
   - local:bintcsh
   - telnet:template
   - local:binzsh
-commandBlacklist: []
-enableWelcomeTab: false
-pluginBlacklist: []
-profileDefaults:
-  ssh:
-    disableDynamicTitle: true
-profileBlacklist: []
 recoverTabs: false
