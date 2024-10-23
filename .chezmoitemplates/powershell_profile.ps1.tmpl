@@ -8,6 +8,14 @@ $env:HOME = ""
 # Add ~\bin to PATH
 $env:PATH = "$env:PATH;{{ .chezmoi.homeDir }}\bin"
 {{- end }}
+{{- if findExecutable "brew" (list "/opt/homebrew/bin" "/home/linuxbrew/.linuxbrew/bin") }}
+# Set PATH, MANPATH, etc., for Homebrew.
+$({{ findExecutable "brew" (list "/opt/homebrew/bin" "/home/linuxbrew/.linuxbrew/bin") }} shellenv) | Invoke-Expression
+
+{{- end }}
+
+# Import aliases
+. $(Join-Path $PSScriptRoot aliases.ps1)
 
 # Activate Vfox
 Invoke-Expression "$(vfox activate pwsh)"

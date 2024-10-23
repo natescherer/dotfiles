@@ -1,0 +1,11 @@
+function Invoke-BothChezmoiApplys {
+    & chezmoi apply
+    & chezmoi apply --source $( Join-Path "{{ .cloudDrivePath }}" "Config" "chezmoi")
+}
+
+function Invoke-GetChildItemWithOptions {
+    Get-ChildItem -Force 
+}
+
+Set-Alias -Name chezmoi-apply-both -Value Invoke-BothChezmoiApplys
+Set-Aliases -Name ll -Value Invoke-GetChildItemWithOptions
