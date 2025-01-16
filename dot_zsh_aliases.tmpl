@@ -1,3 +1,4 @@
 alias k=kubectl
 alias ll="ls -alhF"
+alias mkdircd="f() { mkdir $1 && cd $1}"
 alias chezmoi-apply-both="chezmoi apply && chezmoi apply --source {{ .cloudDrivePath }}/Config/chezmoi"

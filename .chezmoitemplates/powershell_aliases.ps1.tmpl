@@ -7,6 +7,11 @@ function Invoke-GetChildItemWithOptions {
     Get-ChildItem -Force 
 }
 
+function mkdircd([string]$Path) {
+    mkdir $Path
+    cd $Path
+}
+
 Set-Alias -Name k -Value kubectl
 Set-Alias -Name chezmoi-apply-both -Value Invoke-BothChezmoiApplys
 Set-Alias -Name ll -Value Invoke-GetChildItemWithOptions
