@@ -5,6 +5,8 @@ set cutfromcursor
 set indicator
 set linenumbers
 set softwrap
+set tabsize 4
+set tabstospaces
 
 # Theme
 set titlecolor white,purple
