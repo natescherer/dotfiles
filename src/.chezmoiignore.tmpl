@@ -1,4 +1,4 @@
-{{ if eq .chezmoi.os "linux" }}
+{{- if eq .chezmoi.os "linux" }}
 # Ignore on Linux
 ## macOS folders
 Library/
@@ -8,9 +8,9 @@ AppData/
 AppData/**
 Documents/
 Documents/**
-{{ end }}
+{{- end }}
 
-{{ if eq .chezmoi.os "darwin" }}
+{{- if eq .chezmoi.os "darwin" }}
 # Ignore on macOS
 ## Linux Tabby settings
 .config/tabby/
@@ -22,9 +22,9 @@ AppData/
 AppData/**
 Documents/
 Documents/**
-{{ end }}
+{{- end }}
 
-{{ if eq .chezmoi.os "windows" }}
+{{- if eq .chezmoi.os "windows" }}
 # Ignore on Windows
 ## Linux Tabby settings
 .config/tabby/
@@ -39,4 +39,15 @@ Documents/**
 ## macOS folders
 Library/
 Library/**
-{{ end }}
+{{- end }}
+
+{{- if $isServer true }}
+# Ignore on servers
+## Tabby
+.config/tabby/
+.config/tabby/**
+AppData/Local/clink
+AppData/Local/clink/**
+AppData/Roaming/tabby
+AppData/Roaming/tabby/**
+{{- end }}
