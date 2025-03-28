@@ -12,7 +12,7 @@ data:
     gitEmail: {{ $gitEmail }}
     modKey: {{ if eq .chezmoi.os "darwin" }}⌘{{ else }}Ctrl{{ end }}
 {{- end }}
-    isServer {{ $isServer }}
+    isServer: {{ $isServer }}
 diff:
     exclude:
         - scripts
