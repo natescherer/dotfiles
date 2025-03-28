@@ -41,7 +41,7 @@ Library/
 Library/**
 {{- end }}
 
-{{- if .isServer true }}
+{{- if eq .isServer true }}
 # Ignore on servers
 ## Tabby
 .config/tabby/
