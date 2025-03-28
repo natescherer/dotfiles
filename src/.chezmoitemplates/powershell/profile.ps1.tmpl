@@ -1,19 +1,19 @@
 # Fix weird formatting in Get-ChildItem Output
 $PSStyle.Formatting.CustomTableHeaderLabel = $PSStyle.Formatting.TableHeader
-{{- if eq .chezmoi.os "windows" }}
 
-# Override HOME, as it breaks devcontainer mounts if it is set on Windows
-$env:HOME = ""
+{{- if eq .chezmoi.os "windows" }}
+# Unset $env:HOME (if it exists), as it breaks devcontainer mounts if it is set on Windows
+if (Test-Path env:HOME) {Remove-Item env:HOME}
+{{- end }}
 
 # Add ~\bin to PATH
 $env:PATH = "$env:PATH;{{ .chezmoi.homeDir }}\bin"
-{{- end }}
+
 {{- if findExecutable "brew" (list "/opt/homebrew/bin" "/home/linuxbrew/.linuxbrew/bin") }}
 # Set PATH, MANPATH, etc., for Homebrew.
 $({{ findExecutable "brew" (list "/opt/homebrew/bin" "/home/linuxbrew/.linuxbrew/bin") }} shellenv) | Invoke-Expression
 
 {{- end }}
-
 # Import aliases
 . $(Join-Path $PSScriptRoot aliases.ps1)
 
