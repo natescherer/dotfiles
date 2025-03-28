@@ -1,4 +1,5 @@
 {{ $gitEmail := promptString "Git email (Enter for default):" "376408+natescherer@users.noreply.github.com" -}}
+{{ $editor := promptString "Console editor (Enter for default):" "nano" -}}
 
 {{- if eq .chezmoi.os "windows" }}
 cd:
@@ -8,4 +9,4 @@ data:
     gitEmail: {{ $gitEmail }}
     modKey: {{ if eq .chezmoi.os "darwin" }}⌘{{ else }}Ctrl{{ end }}
 edit:
-    command: nano
+    command: {{ $editor }}
