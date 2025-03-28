@@ -1,8 +1,3 @@
-function Invoke-BothChezmoiApplys {
-    & chezmoi apply
-    & chezmoi apply --source $( Join-Path "{{ .cloudDrivePath }}" "Config" "chezmoi")
-}
-
 function Invoke-GetChildItemWithOptions {
     Get-ChildItem -Force 
 }
@@ -13,5 +8,4 @@ function mkdircd([string]$Path) {
 }
 
 Set-Alias -Name k -Value kubectl
-Set-Alias -Name chezmoi-apply-both -Value Invoke-BothChezmoiApplys
 Set-Alias -Name ll -Value Invoke-GetChildItemWithOptions

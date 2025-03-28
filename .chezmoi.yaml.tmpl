@@ -1,4 +1,3 @@
-{{ $cloudDrivePath := promptString "Enter path to the root of your cloud drive (use forward slashes for windows)" -}}
 {{ $email := promptString "Override Default Git Email (Optional)" -}}
 
 {{- if eq .chezmoi.os "windows" }}
@@ -8,6 +7,5 @@ cd:
 data:
     gitEmail: {{ if $email }}{{ $email }}{{ else }}376408+natescherer@users.noreply.github.com{{ end }}
     modKey: {{ if eq .chezmoi.os "darwin" }}⌘{{ else }}Ctrl{{ end }}
-    cloudDrivePath: {{ $cloudDrivePath }}
 edit:
     command: nano
