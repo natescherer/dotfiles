@@ -1,8 +1,8 @@
-{{ $gitEmail := promptString "Git email:" "376408+natescherer@users.noreply.github.com" -}}
+{{ $gitEmail := promptString "Git email (Enter for default):" "376408+natescherer@users.noreply.github.com" -}}
 
 {{- if eq .chezmoi.os "windows" }}
 cd:
-    command: {{ lookPath "pwsh.exe" }}
+    command: pwsh
 {{- end }}
 data:
     gitEmail: {{ $gitEmail }}
