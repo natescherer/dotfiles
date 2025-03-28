@@ -5,32 +5,45 @@
 LICENSE
 README.md
 
-# Ignore on Windows only
-{{ if eq .chezmoi.os "windows" }}
-## macOS/Linux PowerShell settings
-.config/powershell/
-.config/powershell/**
-{{ end }}
-
-# Ignore on Linux and Windows
-{{ if ne .chezmoi.os "darwin" }}
-## macOS-only folders
+{{ if ne .chezmoi.os "linux" }}
+# Ignore on Linux
+## macOS folders
 Library/
 Library/**
-{{ end }}
-
-# Ignore on macOS and Windows
-{{ if ne .chezmoi.os "linux" }}
-## Linux Tabby settings
-.config/tabby/
-.config/tabby/**
-{{ end }}
-
-# Ignore on Linux and macOS
-{{ if ne .chezmoi.os "windows" }}
-# Windows-only folders
+## Windows folders
 AppData/
 AppData/**
 Documents/
 Documents/**
+{{ end }}
+
+{{ if eq .chezmoi.os "darwin" }}
+# Ignore on macOS
+## Linux Tabby settings
+.config/tabby/
+.config/tabby/**
+## Linux scripts
+.chezmoiscripts/linux/**
+## Windows folders
+AppData/
+AppData/**
+Documents/
+Documents/**
+{{ end }}
+
+# Ignore on Windows
+{{ if eq .chezmoi.os "windows" }}
+## Linux Tabby settings
+.config/tabby/
+.config/tabby/**
+## Linux/macOS PowerShell settings
+.config/powershell/
+.config/powershell/**
+## Linux/macOS scripts
+.chezmoiscripts/linux/**
+.chezmoiscripts/linux_and_macos/**
+.chezmoiscripts/macos/**
+## macOS folders
+Library/
+Library/**
 {{ end }}
