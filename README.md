@@ -8,7 +8,6 @@ Currently managed:
 
 - [Bash](https://www.gnu.org/software/bash/)
 - [Git](https://git-scm.com/)
-- [Karabiner-Elements](https://karabiner-elements.pqrs.org/)
 - [Nano](https://www.nano-editor.org/)
 - [Tabby](https://tabby.sh/)
 - [PowerShell](https://github.com/PowerShell/PowerShell)
