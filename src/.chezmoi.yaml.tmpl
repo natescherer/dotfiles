@@ -1,4 +1,4 @@
-{{ $isServer := promptBool "Is this a server? (Enter for default)" "no" -}}
+{{ $isServer := promptBool "Is this a server? (Enter for default)" false -}}
 {{ $editor := promptString "Console editor (Enter for default):" "nano" -}}
 
 {{- if eq .chezmoi.os "windows" }}
