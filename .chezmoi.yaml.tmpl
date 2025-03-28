@@ -14,6 +14,8 @@ diff:
         - scripts
 edit:
     command: {{ $editor }}
+{{- if eq .chezmoi.os "windows" }}
 interpreters:
     ps1:
-        command: "pwsh"
+        command: pwsh
+{{- end }}
