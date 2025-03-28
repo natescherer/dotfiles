@@ -11,3 +11,6 @@ data:
     modKey: {{ if eq .chezmoi.os "darwin" }}⌘{{ else }}Ctrl{{ end }}
 edit:
     command: {{ $editor }}
+interpreters:
+    ps1:
+        command = "pwsh"
