@@ -5,7 +5,7 @@
 LICENSE
 README.md
 
-{{ if ne .chezmoi.os "linux" }}
+{{ if eq .chezmoi.os "linux" }}
 # Ignore on Linux
 ## macOS folders
 Library/
@@ -31,8 +31,8 @@ Documents/
 Documents/**
 {{ end }}
 
-# Ignore on Windows
 {{ if eq .chezmoi.os "windows" }}
+# Ignore on Windows
 ## Linux Tabby settings
 .config/tabby/
 .config/tabby/**
