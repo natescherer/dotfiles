@@ -66,10 +66,10 @@ if ! shopt -oq posix; then
     . /etc/bash_completion
   fi
 fi
-{{- if eq .chezmoi.os "linux" }}
 
-# Enable Homebrew
-eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+{{- if findExecutable "brew" (list "/opt/homebrew/bin" "/home/linuxbrew/.linuxbrew/bin") }}
+# Activate Homebrew
+eval "$({{ findExecutable "brew" (list "/opt/homebrew/bin" "/home/linuxbrew/.linuxbrew/bin") }} shellenv)"
 {{- end }}
 
 # Set default editor

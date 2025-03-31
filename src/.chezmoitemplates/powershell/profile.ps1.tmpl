@@ -10,9 +10,15 @@ if (Test-Path env:HOME) {Remove-Item env:HOME}
 $env:PATH = "$env:PATH;{{ .chezmoi.homeDir }}\bin"
 
 {{- if findExecutable "brew" (list "/opt/homebrew/bin" "/home/linuxbrew/.linuxbrew/bin") }}
-# Set PATH, MANPATH, etc., for Homebrew.
+# Activate Homebrew
 $({{ findExecutable "brew" (list "/opt/homebrew/bin" "/home/linuxbrew/.linuxbrew/bin") }} shellenv) | Invoke-Expression
 
+# Add completions for Homebrew
+if ((Get-Command brew) -and (Test-Path ($completions = "$(brew --prefix)/share/pwsh/completions"))) {
+  foreach ($f in Get-ChildItem -Path $completions -File) {
+    . $f
+  }
+}
 {{- end }}
 # Import aliases
 . $(Join-Path $PSScriptRoot aliases.ps1)

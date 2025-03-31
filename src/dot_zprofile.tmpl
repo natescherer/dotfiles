@@ -1,5 +1,5 @@
 {{- if findExecutable "brew" (list "/opt/homebrew/bin" "/home/linuxbrew/.linuxbrew/bin") }}
-# Set PATH, MANPATH, etc., for Homebrew.
+# Activate Homebrew
 eval "$({{ findExecutable "brew" (list "/opt/homebrew/bin" "/home/linuxbrew/.linuxbrew/bin") }} shellenv)"
 
 # Shell completion for Homebrew
