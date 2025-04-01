@@ -9,6 +9,12 @@ truncate_to_repo = false
 format = "[$ssh_symbol$hostname]($style) "
 ssh_only = false
 
+[kubernetes]
+disabled = false
+format = '[$symbol$context \($namespace\) $symbol]($style)'
+detect_env_vars = ["KUBIE_ACTIVE"]
+style = 'blue bold'
+
 [shell]
 disabled = false
 bash_indicator = "bash"
