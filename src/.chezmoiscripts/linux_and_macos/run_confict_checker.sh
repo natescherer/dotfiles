@@ -2,9 +2,9 @@
 
 badpaths = (
     "~/.gitconfig"
-    "~/.nanorc",
-    "~/.zlogin",
-    "~/.zprofile",
+    "~/.nanorc"
+    "~/.zlogin"
+    "~/.zprofile"
     "~/.zshrc"
 )
 
