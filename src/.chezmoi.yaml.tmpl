@@ -22,6 +22,12 @@ data:
 {{- end }}
     skipBash: {{ $skipBash }}
 diff:
+{{- if eq $isServer false }}
+    command: "code"
+    args:
+    - "--wait"
+    - "--diff"
+{{- end }}
     exclude:
         - scripts
 edit:
