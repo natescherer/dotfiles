@@ -3,11 +3,15 @@
 ## macOS folders
 Library/
 Library/**
+## macOS scripts
+.chezmoiscripts/macos/**
 ## Windows folders
 AppData/
 AppData/**
 Documents/
 Documents/**
+## Windows scripts
+.chezmoiscripts/windows/**
 {{- end }}
 
 {{- if eq .chezmoi.os "darwin" }}
@@ -22,6 +26,8 @@ AppData/
 AppData/**
 Documents/
 Documents/**
+## Windows scripts
+.chezmoiscripts/windows/**
 {{- end }}
 
 {{- if eq .chezmoi.os "windows" }}
@@ -50,4 +56,7 @@ AppData/Local/clink
 AppData/Local/clink/**
 AppData/Roaming/tabby
 AppData/Roaming/tabby/**
+## Git
+.config/git/
+.config/git/**
 {{- end }}

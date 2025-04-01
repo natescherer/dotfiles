@@ -15,4 +15,4 @@ set functioncolor cyan
 set numbercolor italic,mint
 
 # Syntax Highlighting
-include "~/.nano/*.nanorc"
+include "~/.config/nano/includes/*.nanorc"

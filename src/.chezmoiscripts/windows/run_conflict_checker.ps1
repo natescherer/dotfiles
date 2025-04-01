@@ -1,7 +1,9 @@
 $BadPaths = @(
     "$PSHOME\Profile.ps1",
     "$PSHOME\Microsoft.PowerShell_profile.ps1",
-    "$HOME\Documents\PowerShell\Microsoft.PowerShell_profile.ps1"
+    "$HOME\Documents\PowerShell\Microsoft.PowerShell_profile.ps1",
+    "$env:USERPROFILE\.gitconfig",
+    "$env:USERPROFILE\.nanorc"
 )
 
 foreach ($Path in $BadPaths) {
