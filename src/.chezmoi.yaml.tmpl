@@ -1,10 +1,9 @@
-{{ $isServer := promptBoolOnce . "isServer" "Is this a server? (Enter for default)" false -}}
-{{ $editor := promptStringOnce "Set preferred console editor (Enter for default):" "nano" -}}
+{{- $isServer := promptBoolOnce . "isServer" "Is this a server? (Enter for default)" false }}
+{{- $editor := promptStringOnce "Set preferred console editor (Enter for default):" "nano" }}
 
+{{- $skipBash := false }}
 {{- if lookPath "zsh" }}
-{{- $skipBash := promptBool "Zsh installation detected. Should bash config files be skipped?" false }}
-{{- else }}
-{{ $skipBash := false }}
+{{- $skipBash = promptBool "Zsh installation detected. Should bash config files be skipped?" false }}
 {{- end }}
 
 {{- if eq .chezmoi.os "windows" }}
@@ -21,7 +20,7 @@ data:
 {{- if eq $isServer false }}
     modKey: {{ if eq .chezmoi.os "darwin" }}⌘{{ else }}Ctrl{{ end }}
 {{- end }}
-    skipBash: {{$skipBash }}
+    skipBash: {{ $skipBash }}
 diff:
     exclude:
         - scripts
