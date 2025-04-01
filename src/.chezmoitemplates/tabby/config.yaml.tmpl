@@ -378,6 +378,7 @@ terminal:
   profile: {{ if eq .chezmoi.os "windows" }}local:custom:PowerShell:b59d02af-3e95-444a-8529-17194704a78b{{ else if (or (eq .chezmoi.os "darwin") (lookPath "zsh")) }}local:custom:zsh:81897cbb-ec4c-4e44-94c3-0b05294169ed{{ else }}local:custom:bash:0a2e816d-0b5c-49ea-90c8-48f1cea43a75{{ end }}
   showRecentProfiles: 0
   showTabProfileIcon: true
+  hideTabIndex: true
   hideTabOptionsButton: true
   rightClick: menu
   fontSize: 12
@@ -388,7 +389,9 @@ terminal:
 ssh: {}
 clickableLinks: {}
 accessibility: {}
-appearance: {}
+appearance:
+  flexTabs: true
+  dockAlwaysOnTop: false
 hacks: {}
 providerBlacklist: []
 commandBlacklist: []
