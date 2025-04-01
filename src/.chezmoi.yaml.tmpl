@@ -1,5 +1,5 @@
 {{- $isServer := promptBoolOnce . "isServer" "Is this a server? (Enter for default)" false }}
-{{- $editor := promptStringOnce "Set preferred console editor (Enter for default):" "nano" }}
+{{- $editor := promptStringOnce . "editor" "Set preferred console editor (Enter for default):" "nano" }}
 
 {{- $skipBash := false }}
 {{- if lookPath "zsh" }}
