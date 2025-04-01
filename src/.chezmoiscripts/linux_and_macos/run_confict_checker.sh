@@ -1,6 +1,6 @@
 #! /bin/bash
 
-badpaths = (
+declare -a badpaths=(
     "~/.gitconfig"
     "~/.nanorc"
     "~/.zlogin"
