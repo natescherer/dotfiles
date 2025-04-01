@@ -60,3 +60,10 @@ AppData/Roaming/tabby/**
 .config/git/
 .config/git/**
 {{- end }}
+
+{{- if eq .skipBash true }}
+# Ignore bash files
+.bash_aliases
+.bash_profile
+.bashrc
+{{- end }}
