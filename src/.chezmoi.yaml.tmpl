@@ -1,5 +1,5 @@
-{{ $isServer := promptBool "Is this a server? (Enter for default)" false -}}
-{{ $editor := promptString "Set preferred console editor (Enter for default):" "nano" -}}
+{{ $isServer := promptBoolOnce . "isServer" "Is this a server? (Enter for default)" false -}}
+{{ $editor := promptStringOnce "Set preferred console editor (Enter for default):" "nano" -}}
 
 {{- if lookPath "zsh" }}
 {{ $skipBash := promptBool "Zsh installation detected. Should bash config files be skipped?" false -}}
@@ -12,11 +12,12 @@ cd:
 data:
     editor: {{ $editor }}
 {{- if eq $isServer false }}
-{{- $gitEmail := promptString "Git email (Enter for default):" "376408+natescherer@users.noreply.github.com" }}
+{{- $gitEmail := promptStringOnce . "gitEmail" "Git email (Enter for default):" "376408+natescherer@users.noreply.github.com" }}
     gitEmail: {{ $gitEmail }}
     modKey: {{ if eq .chezmoi.os "darwin" }}⌘{{ else }}Ctrl{{ end }}
 {{- end }}
     isServer: {{ $isServer }}
+    skipBash: {{or  $skipBash false}}
 diff:
     exclude:
         - scripts
