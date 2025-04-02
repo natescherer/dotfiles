@@ -32,6 +32,10 @@ Documents/**
 
 {{- if eq .chezmoi.os "windows" }}
 # Ignore on Windows
+## Bash settings
+.bash_aliases
+.bash_profile
+.bashrc
 ## Linux Tabby settings
 .config/tabby/
 .config/tabby/**
@@ -45,6 +49,10 @@ Documents/**
 ## macOS folders
 Library/
 Library/**
+## Zsh settings
+.zshenv
+.config/zsh
+.config/zsh/**
 {{- end }}
 
 {{- if eq .isServer true }}
