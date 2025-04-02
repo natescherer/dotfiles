@@ -6,11 +6,14 @@ else
 	compinit -C;
 fi;
 
-{{- if findExecutable "brew" (list "/opt/homebrew/bin" "/home/linuxbrew/.linuxbrew/bin") }}
+{{ if findExecutable "brew" (list "/opt/homebrew/bin" "/home/linuxbrew/.linuxbrew/bin") -}}
 # Activate Homebrew
 eval "$({{ findExecutable "brew" (list "/opt/homebrew/bin" "/home/linuxbrew/.linuxbrew/bin") }} shellenv)"
 
-{{- end }}
+{{ end -}}
+# Set colors
+[[ -z "$LS_COLORS" ]] || zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
+
 # Allows title to be set from within the shell
 DISABLE_AUTO_TITLE="true"
 
