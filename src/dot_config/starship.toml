@@ -13,6 +13,7 @@ ssh_only = false
 disabled = false
 format = '[$symbol$context \($namespace\) $symbol]($style)'
 detect_env_vars = ["KUBIE_ACTIVE"]
+detect_files = ["kubectx"]
 style = 'blue bold'
 
 [shell]
