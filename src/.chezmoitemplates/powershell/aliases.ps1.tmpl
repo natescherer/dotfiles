@@ -7,5 +7,9 @@ function mkdircd([string]$Path) {
     cd $Path
 }
 
+function rmrf([string]$Target) {
+    Remove-Item -Recurse -Force $Target
+}
+
 Set-Alias -Name k -Value kubectl
 Set-Alias -Name ll -Value Invoke-GetChildItemWithOptions

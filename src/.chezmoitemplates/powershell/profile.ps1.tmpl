@@ -25,10 +25,10 @@ if ((Get-Command brew) -and (Test-Path ($completions = "$(brew --prefix)/share/p
 
 {{ end -}}
 # Import environment variables
-. $(Join-Path $PSScriptRoot env.ps1)
+. $(Join-Path $PSScriptRoot "env.ps1")
 
 # Import aliases
-. $(Join-Path $PSScriptRoot aliases.ps1)
+. $(Join-Path $PSScriptRoot "aliases.ps1")
 
 {{ if lookPath "vfox" -}}
 # Activate Vfox
