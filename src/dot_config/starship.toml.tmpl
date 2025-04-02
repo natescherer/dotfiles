@@ -12,8 +12,11 @@ ssh_only = false
 [kubernetes]
 disabled = false
 format = '[$symbol$context \($namespace\) $symbol]($style)'
-detect_env_vars = ["KUBIE_ACTIVE"]
+{{- if eq .chezmoi.os "windows" }}
 detect_files = ["kubectx"]
+{{- else }}
+detect_env_vars = ["KUBIE_ACTIVE"]
+{{- end }}
 style = 'blue bold'
 
 [shell]
