@@ -24,3 +24,6 @@ export DOCKER_CONFIG=$XDG_CONFIG_HOME/docker
 
 # Remap npm data from root of ~
 export NPM_CONFIG_USERCONFIG=$XDG_CONFIG_HOME/npm/npmrc
+
+# Stop less from making .lesshst in ~
+export LESSHISTFILE=-
