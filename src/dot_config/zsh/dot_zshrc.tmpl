@@ -5,17 +5,24 @@ if [[ -n ${ZDOTDIR}/.zcompdump(#qN.mh+24) ]]; then
 else
 	compinit -C;
 fi;
+zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'
 
-{{ if findExecutable "brew" (list "/opt/homebrew/bin" "/home/linuxbrew/.linuxbrew/bin") -}}
-# Activate Homebrew
-eval "$({{ findExecutable "brew" (list "/opt/homebrew/bin" "/home/linuxbrew/.linuxbrew/bin") }} shellenv)"
-
-{{ end -}}
 # Set colors
 [[ -z "$LS_COLORS" ]] || zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
 
-# Allows title to be set from within the shell
-DISABLE_AUTO_TITLE="true"
+# Set history options
+HISTFILE=${ZDOTDIR}/.zsh_history
+SAVEHIST=9000
+HISTSIZE=9999                   # set HISTSIZE > SAVEHIST
+setopt EXTENDED_HISTORY         # include timestamp
+setopt HIST_BEEP                # beep if attempting to access a history entry which isn’t there
+setopt HIST_EXPIRE_DUPS_FIRST   # trim dupes first if history is full
+setopt HIST_FIND_NO_DUPS        # do not display previously found command
+setopt HIST_IGNORE_DUPS         # do not save duplicate of prior command
+setopt HIST_IGNORE_SPACE        # do not save if line starts with space
+setopt HIST_NO_STORE            # do not save history commands
+setopt HIST_REDUCE_BLANKS       # strip superfluous blanks
+setopt INC_APPEND_HISTORY       # don't wait for shell to exit to save history lines
 
 # Set default editor
 export EDITOR="{{ .editor }}"
@@ -23,8 +30,15 @@ export EDITOR="{{ .editor }}"
 # Source aliases
 source ${ZDOTDIR}/.zsh_aliases
 
+{{ if findExecutable "brew" (list "/opt/homebrew/bin" "/home/linuxbrew/.linuxbrew/bin") -}}
+# Activate Homebrew
+eval "$({{ findExecutable "brew" (list "/opt/homebrew/bin" "/home/linuxbrew/.linuxbrew/bin") }} shellenv)"
+
+{{ end -}}
+{{ if findPath "vfox" }}
 # Activate vfox
 eval "$(vfox activate zsh)"
 
+{{ end -}}
 # Activate Starship
 eval "$(starship init zsh)"
