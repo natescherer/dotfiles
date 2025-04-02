@@ -6,9 +6,7 @@ else
 	compinit -C;
 fi;
 zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'
-
-# Set colors
-[[ -z "$LS_COLORS" ]] || zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
+zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
 
 # Set history options
 HISTFILE=${ZDOTDIR}/.zsh_history
