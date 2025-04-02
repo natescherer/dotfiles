@@ -4,15 +4,15 @@ $Host.UI.RawUI.WindowTitle = "PowerShell"
 # Fix weird formatting in Get-ChildItem Output
 $PSStyle.Formatting.CustomTableHeaderLabel = $PSStyle.Formatting.TableHeader
 
-{{- if eq .chezmoi.os "windows" }}
+{{ if eq .chezmoi.os "windows" -}}
 # Unset $env:HOME (if it exists), as it breaks devcontainer mounts if it is set on Windows
 if (Test-Path env:HOME) {Remove-Item env:HOME}
-{{- end }}
 
+{{ end -}}
 # Add ~\bin to PATH
 $env:PATH = "$env:PATH;{{ .chezmoi.homeDir }}\bin"
 
-{{- if findExecutable "brew" (list "/opt/homebrew/bin" "/home/linuxbrew/.linuxbrew/bin") }}
+{{ if findExecutable "brew" (list "/opt/homebrew/bin" "/home/linuxbrew/.linuxbrew/bin") -}}
 # Activate Homebrew
 $({{ findExecutable "brew" (list "/opt/homebrew/bin" "/home/linuxbrew/.linuxbrew/bin") }} shellenv) | Invoke-Expression
 
@@ -22,12 +22,18 @@ if ((Get-Command brew) -and (Test-Path ($completions = "$(brew --prefix)/share/p
     . $f
   }
 }
-{{- end }}
+
+{{ end -}}
+# Import environment variables
+. $(Join-Path $PSScriptRoot env.ps1)
+
 # Import aliases
 . $(Join-Path $PSScriptRoot aliases.ps1)
 
+{{ if lookPath "vfox" -}}
 # Activate Vfox
 Invoke-Expression "$(vfox activate pwsh)"
 
+{{ end -}}
 # Activate Starship
 Invoke-Expression (&starship init powershell)
