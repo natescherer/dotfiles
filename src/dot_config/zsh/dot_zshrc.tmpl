@@ -1,17 +1,16 @@
-# Set up Oh My Zsh
-export ZSH="$HOME/.oh-my-zsh"
+# Set up shell completions
+autoload -Uz compinit 
+if [[ -n ${ZDOTDIR}/.zcompdump(#qN.mh+24) ]]; then
+	compinit;
+else
+	compinit -C;
+fi;
 
-# Disable Oh My Zsh theme in favor of starship
-ZSH_THEME=""
+{{- if findExecutable "brew" (list "/opt/homebrew/bin" "/home/linuxbrew/.linuxbrew/bin") }}
+# Activate Homebrew
+eval "$({{ findExecutable "brew" (list "/opt/homebrew/bin" "/home/linuxbrew/.linuxbrew/bin") }} shellenv)"
 
-# Enable automatic Oh My Zsh updates
-zstyle ':omz:update' mode auto
-
-# Set up Oh My Zsh plugins
-plugins=(git per-directory-history)
-
-source $ZSH/oh-my-zsh.sh
-
+{{- end }}
 # Allows title to be set from within the shell
 DISABLE_AUTO_TITLE="true"
 

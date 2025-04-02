@@ -1,13 +1,3 @@
-{{- if findExecutable "brew" (list "/opt/homebrew/bin" "/home/linuxbrew/.linuxbrew/bin") }}
-# Activate Homebrew
-eval "$({{ findExecutable "brew" (list "/opt/homebrew/bin" "/home/linuxbrew/.linuxbrew/bin") }} shellenv)"
-
-# Shell completion for Homebrew
-autoload -Uz compinit
-compinit
-
-{{- end }}
-
 # Add ~/.local/bin to PATH for pipx
 export PATH="$PATH:{{ .chezmoi.homeDir }}/.local/bin"
 
