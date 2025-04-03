@@ -11,10 +11,5 @@ function rmrf([string]$Target) {
     Remove-Item -Recurse -Force $Target
 }
 
-function Invoke-Kuberlr {
-    kuberlr kubectl $Args
-}
-
-Set-Alias -Name kubectl -Value Invoke-Kuberlr
 Set-Alias -Name k -Value kubectl
 Set-Alias -Name ll -Value Invoke-GetChildItemWithOptions

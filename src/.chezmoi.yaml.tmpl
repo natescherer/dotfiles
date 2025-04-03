@@ -6,6 +6,11 @@
 {{- $skipBash = promptBool "Zsh installation detected. Should bash config files be skipped?" false }}
 {{- end }}
 
+{{- $macOSAdminRights := false }}
+{{- if eq .chezmoi.os "darwin" }}
+{{- $macOSAdminRights = promptBool "Does your regular user account have admin rights on this Mac?" false }}
+{{- end }}
+
 {{- if eq .chezmoi.os "windows" }}
 cd:
     command: pwsh
@@ -17,6 +22,7 @@ data:
     gitEmail: {{ $gitEmail }}
 {{- end }}
     isServer: {{ $isServer }}
+    macOSAdminRights: {{ $macOSAdminRights }}
 {{- if eq $isServer false }}
     modKey: {{ if eq .chezmoi.os "darwin" }}⌘{{ else }}Ctrl{{ end }}
 {{- end }}

@@ -1,28 +1,4 @@
-{{- if eq .chezmoi.os "linux" }}
-# Add dotnet tools to the path for git-credential-manager
-export PATH="$PATH:{{.chezmoi.homeDir}}/.dotnet/tools"
-{{- end }}
+{{- template "bash_and_zsh/env.sh.tmpl" . }}
 
-# Add ~/.local/bin to PATH for pipx
-export PATH="$PATH:{{ .chezmoi.homeDir }}/.local/bin"
-
-# Add ~/bin to PATH for manually downloaded binaries
-export PATH="$PATH:{{ .chezmoi.homeDir }}/bin"
-
-{{- if findExecutable "brew" (list "/opt/homebrew/bin" "/home/linuxbrew/.linuxbrew/bin") }}
-# Set up completion for Homebrew
-if type brew &>/dev/null
-then
-  HOMEBREW_PREFIX="$(brew --prefix)"
-  if [[ -r "${HOMEBREW_PREFIX}/etc/profile.d/bash_completion.sh" ]]
-  then
-    source "${HOMEBREW_PREFIX}/etc/profile.d/bash_completion.sh"
-  else
-    for COMPLETION in "${HOMEBREW_PREFIX}/etc/bash_completion.d/"*
-    do
-      [[ -r "${COMPLETION}" ]] && source "${COMPLETION}"
-    done
-  fi
-fi
-
-{{- end }}
+# Source .bashrc to ensure login and non-login shells behave the same
+[[ -r ~/.bashrc ]] && . ~/.bashrc

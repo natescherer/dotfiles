@@ -1,8 +1,1 @@
-mkdircd () {
-  mkdir $1
-  cd $1
-}
-
-alias k=kubectl
-alias ls="ls -G"
-alias ll="ls -alhF"
+{{- template "bash_and_zsh/aliases.sh.tmpl" . -}}

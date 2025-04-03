@@ -67,16 +67,5 @@ if ! shopt -oq posix; then
   fi
 fi
 
-{{- if findExecutable "brew" (list "/opt/homebrew/bin" "/home/linuxbrew/.linuxbrew/bin") }}
-# Activate Homebrew
-eval "$({{ findExecutable "brew" (list "/opt/homebrew/bin" "/home/linuxbrew/.linuxbrew/bin") }} shellenv)"
-{{- end }}
-
-# Set default editor
-export EDITOR="{{ .editor }}"
-
-# Enable vfox
-eval "$(vfox activate bash)"
-
 # Enable Starship
 eval "$(starship init bash)"

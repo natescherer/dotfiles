@@ -21,9 +21,6 @@ setopt HIST_NO_STORE            # do not save history commands
 setopt HIST_REDUCE_BLANKS       # strip superfluous blanks
 setopt INC_APPEND_HISTORY       # don't wait for shell to exit to save history lines
 
-# Set default editor
-export EDITOR="{{ .editor }}"
-
 # Source aliases
 source ${ZDOTDIR}/.zsh_aliases
 
@@ -39,3 +36,6 @@ eval "$(vfox activate zsh)"
 {{ end -}}
 # Activate Starship
 eval "$(starship init zsh)"
+
+# Activate zsh-syntax-highlighting
+source /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
