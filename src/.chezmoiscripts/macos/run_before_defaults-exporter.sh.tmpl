@@ -3,5 +3,8 @@
 domains=({{ .macos_defaults_apps | quoteList | join " " }})
 
 for domain in "${domains[@]}"; do
+    if [ ! -f ~/.config/defaults ]; then
+        mkdir ~/.config/defaults
+    fi
     defaults read $domain > ~/.config/defaults/$domain
 done
