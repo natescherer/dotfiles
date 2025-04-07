@@ -1,6 +1,6 @@
 #! /bin/zsh
 
-domains=({{ macos_defaults_apps }})
+domains=({{ .macos_defaults_apps }})
 
 for domain in "${domains[@]}"; do
     defaults import $domain ~/.config/defaults/$domain
