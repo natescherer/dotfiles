@@ -2,10 +2,11 @@
 
 domains=({{ .macos_defaults_apps | quoteList | join " " }})
 
+if [ ! -d ~/.config/defaults ]; then
+    mkdir ~/.config/defaults
+fi
+
 for domain in "${domains[@]}"; do
-    if [ ! -f ~/.config/defaults ]; then
-        mkdir ~/.config/defaults
-    fi
     set +e
     defaults read $domain > ~/.config/defaults/$domain > /dev/null
     set -e
