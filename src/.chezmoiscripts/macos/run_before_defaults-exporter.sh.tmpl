@@ -1,6 +1,6 @@
 #! /bin/zsh
 
-domains=({{ .macos_defaults_apps }})
+domains=({{ .macos_defaults_apps | quoteList }})
 
 for domain in "${domains[@]}"; do
     defaults read $domain > ~/.config/defaults/$domain
