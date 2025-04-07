@@ -6,5 +6,7 @@ for domain in "${domains[@]}"; do
     if [ ! -f ~/.config/defaults ]; then
         mkdir ~/.config/defaults
     fi
-    defaults read $domain > ~/.config/defaults/$domain
+    set +e
+    defaults read $domain > ~/.config/defaults/$domain > /dev/null
+    set -e
 done
