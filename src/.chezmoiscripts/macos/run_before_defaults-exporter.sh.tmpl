@@ -8,6 +8,6 @@ fi
 
 for domain in "${domains[@]}"; do
     set +e
-    defaults export $domain > ~/.config/defaults/$domain.plist
+    defaults export $domain ~/.config/defaults/$domain.plist
     set -e
 done
