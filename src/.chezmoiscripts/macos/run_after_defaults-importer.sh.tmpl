@@ -1,6 +1,6 @@
 #! /bin/zsh
 
-domains=({{ .macos_defaults_apps | quoteList | replace "[" "" | replace "]" "" }})
+domains=({{ .macos_defaults_apps | quoteList | join " " }})
 
 for domain in "${domains[@]}"; do
     defaults import $domain ~/.config/defaults/$domain
