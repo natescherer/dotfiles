@@ -1,6 +1,7 @@
 {
   "files.associations": {
-    "**.tmpl": "go-template"
+    "**.tmpl": "go-template",
+    "dot_config/defaults/**": "plaintext"
   },
   "git.branchProtection": []
 }

@@ -1,0 +1,7 @@
+#! /bin/zsh
+
+domains=({{ macos_defaults_apps }})
+
+for domain in "${domains[@]}"; do
+    defaults read $domain > ~/.config/defaults/$domain
+done

@@ -1,0 +1,29 @@
+{
+    "NSStatusItem Preferred Position ClockerStatusItem" = 78;
+    "NSWindow Frame FloatingWindowAutoSave" = "1938 747 300 348 0 0 3440 1415 ";
+    ShowUpcomingEventView = NO;
+    "com.abhishek.defaultsLastUpdateKey" = "2025-04-02 15:43:35 +0000";
+    "com.abhishek.menubarCompactMode" = 0;
+    "com.abhishek.showOnboardingFlow" = 1;
+    defaultPreferences =     (
+        {length = 689, bytes = 0x62706c69 73743030 d4010203 04050607 ... 00000000 00000219 },
+        {length = 683, bytes = 0x62706c69 73743030 d4010203 04050607 ... 00000000 00000213 },
+        {length = 652, bytes = 0x62706c69 73743030 d4010203 04050607 ... 00000000 000001f4 },
+        {length = 671, bytes = 0x62706c69 73743030 d4010203 04050607 ... 00000000 00000205 },
+        {length = 697, bytes = 0x62706c69 73743030 d4010203 04050607 ... 00000000 0000021f }
+    );
+    defaultTheme = 2;
+    displayAppAsForegroundApp = 0;
+    iVersionAppStoreID = 1056643111;
+    iVersionLastChecked = "2025-04-02 15:43:40 +0000";
+    iVersionLastVersionChecked = "23.01";
+    install = "2023-02-07 19:32:51 +0000";
+    installHomeIndicatorObject = 1;
+    is24HourFormatSelected = 0;
+    "last-prompt" = "2024-07-31 19:38:51 +0000";
+    "last-version" = 113;
+    relativeDate = 2;
+    showDate = 0;
+    showDay = 1;
+    startAtLogin = 1;
+}
