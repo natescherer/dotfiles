@@ -1,3 +1,4 @@
+{{- $isPersonal := promptBoolOnce . "isServer" "Is this a a personal computer? (Enter for default)" true }}
 {{- $isServer := promptBoolOnce . "isServer" "Is this a server? (Enter for default)" false }}
 {{- $editor := promptStringOnce . "editor" "Set preferred console editor (Enter for default):" "nano" }}
 
@@ -21,6 +22,7 @@ data:
 {{- $gitEmail := promptStringOnce . "gitEmail" "Git email (Enter for default):" "376408+natescherer@users.noreply.github.com" }}
     gitEmail: {{ $gitEmail }}
 {{- end }}
+    isPersonal: {{ $isPersonal }}
     isServer: {{ $isServer }}
     macOSAdminRights: {{ $macOSAdminRights }}
 {{- if eq $isServer false }}
