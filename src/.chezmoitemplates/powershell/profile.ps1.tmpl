@@ -30,9 +30,9 @@ if ((Get-Command brew) -and (Test-Path ($completions = "$(brew --prefix)/share/p
 # Import aliases
 . $(Join-Path $PSScriptRoot "aliases.ps1")
 
-{{ if lookPath "vfox" -}}
-# Activate Vfox
-Invoke-Expression "$(vfox activate pwsh)"
+{{ if lookPath "mise" -}}
+# Activate mise
+mise activate pwsh | Out-String | Invoke-Expression
 
 {{ end -}}
 # Activate Starship

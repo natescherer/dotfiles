@@ -29,9 +29,9 @@ source ${ZDOTDIR}/.zsh_aliases
 eval "$({{ findExecutable "brew" (list "/opt/homebrew/bin" "/home/linuxbrew/.linuxbrew/bin") }} shellenv)"
 
 {{ end -}}
-{{ if lookPath "vfox" -}}
-# Activate vfox
-eval "$(vfox activate zsh)"
+{{ if lookPath "mise" -}}
+# Activate mise
+eval "$(mise activate zsh)"
 
 {{ end -}}
 # Activate Starship
