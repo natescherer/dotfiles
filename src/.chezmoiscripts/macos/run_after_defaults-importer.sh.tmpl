@@ -4,5 +4,5 @@ domains=({{ .macos_defaults_apps | quoteList | join " " }})
 
 for domain in "${domains[@]}"; do
     defaults import $domain ~/.config/defaults/$domain.plist
-    echo "Importing ~/.config/defaults/$domain.plist via 'defaults import'..."
+    echo "\033[1;34mImporting ~/.config/defaults/$domain.plist via 'defaults import'...\033[0m"
 done
