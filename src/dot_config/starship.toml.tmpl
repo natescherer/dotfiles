@@ -108,7 +108,7 @@ style = "bg:color_orange fg:color_fg0"
 [kubernetes]
 symbol = "☸ "
 disabled = false
-format = "[ $symbol $context 󱎃 $namespace ]($style)"
+format = "[ $symbol$context 󱎃 $namespace ]($style)"
 {{- if eq .chezmoi.os "windows" }}
 detect_files = ["kubectx"]
 {{- else }}
