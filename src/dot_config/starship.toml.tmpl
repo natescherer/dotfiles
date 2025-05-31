@@ -3,17 +3,16 @@ format = """
 $os\
 $hostname\
 $container\
-[](bg:color_purple fg:color_orange)\
 $username\
-[](bg:color_yellow fg:color_purple)\
+[](bg:color_purple fg:color_orange)\
 $directory\
+[](bg:color_yellow fg:color_purple)\
+$mise\
 [](fg:color_yellow bg:color_aqua)\
 $git_branch\
 $git_commit\
 $git_status\
 [](fg:color_aqua bg:color_blue)\
-$kubernetes\
-[](fg:color_blue bg:color_bg3)\
 $dotnet\
 $golang\
 $lua\
@@ -22,7 +21,8 @@ $nodejs\
 $python\
 $rust\
 $swift\
-$mise\
+[](fg:color_blue bg:color_bg3)\
+$kubernetes\
 [](fg:color_bg3 bg:color_bg1)\
 $cmd_duration\
 $status\
@@ -61,23 +61,23 @@ format = "[  $path ]($style)[$read_only]($read_only_style)"
 truncation_length = 0
 truncate_to_repo = false
 read_only = "󰌾 "
-read_only_style = "bg:color_yellow fg:red"
-style = "bg:color_yellow fg:color_fg0"
+read_only_style = "bg:color_purple fg:red"
+style = "bg:color_purple fg:color_fg0"
 
 [dotnet]
 symbol = " "
-style = "fg:color_fg0 bg:color_bg3"
+style = "bg:color_blue fg:color_fg0"
 format = "[ $symbol$version 󰓾 $tfm ]($style)"
 
 [git_branch]
 format = "[ $symbol$branch(:$remote_branch) ]($style)"
-style = "fg:color_fg0 bg:color_aqua"
+style = "bg:color_aqua fg:color_fg0"
 symbol = " "
 
 [git_commit]
 tag_symbol = ""
 format = "[  $hash$tag ]($style)"
-style = "fg:color_fg0 bg:color_aqua"
+style = "bg:color_aqua fg:color_fg0"
 
 [git_status]
 conflicted = " conflicted "
@@ -91,12 +91,12 @@ staged = " staged "
 renamed = " renamed "
 deleted = " deleted "
 typechanged = " type changed "
-style = "fg:color_fg0 bg:color_aqua"
+style = "bg:color_aqua fg:color_fg0"
 format = "[$all_status$ahead_behind]($style)"
 
 [golang]
 symbol = " "
-style = "fg:color_fg0 bg:color_bg3"
+style = "bg:color_blue fg:color_fg0"
 format = "[ $symbol$version ]($style)"
 
 [hostname]
@@ -114,11 +114,11 @@ detect_files = ["kubectx"]
 {{- else }}
 detect_env_vars = ["KUBIE_ACTIVE"]
 {{- end }}
-style = "fg:color_fg0 bg:color_blue"
+style = "bg:color_bg3 fg:color_fg0"
 
 [lua]
 symbol = " "
-style = "fg:color_fg0 bg:color_bg3"
+style = "bg:color_blue fg:color_fg0"
 format = "[ $symbol$version ]($style)"
 
 [memory_usage]
@@ -128,16 +128,16 @@ symbol = "󰍛 "
 disabled = false
 symbol = "󰭼 "
 format = "[ $symbol$health ]($style)"
-style = "fg:color_fg0 bg:color_bg3"
+style = "bg:color_yellow fg:color_fg0"
 
 [nix_shell]
 symbol = " "
-style = "fg:color_fg0 bg:color_bg3"
+style = "bg:color_blue fg:color_fg0"
 format ="[$symbol$state( \\($name\\)) ]($style)"
 
 [nodejs]
 symbol = " "
-style = "fg:color_fg0 bg:color_bg3"
+style = "bg:color_blue fg:color_fg0"
 format = "[ $symbol$version ]($style)"
 
 [os]
@@ -165,17 +165,17 @@ symbol = "󰏗 "
 
 [python]
 symbol = " "
-style = "fg:color_fg0 bg:color_bg3"
+style = "bg:color_blue fg:color_fg0"
 format = "[ $symbol$version ]($style)"
 
 [rust]
 symbol = "󱘗 "
-style = "fg:color_fg0 bg:color_bg3"
+style = "bg:color_blue fg:color_fg0"
 format = "[ $symbol$version ]($style)"
 
 [swift]
 symbol = " "
-style = "fg:color_fg0 bg:color_bg3"
+style = "bg:color_blue fg:color_fg0"
 format = "[ $symbol$version ]($style)"
 
 [shell]
@@ -194,6 +194,6 @@ style = "bg:color_bg1 fg:color_red"
 
 [username]
 show_always = true
-format = "[  $user ]($style)"
-style_user = "bg:color_purple fg:color_fg0"
-style_root = "bg:color_purple fg:color_red"
+format = "[ $user ]($style)"
+style_user = "bg:color_orange fg:color_fg0"
+style_root = "bg:color_orange fg:color_red"
