@@ -53,7 +53,7 @@ Currently managed:
     - [src/.chezmoitemplates/powershell/profile.ps1.tmpl](src/.chezmoitemplates/powershell/profile.ps1.tmpl) via [src/Documents/PowerShell/profile.ps1.tmpl](src/Documents/PowerShell/profile.ps1.tmpl) (🪟) and [src/dot_config/powershell/profile.ps1.tmpl](src/dot_config/powershell/profile.ps1.tmpl) (🐧 🍎)
 - [Sheldon](https://github.com/rossmacarthur/sheldon) 🐧 🍎
   - Config Files
-    - [src/dot_config/sheldon/plugins.toml]
+    - [src/dot_config/sheldon/plugins.toml](src/dot_config/sheldon/plugins.toml)
 - [Starship](https://starship.rs) 🐧 🍎 🪟
   - Config Files
     - [src/dot_config/starship.toml.tmpl](src/dot_config/starship.toml.tmpl)
