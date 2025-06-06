@@ -1,10 +1,10 @@
 format = """
-[](fg:bright-purple)\
+[](fg:red)\
 $os\
 $hostname\
 $container\
 $username\
-[](bg:bright-black fg:bright-purple)\
+[](bg:bright-black fg:red)\
 $directory\
 [](bg:blue fg:bright-black)\
 $kubernetes\
@@ -40,14 +40,14 @@ show_notifications = true
 [container]
 symbol = "⬢"
 format = "[ $symbol $name ]($style)"
-style = "bg:color_purple fg:black"
+style = "bg:red fg:black"
 
 [directory]
 format = "[  $path ]($style)[$read_only]($read_only_style)"
 truncation_length = 0
 truncate_to_repo = false
 read_only = "󰌾 "
-read_only_style = "bg:color_bg3 fg:red"
+read_only_style = "bg:bright-black fg:red"
 style = "bg:bright-black fg:black"
 
 [dotnet]
@@ -89,7 +89,7 @@ format = "[ $symbol$version ]($style)"
 format = "[$ssh_symbol$hostname ]($style)"
 ssh_only = false
 ssh_symbol = " "
-style = "bg:bright-purple fg:black"
+style = "bg:red fg:black"
 
 [kubernetes]
 symbol = "☸ "
@@ -99,6 +99,7 @@ format = "[ $symbol$context 󱎃 $namespace ]($style)"
 detect_files = ["kubectx"]
 {{- else }}
 detect_env_vars = ["KUBIE_ACTIVE"]
+{{- end }}
 style = "bg:blue fg:black"
 
 [lua]
@@ -113,7 +114,7 @@ symbol = "󰍛 "
 disabled = false
 symbol = "󰭼 "
 format = "[ $symbol$health ]($style)"
-style = "bg:color_yellow fg:black"
+style = "bg:yellow fg:black"
 
 [nix_shell]
 symbol = " "
@@ -128,7 +129,7 @@ format = "[ $symbol$version ]($style)"
 [os]
 disabled = false
 format = "[ $symbol]($style)"
-style = "bg:bright-purple fg:black"
+style = "bg:red fg:black"
 
 [os.symbols]
 Alpine = " "
@@ -175,10 +176,10 @@ style = "white"
 disabled = false
 symbol = ""
 format = "[ $symbol $status ]($style)"
-style = "bg:cyan fg:color_red"
+style = "bg:cyan fg:red"
 
 [username]
 show_always = true
 format = "[ $user ]($style)"
-style_user = "bg:bright-purple fg:black"
-style_root = "bg:purple fg:red"
+style_user = "bg:red fg:black"
+style_root = "bg:red fg:bright-red"
