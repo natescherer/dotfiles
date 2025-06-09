@@ -1,4 +1,4 @@
 k9s:
-  screenDumpDir: {{ .chezmoi.homeDir }}{{ .chezmoi.pathSeparator }}Downloads
+  screenDumpDir: {{ joinPath .chezmoi.homeDir "Downloads" }}
   ui:
     enableMouse: true
