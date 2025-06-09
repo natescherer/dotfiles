@@ -31,6 +31,9 @@ Currently managed:
 - [Git](https://git-scm.com/) 🐧 🍎 🪟
   - Config Files
     - [src/dot_config/git/config.tmpl](src/dot_config/git/config.tmpl)
+- [k9s](https://github.com/derailed/k9s) 🐧 🍎 🪟
+  - Config Files
+    - [src/dot_config/k9s/config.yaml.tmpl](src/dot_config/git/config.yaml.tmpl)
 - [Nano](https://www.nano-editor.org/) 🐧 🍎 🪟
   - Config Files
     - [src/.chezmoitemplates/bash_and_zsh/env.sh.tmpl](src/.chezmoitemplates/bash_and_zsh/env.sh.tmpl) via [src/dot_zshenv](src/dot_zshenv) and [src/dot_bash_profile.tmpl](src/dot_bash_profile.tmpl)
