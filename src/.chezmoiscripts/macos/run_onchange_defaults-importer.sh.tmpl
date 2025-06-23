@@ -1,6 +1,6 @@
 #! /bin/zsh
 
-echo {{ glob ".scriptdata/macos_defaults"}}
+echo "{{ glob ".scriptdata/macos_defaults"}}"
 
 {{ range .macos_defaults_apps -}}
 {{ $plist_file := print . ".plist" }}
