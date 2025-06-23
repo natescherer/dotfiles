@@ -1,0 +1,9 @@
+#! /bin/zsh
+
+{{ range .macos_defaults_apps -}}
+# The below ensures that this file will change when the hashed files change, triggering this script to execute
+## {{ . }} hash: {{ joinPath ".scriptdata/macos_defaults/" . ".plist" | include  | sha256sum }}
+defaults import $domain {{ joinPath .chezmoi.sourceDir ".scriptdata/macos_defaults/" . ".plist" }}
+echo "\033[1;34mImporting ~/.config/defaults/{{ . }}.plist via 'defaults import'...\033[0m"
+
+{{ end -}}
