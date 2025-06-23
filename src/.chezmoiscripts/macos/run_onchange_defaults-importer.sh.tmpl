@@ -6,7 +6,7 @@ echo "sourceDirPlistPath: {{ $sourceDirPlistPath }}"
 {{ $plistFile := base $sourceDirPlistPath -}}
 echo "plistFile: {{ $plistFile }}"
 {{ $appDomain := trimSuffix ".plist" $plistFile -}}
-echp "appDomain: {{ $appDomain }}"
+echo "appDomain: {{ $appDomain }}"
 # The below ensures that this file will change when the hashed files change, triggering this script to execute
 ## {{ $plistFile }} hash: {{ joinPath ".scriptdata/macos_defaults/" $plistFile | include | sha256sum }}
 # defaults import {{ . }} {{ $sourceDirPlistPath }}
