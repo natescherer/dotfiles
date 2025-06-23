@@ -1,5 +1,7 @@
 #! /bin/bash
 
+echo "running dep checker"
+
 dependencies=("starship" "gls" "sheldon" "mise")
 
 for dep in $dependencies; do
