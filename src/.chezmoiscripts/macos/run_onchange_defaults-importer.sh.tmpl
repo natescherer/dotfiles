@@ -1,6 +1,6 @@
 #! /bin/zsh
 
-echo "{{ joinPath .chezmoi.sourceDir ".scriptdata/macos_defaults/**" | glob }}"
+echo "{{ joinPath .chezmoi.sourceDir ".scriptdata/macos_defaults/**.plist" | glob }}"
 
 {{ range .macos_defaults_apps -}}
 {{ $plist_file := print . ".plist" }}
