@@ -1,5 +1,10 @@
 #! /bin/zsh
 
+# The below ensures that this file will change when the hashed files change, triggering this script to execute
+{{ range .macos_defaults_apps -}}
+## {{ . }} hash: {{ include ".scriptdata/macos_defaults/{{ . }}" | sha256sum }}
+{{ end -}}
+
 domains=({{ .macos_defaults_apps | quoteList | join " " }})
 
 for domain in "${domains[@]}"; do
