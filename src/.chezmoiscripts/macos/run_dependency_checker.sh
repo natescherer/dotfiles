@@ -5,9 +5,9 @@ echo "running dep checker"
 dependencies=("starship" "gls" "sheldon" "mise")
 
 for dep in $dependencies; do
-    echo "bp1"
+    echo "#dep bp1"
     if ! command -v $dep >/dev/null 2>&1; then
-        echo "$dep bp2"
+        echo "bp2"
         if [ "$dep" = "glss" ]; then
             echo "bp3"
             echo "Warning: 'gls' is not found. Install it via 'brew install coretools'"
