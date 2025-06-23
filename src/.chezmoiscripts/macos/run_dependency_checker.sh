@@ -4,7 +4,7 @@ echo "running dep checker"
 
 dependencies=("starship" "gls" "sheldon" "mise")
 
-for dep in $dependencies; do
+for dep in "${dependencies[@]}"; do
     echo "$dep bp1"
     if ! command -v $dep >/dev/null 2>&1; then
         echo "bp2"
