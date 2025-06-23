@@ -11,7 +11,7 @@ Currently managed:
 
 - [Azure CLI](https://learn.microsoft.com/en-us/cli/azure/) 🐧 🍎 🪟
   - Config Files
-    - [src/.chezmoitemplates/bash_and_zsh/env.sh.tmpl](src/.chezmoitemplates/bash_and_zsh/env.sh.tmpl) via [src/dot_zshenv](src/dot_zshenv) and [src/dot_bash_profile.tmpl](src/dot_bash_profile.tmpl)
+    - [src/.chezmoitemplates/bash_and_zsh/env.sh.tmpl](src/.chezmoitemplates/bash_and_zsh/env.sh.tmpl) via [src/dot_zshenv](src/dot_zshenv.tmpl) and [src/dot_bash_profile.tmpl](src/dot_bash_profile.tmpl)
     - [src/.chezmoitemplates/powershell/env.ps1.tmpl](src/.chezmoitemplates/powershell/env.ps1.tmpl) via [src/Documents/PowerShell/env.ps1.tmpl](src/Documents/PowerShell/env.ps1.tmpl) (🪟) and [src/dot_config/powershell/env.ps1.tmpl](src/dot_config/powershell/env.ps1.tmpl) (🐧 🍎)
 - [Bash](https://www.gnu.org/software/bash/) 🐧 🍎
   - Notes
@@ -26,24 +26,24 @@ Currently managed:
     - Configuration is managed by script [src/.chezmoiscripts/macos/run_after_defaults-importer.sh.tmpl](src/.chezmoiscripts/macos/run_after_defaults-importer.sh.tmpl)
     - files under dot_config/defaults should not be edited directly, they are exports from the macOS defaults system managed by the scripts mentioned above
   - Config Files
-    - [srv/.chezmoidata/macos_defaults.yaml](srv/.chezmoidata/macos_defaults.yaml)
-    - [src/dot_config/defaults/com.abhishek.Clocker](src/dot_config/defaults/com.abhishek.Clocker)
+    - [src/.chezmoidata/macos_defaults.yaml](src/.chezmoidata/macos_defaults.yaml)
+    - [src/dot_config/defaults/com.abhishek.Clocker](src/dot_config/defaults/com.abhishek.Clocker.plist)
 - [Git](https://git-scm.com/) 🐧 🍎 🪟
   - Config Files
     - [src/dot_config/git/config.tmpl](src/dot_config/git/config.tmpl)
 - [k9s](https://github.com/derailed/k9s) 🐧 🍎 🪟
   - Config Files
-    - [src/dot_config/k9s/config.yaml.tmpl](src/dot_config/git/config.yaml.tmpl)
+    - [src/dot_config/k9s/config.tmpl](src/dot_config/git/config.tmpl)
 - [Nano](https://www.nano-editor.org/) 🐧 🍎 🪟
   - Config Files
-    - [src/.chezmoitemplates/bash_and_zsh/env.sh.tmpl](src/.chezmoitemplates/bash_and_zsh/env.sh.tmpl) via [src/dot_zshenv](src/dot_zshenv) and [src/dot_bash_profile.tmpl](src/dot_bash_profile.tmpl)
+    - [src/.chezmoitemplates/bash_and_zsh/env.sh.tmpl](src/.chezmoitemplates/bash_and_zsh/env.sh.tmpl) via [src/dot_zshenv](src/dot_zshenv.tmpl) and [src/dot_bash_profile.tmpl](src/dot_bash_profile.tmpl)
     - [src/.chezmoitemplates/powershell/env.ps1.tmpl](src/.chezmoitemplates/powershell/env.ps1.tmpl) via [src/Documents/PowerShell/env.ps1.tmpl](src/Documents/PowerShell/env.ps1.tmpl) (🪟) and [src/dot_config/powershell/env.ps1.tmpl](src/dot_config/powershell/env.ps1.tmpl) (🐧 🍎)
     - [src/dot_config/nano/nanorc](src/dot_config/nano/nanorc)
     - Contents of [src/dot_config/nano/includes](src/dot_config/nano/includes)
       - This is a redistribution of [https://github.com/scopatz/nanorc](https://github.com/scopatz/nanorc)
 - [npm](https://www.npmjs.com/) 🐧 🍎 🪟
   - Config Files
-    - [src/.chezmoitemplates/bash_and_zsh/env_vars.sh.tmpl](src/.chezmoitemplates/bash_and_zsh/env_vars.sh.tmpl) via [src/dot_zshenv](src/dot_zshenv) and [src/dot_bash_profile.tmpl](src/dot_bash_profile.tmpl)
+    - [src/.chezmoitemplates/bash_and_zsh/env_vars.sh.tmpl](src/.chezmoitemplates/bash_and_zsh/env.sh.tmpl) via [src/dot_zshenv](src/dot_zshenv.tmpl) and [src/dot_bash_profile.tmpl](src/dot_bash_profile.tmpl)
     - [src/.chezmoitemplates/powershell/env.ps1.tmpl](src/.chezmoitemplates/powershell/env.ps1.tmpl) via [src/Documents/PowerShell/env.ps1.tmpl](src/Documents/PowerShell/env.ps1.tmpl) (🪟) and [src/dot_config/powershell/env.ps1.tmpl](src/dot_config/powershell/env.ps1.tmpl) (🐧 🍎)
     - [src/dot_config/npm/npmrc](src/dot_config/npm/npmrc)
 - [Tabby](https://tabby.sh/) 🐧 🍎 🪟
@@ -63,16 +63,37 @@ Currently managed:
 - [Stats](https://github.com/exelban/stats) 🍎
   - Notes
     - Configuration is managed by script [src/.chezmoiscripts/macos/run_after_defaults-importer.sh.tmpl](src/.chezmoiscripts/macos/run_after_defaults-importer.sh.tmpl)
-    - files under dot_config/defaults should not be edited directly, they are exports from the macOS defaults system managed by the scripts mentioned above
-  - Config Files
-    - [srv/.chezmoidata/macos_defaults.yaml](srv/.chezmoidata/macos_defaults.yaml)
-  - Config Files
-    - [src/dot_config/defaults/eu.exelban.Stats](src/dot_config/defaults/eu.exelban.Stats)
+    - [src/.chezmoidata/macos_defaults.yaml](src/.chezmoidata/macos_defaults.yaml)
+    - [src/dot_config/defaults/eu.exelban.Stats.plist)](src/dot_config/defaults/eu.exelban.Stats.plist)
 - [Zsh](https://www.zsh.org/) 🐧 🍎
   - Config Files
     - [src/.chezmoitemplates/bash_and_zsh/aliases.sh.tmpl](src/.chezmoitemplates/bash_and_zsh/aliases.sh.tmpl) via [src/dot_config/zsh/dot_zsh_aliases.tmpl](src/dot_config/zsh/dot_zsh_aliases.tmpl)
     - [src/dot_config/zsh/dot_zshrc.tmpl](src/dot_config/zsh/dot_zshrc.tmpl)
     - [src/dot_zshenv.tmpl](src/dot_zshenv.tmpl)
+
+## Prerequisites
+
+### macOS
+
+```shell
+brew install starship
+brew install coretools
+brew install sheldon
+brew install mise
+```
+
+### Linux
+
+Install the following tools however is appropriate for your distro:
+
+- Starship
+- Sheldon
+
+### Windows
+
+```PowerShell
+winget install
+```
 
 ## Activating
 
