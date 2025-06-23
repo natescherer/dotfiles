@@ -1,5 +1,7 @@
 #! /bin/zsh
 
+echo {{ glob ".scriptdata/macos_defaults"}}
+
 {{ range .macos_defaults_apps -}}
 {{ $plist_file := print . ".plist" }}
 # The below ensures that this file will change when the hashed files change, triggering this script to execute
