@@ -4,8 +4,7 @@
 {{ $plist_file := print . ".plist" }}
 # The below ensures that this file will change when the hashed files change, triggering this script to execute
 ## {{ $plist_file }} hash: {{ joinPath ".scriptdata/macos_defaults/" $plist_file | include  | sha256sum }}
-echo "Accessing {{ joinPath $.chezmoi.sourceDir ".scriptdata/macos_defaults/" $plist_file }}"
-defaults import $domain {{ joinPath $.chezmoi.sourceDir ".scriptdata/macos_defaults/" $plist_file }}
+defaults import {{ . }} {{ joinPath $.chezmoi.sourceDir ".scriptdata/macos_defaults/" $plist_file }}
 echo "\033[1;34mImporting ~/.config/defaults/{{ $plist_file }} via 'defaults import'...\033[0m"
 
 {{ end -}}
