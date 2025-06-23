@@ -1,11 +1,15 @@
 #! /bin/zsh
 
-{{ $glob_output := joinPath .chezmoi.sourceDir ".scriptdata/macos_defaults/**.plist" | glob }}
-{{ range $glob_output -}}
-{{ $plist_file := print . ".plist" -}}
+{{ $globOutput := joinPath .chezmoi.sourceDir ".scriptdata/macos_defaults/**.plist" | glob }}
+{{ range $sourceDirPlistPath := $globOutput -}}
+echo "sourceDirPlistPath: {{ $sourceDirPlistPath }}"
+{{ $plistFile := base $sourceDirPlistPath -}}
+echo "plistFile: {{ $plistFile }}"
+{{ $appDomain := trimSuffix ".plist" $plistFile -}}
+echp "appDomain: {{ $appDomain }}"
 # The below ensures that this file will change when the hashed files change, triggering this script to execute
-## {{ $plist_file }} hash: {{ joinPath ".scriptdata/macos_defaults/" $plist_file | include  | sha256sum }}
-defaults import {{ . }} {{ joinPath $.chezmoi.sourceDir ".scriptdata/macos_defaults/" $plist_file }}
-echo "\033[1;34mImporting ~/.config/defaults/{{ $plist_file }} via 'defaults import'...\033[0m"
+## {{ $plistFile }} hash: {{ joinPath ".scriptdata/macos_defaults/" $plistFile | include | sha256sum }}
+# defaults import {{ . }} {{ $sourceDirPlistPath }}
+# echo "\033[1;34mImporting ~/.config/defaults/{{ $plistFile }} via 'defaults import'...\033[0m"
 
 {{ end -}}
