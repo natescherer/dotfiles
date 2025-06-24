@@ -1,5 +1,6 @@
 # Ignore files that are processed by scripts
-.scriptdata
+.scriptdata/
+.scriptdata/**
 
 {{- if eq .chezmoi.os "linux" }}
 # Ignore on Linux
@@ -7,6 +8,7 @@
 Library/
 Library/**
 ## macOS scripts
+.chezmoiscripts/macos/
 .chezmoiscripts/macos/**
 ## Windows folders
 AppData/
@@ -14,12 +16,13 @@ AppData/**
 Documents/
 Documents/**
 ## Windows scripts
+.chezmoiscripts/windows/
 .chezmoiscripts/windows/**
 {{- end }}
 
 {{- if eq .chezmoi.os "darwin" }}
 # Ignore on macOS
-## Linux Tabby settings
+## Linux Tabby
 .config/tabby/
 .config/tabby/**
 ## Linux scripts
@@ -30,24 +33,28 @@ AppData/**
 Documents/
 Documents/**
 ## Windows scripts
+.chezmoiscripts/windows/
 .chezmoiscripts/windows/**
 {{- end }}
 
 {{- if eq .chezmoi.os "windows" }}
 # Ignore on Windows
-## Bash settings
+## Bash
 .bash_aliases
 .bash_profile
 .bashrc
-## Linux Tabby settings
+## Linux Tabb
 .config/tabby/
 .config/tabby/**
-## Linux/macOS PowerShell settings
+## Linux/macOS PowerShell
 .config/powershell/
 .config/powershell/**
 ## Linux/macOS scripts
+.chezmoiscripts/linux/
 .chezmoiscripts/linux/**
+.chezmoiscripts/linux_and_macos/
 .chezmoiscripts/linux_and_macos/**
+.chezmoiscripts/macos/
 .chezmoiscripts/macos/**
 ## macOS folders
 Library/
@@ -55,12 +62,12 @@ Library/**
 ## Sheldon config
 .config/sheldon/
 .config/sheldon/**
-## SSH config
+## SSH
 .ssh/
 .ssh/**
-## Zsh settings
+## Zsh
 .zshenv
-.config/zsh
+.config/zsh/
 .config/zsh/**
 {{- end }}
 
@@ -69,15 +76,22 @@ Library/**
 ## Tabby
 .config/tabby/
 .config/tabby/**
-AppData/Roaming/tabby
+AppData/Roaming/tabby/
 AppData/Roaming/tabby/**
 ## Git
 .config/git/
 .config/git/**
+## NPM
+.config/npm/
+.config/npm/**
+## Sheldon
+.config/sheldon/
+.config/sheldon/**
+## Starship
 {{- end }}
 
 {{- if eq .skipBash true }}
-# Ignore bash files
+# Bash
 .bash_aliases
 .bash_profile
 .bashrc
