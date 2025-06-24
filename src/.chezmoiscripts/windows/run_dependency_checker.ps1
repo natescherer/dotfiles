@@ -1,7 +1,6 @@
 $Dependencies = @(
     @{Name = "starship"; WinGetId = "Starship.Starship"},
-    @{Name = "mise"; WinGetId = "jdx.mise" },
-    @{Name = "fakedep"; WinGetId = "fake.dep" }
+    @{Name = "mise"; WinGetId = "jdx.mise" }
 )
 
 foreach ($Dep in $Dependencies) {
