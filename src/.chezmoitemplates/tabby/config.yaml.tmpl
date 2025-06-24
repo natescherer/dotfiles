@@ -354,6 +354,29 @@ terminal:
         - '#F200F6' # Bright Magenta
         - '#51CEFF' # Bright Cyan
         - '#ffffff' # Bright White
+    - name: Catppuccin Mocha
+      foreground: '#cdd6f4'
+      background: '#1e1e2e'
+      selection: null
+      cursor: '#f5e0dc'
+      cursorAccent: null
+      colors:
+        - '#45475a'
+        - '#f38ba8'
+        - '#a6e3a1'
+        - '#f9e2af'
+        - '#89b4fa'
+        - '#f5c2e7'
+        - '#94e2d5'
+        - '#bac2de'
+        - '#585b70'
+        - '#f38ba8'
+        - '#a6e3a1'
+        - '#f9e2af'
+        - '#89b4fa'
+        - '#f5c2e7'
+        - '#94e2d5'
+        - '#a6adc8'
   profile: {{ if eq .chezmoi.os "windows" }}local:custom:PowerShell:b59d02af-3e95-444a-8529-17194704a78b{{ else if (or (eq .chezmoi.os "darwin") (lookPath "zsh")) }}local:custom:zsh:81897cbb-ec4c-4e44-94c3-0b05294169ed{{ else }}local:custom:bash:0a2e816d-0b5c-49ea-90c8-48f1cea43a75{{ end }}
   showRecentProfiles: 0
   showTabProfileIcon: true
