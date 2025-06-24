@@ -76,6 +76,7 @@ Currently managed:
 ### macOS
 
 ```shell
+brew install chezmoi
 brew install starship
 brew install coretools
 brew install sheldon
@@ -92,6 +93,7 @@ Install the following tools however is appropriate for your distro:
 ### Windows
 
 ```PowerShell
+winget install twpayne.chezmoi
 winget install Starship.Starship
 winget install jdx.mise
 ```
