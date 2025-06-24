@@ -1,4 +1,4 @@
-{{- $isPersonal := promptBoolOnce . "isServer" "Is this a a personal computer? (Enter for default)" true }}
+{{- $isPersonal := promptBoolOnce . "isPersonal" "Is this a a personal computer? (Enter for default)" true }}
 {{- $isServer := promptBoolOnce . "isServer" "Is this a server? (Enter for default)" false }}
 {{- $editor := promptStringOnce . "editor" "Set preferred console editor (Enter for default):" "nano" }}
 
