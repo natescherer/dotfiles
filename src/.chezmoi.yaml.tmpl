@@ -4,12 +4,12 @@
 
 {{- $skipBash := false }}
 {{- if lookPath "zsh" }}
-{{- $skipBash = promptBool "Zsh installation detected. Should bash config files be skipped?" false }}
+{{- $skipBash = promptBoolOnce "Zsh installation detected. Should bash config files be skipped?" false }}
 {{- end }}
 
 {{- $macOSAdminRights := false }}
 {{- if eq .chezmoi.os "darwin" }}
-{{- $macOSAdminRights = promptBool "Does your regular user account have admin rights on this Mac?" false }}
+{{- $macOSAdminRights = promptBoolOnce "Does your regular user account have admin rights on this Mac?" false }}
 {{- end }}
 
 {{- if eq .chezmoi.os "windows" }}
