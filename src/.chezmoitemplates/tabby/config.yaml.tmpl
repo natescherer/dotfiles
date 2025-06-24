@@ -333,7 +333,7 @@ terminal:
   copyAsHTML: false
   copyOnSelect: false
   customColorSchemes:
-    - name: Scuzzy
+    - name: Scuzz Classic
       foreground: '#F9F9F9'
       background: '#121212'
       cursor: '#e416b7'
@@ -354,29 +354,27 @@ terminal:
         - '#F200F6' # Bright Magenta
         - '#51CEFF' # Bright Cyan
         - '#ffffff' # Bright White
-    - name: Catppuccin Mocha
-      foreground: '#cdd6f4'
-      background: '#1e1e2e'
-      selection: null
-      cursor: '#f5e0dc'
-      cursorAccent: null
+    - name: NeoScuzz
+      foreground: '#dbe4ea'
+      background: '#06090c'
+      cursor: '#a9bcca'
       colors:
-        - '#45475a'
-        - '#f38ba8'
-        - '#a6e3a1'
-        - '#f9e2af'
-        - '#89b4fa'
-        - '#f5c2e7'
-        - '#94e2d5'
-        - '#bac2de'
-        - '#585b70'
-        - '#f38ba8'
-        - '#a6e3a1'
-        - '#f9e2af'
-        - '#89b4fa'
-        - '#f5c2e7'
-        - '#94e2d5'
-        - '#a6adc8'
+        - '#1b242a' # Black
+        - '#e96e5d' # Red
+        - '#4fb069' # Green
+        - '#b6952e' # Yellow
+        - '#7793ef' # Blue
+        - '#da62d2' # Magenta
+        - '#32aabc' # Cyan
+        - '#a9bcca' # White
+        - '#435461' # Bright Black
+        - '#f38e7e' # Bright Red
+        - '#5cc979' # Bright Green
+        - '#cfaa38' # Bright Yellow
+        - '#93abf4' # Bright Blue
+        - '#e587dd' # Bright Magenta
+        - '#3fc1d6' # Bright Cyan
+        - '#edf1f5' # Bright White
   profile: {{ if eq .chezmoi.os "windows" }}local:custom:PowerShell:b59d02af-3e95-444a-8529-17194704a78b{{ else if (or (eq .chezmoi.os "darwin") (lookPath "zsh")) }}local:custom:zsh:81897cbb-ec4c-4e44-94c3-0b05294169ed{{ else }}local:custom:bash:0a2e816d-0b5c-49ea-90c8-48f1cea43a75{{ end }}
   showRecentProfiles: 0
   showTabProfileIcon: true
