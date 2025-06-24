@@ -19,6 +19,8 @@ cd:
 data:
     editor: {{ $editor }}
 {{- if eq $isServer false }}
+{{- $gitName := promptStringOnce . "gitName" "Git name (Enter for default):" "Nate Scherer" }}
+    gitName: {{ $gitName }}
 {{- $gitEmail := promptStringOnce . "gitEmail" "Git email (Enter for default):" "376408+natescherer@users.noreply.github.com" }}
     gitEmail: {{ $gitEmail }}
 {{- end }}

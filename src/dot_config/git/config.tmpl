@@ -2,7 +2,7 @@
     autocrlf = false
     editor = {{ .editor }}
 [user]
-    name = Nate Scherer
+    name = {{ .gitName }}
     email = {{ .gitEmail }}
 {{- if or (eq .chezmoi.os "darwin") (eq .chezmoi.os "linux") }}
 [credential]
