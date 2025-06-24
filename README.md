@@ -92,7 +92,8 @@ Install the following tools however is appropriate for your distro:
 ### Windows
 
 ```PowerShell
-winget install
+winget install Starship.Starship
+winget install jdx.mise
 ```
 
 ## Activating
