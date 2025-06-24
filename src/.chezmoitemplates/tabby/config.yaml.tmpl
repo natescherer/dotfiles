@@ -388,6 +388,7 @@ terminal:
   rightClick: menu
   fontSize: 12
 {{- if eq .chezmoi.os "windows" }}
+{{/* This makes font weights closer to the standard on Linux and macos */}}
   fontWeightBold: 400
   fontWeight: 200
 {{- end }}
@@ -396,7 +397,10 @@ clickableLinks: {}
 accessibility: {}
 appearance:
   dockAlwaysOnTop: false
+{{- if eq .chezmoi.os "darwin" }}
+{{/* This isn't support on Linux and looks bad on Windows as of Tabby 1.0.223 */}}
   vibrancy: true
+{{- end }}
 hacks: {}
 providerBlacklist: []
 commandBlacklist: []
