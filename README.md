@@ -23,7 +23,7 @@ Currently managed:
     - [src/dot_bashrc](src/dot_bashrc)
 - [Clocker](https://abhishekbanthia.com/clocker/) 🍎
   - Notes
-    - Configuration is managed by script [src/.chezmoiscripts/macos/run_after_defaults-importer.sh.tmpl](src/.chezmoiscripts/macos/run_after_defaults-importer.sh.tmpl)
+    - Configuration is managed by script [src/.chezmoiscripts/macos/run_onchange_defaults-importer.sh.tmpl](src/.chezmoiscripts/macos/run_onchange_defaults-importer.sh.tmpl)
     - files under dot_config/defaults should not be edited directly, they are exports from the macOS defaults system managed by the scripts mentioned above
   - Config Files
     - [src/.chezmoidata/macos_defaults.yaml](src/.chezmoidata/macos_defaults.yaml)
@@ -62,7 +62,7 @@ Currently managed:
     - [src/dot_config/starship.toml.tmpl](src/dot_config/starship.toml.tmpl)
 - [Stats](https://github.com/exelban/stats) 🍎
   - Notes
-    - Configuration is managed by script [src/.chezmoiscripts/macos/run_after_defaults-importer.sh.tmpl](src/.chezmoiscripts/macos/run_after_defaults-importer.sh.tmpl)
+    - Configuration is managed by script [src/.chezmoiscripts/macos/run_onchange_defaults-importer.sh.tmpl](src/.chezmoiscripts/macos/run_onchange_defaults-importer.sh.tmpl)
     - [src/.chezmoidata/macos_defaults.yaml](src/.chezmoidata/macos_defaults.yaml)
     - [src/dot_config/defaults/eu.exelban.Stats.plist)](src/dot_config/defaults/eu.exelban.Stats.plist)
 - [Zsh](https://www.zsh.org/) 🐧 🍎

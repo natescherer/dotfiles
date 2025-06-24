@@ -1,5 +1,7 @@
 #! /bin/zsh
 
+# This script will automatically import any *.plist files located in .scriptdata/macos_defaults
+
 {{ $globOutput := joinPath .chezmoi.sourceDir ".scriptdata/macos_defaults/**.plist" | glob }}
 {{ range $sourceDirPlistPath := $globOutput -}}
 {{ $plistFile := base $sourceDirPlistPath -}}
