@@ -1,20 +1,20 @@
 format = """
-[](fg:red)\
+[](fg:section1)\
 $os\
 $hostname\
 $container\
 $username\
-[](bg:bright-black fg:red)\
+[](bg:section2 fg:section1)\
 $directory\
-[](bg:blue fg:bright-black)\
-$kubernetes\
-[](bg:bright-red fg:blue)\
+[](bg:section3 fg:section2)\
 $mise\
-[](bg:yellow fg:bright-red)\
+[](bg:section4 fg:section3)\
+$kubernetes\
+[](bg:section5 fg:section4)\
 $git_branch\
 $git_commit\
 $git_status\
-[](bg:green fg:yellow)\
+[](bg:section6 fg:section5)\
 $dotnet\
 $golang\
 $lua\
@@ -23,47 +23,59 @@ $nodejs\
 $python\
 $rust\
 $swift\
-[](bg:cyan fg:green)\
+[](bg:section7 fg:section6)\
 $cmd_duration\
+[](bg:section8 fg:section7)\
 $status\
-[](fg:cyan)\
+[](fg:section8)\
 $line_break\
 $shell\
 [❯ ](bold fg:purple)\
 """
 
+palette = "sections"
+
+[palettes.sections]
+section1 = "bright-black"
+section2 = "white"
+section3 = "bright-purple"
+section4 = "bright-blue"
+section5 = "cyan"
+section6 = "bright-green"
+section7 = "bright-yellow"
+section8 = "red"
+
 [cmd_duration]
+style = "bg:section7 fg:black"
 format = "[ 󰔟 $duration ]($style)"
-style = "bg:cyan fg:black"
-show_notifications = true
 
 [container]
 symbol = "⬢"
+style = "bg:section1 fg:black"
 format = "[ $symbol $name ]($style)"
-style = "bg:red fg:black"
 
 [directory]
+style = "bg:section2 fg:black"
+read_only = "󰌾 "
+read_only_style = "bg:section2 fg:red"
 format = "[  $path ]($style)[$read_only]($read_only_style)"
 truncation_length = 0
 truncate_to_repo = false
-read_only = "󰌾 "
-read_only_style = "bg:bright-black fg:red"
-style = "bg:bright-black fg:black"
 
 [dotnet]
 symbol = " "
-style = "bg:green fg:black"
+style = "bg:section6 fg:black"
 format = "[ $symbol$version 󰓾 $tfm ]($style)"
 
 [git_branch]
-format = "[ $symbol$branch(:$remote_branch) ]($style)"
-style = "bg:yellow fg:black"
 symbol = " "
+style = "bg:section5 fg:black"
+format = "[ $symbol$branch(:$remote_branch) ]($style)"
 
 [git_commit]
-tag_symbol = ""
-format = "[  $hash$tag ]($style)"
-style = "bg:yellow fg:black"
+tag_symbol = " "
+style = "bg:section5 fg:black"
+format = "[ $tag_symbol$hash$tag ]($style)"
 
 [git_status]
 conflicted = " conflicted "
@@ -77,34 +89,34 @@ staged = " staged "
 renamed = " renamed "
 deleted = " deleted "
 typechanged = " type changed "
-style = "bg:yellow fg:black"
+style = "bg:section5 fg:black"
 format = "[$all_status$ahead_behind]($style)"
 
 [golang]
 symbol = " "
-style = "bg:green fg:black"
+style = "bg:section6 fg:black"
 format = "[ $symbol$version ]($style)"
 
 [hostname]
+ssh_symbol = " "
+style = "bg:section1 fg:black"
 format = "[$ssh_symbol$hostname ]($style)"
 ssh_only = false
-ssh_symbol = " "
-style = "bg:red fg:black"
 
 [kubernetes]
-symbol = "☸ "
 disabled = false
+symbol = "☸ "
+style = "bg:section3 fg:black"
 format = "[ $symbol$context 󱎃 $namespace ]($style)"
 {{- if eq .chezmoi.os "windows" }}
 detect_files = ["kubectx"]
 {{- else }}
 detect_env_vars = ["KUBIE_ACTIVE"]
 {{- end }}
-style = "bg:blue fg:black"
 
 [lua]
 symbol = " "
-style = "bg:green fg:black"
+style = "bg:section6 fg:black"
 format = "[ $symbol$version ]($style)"
 
 [memory_usage]
@@ -113,23 +125,23 @@ symbol = "󰍛 "
 [mise]
 disabled = false
 symbol = "󰭼 "
+style = "bg:section4 fg:black"
 format = "[ $symbol$health ]($style)"
-style = "bg:bright-red fg:black"
 
 [nix_shell]
 symbol = " "
-style = "bg:green fg:black"
+style = "bg:section6 fg:black"
 format ="[$symbol$state( \\($name\\)) ]($style)"
 
 [nodejs]
 symbol = " "
-style = "bg:green fg:black"
+style = "bg:section6 fg:black"
 format = "[ $symbol$version ]($style)"
 
 [os]
 disabled = false
+style = "bg:section1 fg:black"
 format = "[ $symbol]($style)"
-style = "bg:red fg:black"
 
 [os.symbols]
 Alpine = " "
@@ -151,35 +163,35 @@ symbol = "󰏗 "
 
 [python]
 symbol = " "
-style = "bg:green fg:black"
+style = "bg:section6 fg:black"
 format = "[ $symbol$version \\(($virtualenv)\\) ]($style)"
 
 [rust]
 symbol = "󱘗 "
-style = "bg:green fg:black"
+style = "bg:section6 fg:black"
 format = "[ $symbol$version ]($style)"
 
 [swift]
 symbol = " "
-style = "bg:green fg:black"
+style = "bg:section6 fg:black"
 format = "[ $symbol$version ]($style)"
 
 [shell]
 disabled = false
-format = "[ $indicator ]($style)"
 bash_indicator = "bash"
 powershell_indicator = "winps"
 pwsh_indicator = "pwsh"
-style = "white"
+style = "purple"
+format = "[ $indicator ]($style)"
 
 [status]
 disabled = false
 symbol = ""
+style = "bg:section8 fg:black"
 format = "[ $symbol $status ]($style)"
-style = "bg:cyan fg:red"
 
 [username]
 show_always = true
+style_user = "bg:section1 fg:black"
+style_root = "bg:section1 fg:red"
 format = "[ $user ]($style)"
-style_user = "bg:red fg:black"
-style_root = "bg:red fg:bright-red"
