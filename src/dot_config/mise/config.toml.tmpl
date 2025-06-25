@@ -1,0 +1,10 @@
+[settings]
+
+{{- if eq .chezmoi.os "windows" }}
+[settings.python]
+precompiled_os = "pc-windows-msvc"
+{{- end }}
+
+[tools]
+python = "3.13.3"
+"pipx:apprise" = "1.9.2"
