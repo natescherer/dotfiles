@@ -23,11 +23,10 @@ Currently managed:
     - [src/dot_bashrc](src/dot_bashrc)
 - [Clocker](https://abhishekbanthia.com/clocker/) 🍎
   - Notes
-    - Configuration is managed by script [src/.chezmoiscripts/macos/run_onchange_defaults-importer.sh.tmpl](src/.chezmoiscripts/macos/run_onchange_defaults-importer.sh.tmpl)
-    - files under dot_config/defaults should not be edited directly, they are exports from the macOS defaults system managed by the scripts mentioned above
+    - Configuration is imported via script [src/.chezmoiscripts/macos/run_onchange_defaults-importer.sh.tmpl](src/.chezmoiscripts/macos/run_onchange_defaults-importer.sh.tmpl)
   - Config Files
-    - [src/.chezmoidata/macos_defaults.yaml](src/.chezmoidata/macos_defaults.yaml)
-    - [src/dot_config/defaults/com.abhishek.Clocker](src/dot_config/defaults/com.abhishek.Clocker.plist)
+    - [src/.scriptdata/macos_defaults/com.abhishek.Clocker.plist](src/.scriptdata/macos_defaults/com.abhishek.Clocker.plist)
+      - Note this is a non-editable binary file, made via `defaults export com.abhishek.Clocker com.abhishek.Clocker.plist`
 - [Git](https://git-scm.com/) 🐧 🍎 🪟
   - Config Files
     - [src/dot_config/git/config.tmpl](src/dot_config/git/config.tmpl)
@@ -62,9 +61,10 @@ Currently managed:
     - [src/dot_config/starship.toml.tmpl](src/dot_config/starship.toml.tmpl)
 - [Stats](https://github.com/exelban/stats) 🍎
   - Notes
-    - Configuration is managed by script [src/.chezmoiscripts/macos/run_onchange_defaults-importer.sh.tmpl](src/.chezmoiscripts/macos/run_onchange_defaults-importer.sh.tmpl)
-    - [src/.chezmoidata/macos_defaults.yaml](src/.chezmoidata/macos_defaults.yaml)
-    - [src/dot_config/defaults/eu.exelban.Stats.plist)](src/dot_config/defaults/eu.exelban.Stats.plist)
+    - Configuration is imported via script [src/.chezmoiscripts/macos/run_onchange_defaults-importer.sh.tmpl](src/.chezmoiscripts/macos/run_onchange_defaults-importer.sh.tmpl)
+  - Config Files
+    - [src/.scriptdata/macos_defaults/eu.exelban.Stats.plist](src/.scriptdata/macos_defaults/eu.exelban.Stats.plist)
+      - Note this is a non-editable binary file, made via `defaults export eu.exelban.Stats eu.exelban.Stats.plist`
 - [Zsh](https://www.zsh.org/) 🐧 🍎
   - Config Files
     - [src/.chezmoitemplates/bash_and_zsh/aliases.sh.tmpl](src/.chezmoitemplates/bash_and_zsh/aliases.sh.tmpl) via [src/dot_config/zsh/dot_zsh_aliases.tmpl](src/dot_config/zsh/dot_zsh_aliases.tmpl)
