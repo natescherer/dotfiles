@@ -33,6 +33,9 @@ Currently managed:
 - [k9s](https://github.com/derailed/k9s) 🐧 🍎 🪟
   - Config Files
     - [src/dot_config/k9s/config.tmpl](src/dot_config/git/config.tmpl)
+- [kubie](https://github.com/sbstp/kubie) 🐧 🍎
+  - Config Fiales
+    - [src/dot_kube/kubie.yaml](src/dot_kube/kubie.yaml)
 - [Nano](https://www.nano-editor.org/) 🐧 🍎 🪟
   - Config Files
     - [src/.chezmoitemplates/bash_and_zsh/env.sh.tmpl](src/.chezmoitemplates/bash_and_zsh/env.sh.tmpl) via [src/dot_zshenv](src/dot_zshenv.tmpl) and [src/dot_bash_profile.tmpl](src/dot_bash_profile.tmpl)
