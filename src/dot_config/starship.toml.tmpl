@@ -106,7 +106,7 @@ ssh_only = false
 [kubernetes]
 disabled = false
 symbol = "☸ "
-style = "bg:section3 fg:black"
+style = "bg:section4 fg:black"
 format = "[ $symbol$context 󱎃 $namespace ]($style)"
 {{- if eq .chezmoi.os "windows" }}
 detect_files = ["kubectx"]
@@ -125,7 +125,7 @@ symbol = "󰍛 "
 [mise]
 disabled = false
 symbol = "󰭼 "
-style = "bg:section4 fg:black"
+style = "bg:section3 fg:black"
 format = "[ $symbol$health ]($style)"
 
 [nix_shell]
