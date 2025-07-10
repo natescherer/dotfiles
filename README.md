@@ -30,6 +30,7 @@ Currently managed:
 - [Git](https://git-scm.com/) 🐧 🍎 🪟
   - Config Files
     - [src/dot_config/git/config.tmpl](src/dot_config/git/config.tmpl)
+    - [src/dot_config/git/ignore](src/dot_config/git/ignore)
 - [k9s](https://github.com/derailed/k9s) 🐧 🍎 🪟
   - Config Files
     - [src/dot_config/k9s/config.tmpl](src/dot_config/git/config.tmpl)
