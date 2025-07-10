@@ -1,6 +1,7 @@
 [core]
     autocrlf = false
     editor = {{ .editor }}
+    excludesFile = {{ joinPath .chezmoi.homeDir ".config" "git" "ignore" }}
 [user]
     name = {{ .gitName }}
     email = {{ .gitEmail }}
