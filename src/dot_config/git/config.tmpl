@@ -1,7 +1,7 @@
 [core]
     autocrlf = false
     editor = {{ .editor }}
-    excludesFile = {{ joinPath .chezmoi.homeDir ".config" "git" "ignore" | replaceAllRegex "\\" "\\\\" }}
+    excludesFile = {{ joinPath .chezmoi.homeDir ".config" "git" "ignore" | replaceAllRegex "\\" "\\" }}
 [user]
     name = {{ .gitName }}
     email = {{ .gitEmail }}
