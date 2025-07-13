@@ -31,6 +31,11 @@ Currently managed:
   - Config Files
     - [src/dot_config/git/config.tmpl](src/dot_config/git/config.tmpl)
     - [src/dot_config/git/ignore](src/dot_config/git/ignore)
+- [Go](https://https://go.dev/) 🐧 🍎 🪟
+  - Config Files
+    - [src/.chezmoitemplates/bash_and_zsh/env_vars.sh.tmpl](src/.chezmoitemplates/bash_and_zsh/env.sh.tmpl) via [src/dot_zshenv](src/dot_zshenv.tmpl) and [src/dot_bash_profile.tmpl](src/dot_bash_profile.tmpl)
+    - [src/.chezmoitemplates/powershell/env.ps1.tmpl](src/.chezmoitemplates/powershell/env.ps1.tmpl) via [src/Documents/PowerShell/env.ps1.tmpl](src/Documents/PowerShell/env.ps1.tmpl) (🪟) and [src/dot_config/powershell/env.ps1.tmpl](src/dot_config/powershell/env.ps1.tmpl) (🐧 🍎)
+    - [src/dot_config/npm/npmrc](src/dot_config/npm/npmrc)
 - [k9s](https://github.com/derailed/k9s) 🐧 🍎 🪟
   - Config Files
     - [src/dot_config/k9s/config.tmpl](src/dot_config/git/config.tmpl)
