@@ -36,6 +36,11 @@ Currently managed:
   - Config Files
     - [src/dot_config/git/config.tmpl](src/dot_config/git/config.tmpl)
     - [src/dot_config/git/ignore](src/dot_config/git/ignore)
+- [GnuPG](https://gnupg.org/) 🐧 🍎 🪟
+  - Config Files
+    - [src/.chezmoitemplates/bash_and_zsh/env_vars.sh.tmpl](src/.chezmoitemplates/bash_and_zsh/env.sh.tmpl) via [src/dot_zshenv](src/dot_zshenv.tmpl) and [src/dot_bash_profile.tmpl](src/dot_bash_profile.tmpl)
+    - [src/.chezmoitemplates/powershell/env.ps1.tmpl](src/.chezmoitemplates/powershell/env.ps1.tmpl) via [src/Documents/PowerShell/env.ps1.tmpl](src/Documents/PowerShell/env.ps1.tmpl) (🪟) and [src/dot_config/powershell/env.ps1.tmpl](src/dot_config/powershell/env.ps1.tmpl) (🐧 🍎)
+    - [src/dot_config/npm/npmrc](src/dot_config/npm/npmrc)
 - [Go](https://https://go.dev/) 🐧 🍎 🪟
   - Config Files
     - [src/.chezmoitemplates/bash_and_zsh/env_vars.sh.tmpl](src/.chezmoitemplates/bash_and_zsh/env.sh.tmpl) via [src/dot_zshenv](src/dot_zshenv.tmpl) and [src/dot_bash_profile.tmpl](src/dot_bash_profile.tmpl)
