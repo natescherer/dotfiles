@@ -21,6 +21,11 @@ Currently managed:
     - [src/.chezmoitemplates/bash_and_zsh/env.sh.tmpl](src/.chezmoitemplates/bash_and_zsh/env.sh.tmpl) via [src/dot_bash_profile.tmpl](src/dot_bash_profile.tmpl)
     - [src/dot_bash_profile.tmpl](src/dot_bash_profile.tmpl)
     - [src/dot_bashrc](src/dot_bashrc)
+- [Cargo](https://github.com/rust-lang/cargo) 🐧 🍎 🪟
+  - Config Files
+    - [src/.chezmoitemplates/bash_and_zsh/env_vars.sh.tmpl](src/.chezmoitemplates/bash_and_zsh/env.sh.tmpl) via [src/dot_zshenv](src/dot_zshenv.tmpl) and [src/dot_bash_profile.tmpl](src/dot_bash_profile.tmpl)
+    - [src/.chezmoitemplates/powershell/env.ps1.tmpl](src/.chezmoitemplates/powershell/env.ps1.tmpl) via [src/Documents/PowerShell/env.ps1.tmpl](src/Documents/PowerShell/env.ps1.tmpl) (🪟) and [src/dot_config/powershell/env.ps1.tmpl](src/dot_config/powershell/env.ps1.tmpl) (🐧 🍎)
+    - [src/dot_config/npm/npmrc](src/dot_config/npm/npmrc)
 - [Clocker](https://abhishekbanthia.com/clocker/) 🍎
   - Notes
     - Configuration is imported via script [src/.chezmoiscripts/macos/run_onchange_defaults-importer.sh.tmpl](src/.chezmoiscripts/macos/run_onchange_defaults-importer.sh.tmpl)
