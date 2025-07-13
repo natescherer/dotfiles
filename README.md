@@ -64,6 +64,11 @@ Currently managed:
     - [src/.chezmoitemplates/bash_and_zsh/env_vars.sh.tmpl](src/.chezmoitemplates/bash_and_zsh/env.sh.tmpl) via [src/dot_zshenv](src/dot_zshenv.tmpl) and [src/dot_bash_profile.tmpl](src/dot_bash_profile.tmpl)
     - [src/.chezmoitemplates/powershell/env.ps1.tmpl](src/.chezmoitemplates/powershell/env.ps1.tmpl) via [src/Documents/PowerShell/env.ps1.tmpl](src/Documents/PowerShell/env.ps1.tmpl) (🪟) and [src/dot_config/powershell/env.ps1.tmpl](src/dot_config/powershell/env.ps1.tmpl) (🐧 🍎)
     - [src/dot_config/npm/npmrc](src/dot_config/npm/npmrc)
+- [rustup](https://rustup.rs/) 🐧 🍎 🪟
+  - Config Files
+    - [src/.chezmoitemplates/bash_and_zsh/env_vars.sh.tmpl](src/.chezmoitemplates/bash_and_zsh/env.sh.tmpl) via [src/dot_zshenv](src/dot_zshenv.tmpl) and [src/dot_bash_profile.tmpl](src/dot_bash_profile.tmpl)
+    - [src/.chezmoitemplates/powershell/env.ps1.tmpl](src/.chezmoitemplates/powershell/env.ps1.tmpl) via [src/Documents/PowerShell/env.ps1.tmpl](src/Documents/PowerShell/env.ps1.tmpl) (🪟) and [src/dot_config/powershell/env.ps1.tmpl](src/dot_config/powershell/env.ps1.tmpl) (🐧 🍎)
+    - [src/dot_config/npm/npmrc](src/dot_config/npm/npmrc)
 - [Tabby](https://tabby.sh/) 🐧 🍎 🪟
   - Config Files
     - [src/.chezmoitemplates/tabby/config.yaml.tmpl](src/.chezmoitemplates/tabby/config.yaml.tmpl) via [src/AppData/Roaming/tabby/config.yaml.tmpl](src/AppData/Roaming/tabby/config.yaml.tmpl) (🪟) and [src/dot_config/tabby/config.yaml.tmpl](src/dot_config/tabby/config.yaml.tmpl) (🐧) and [src/Library/Application%20Support/tabby/config.yaml.tmpl](src/Library/Application%20Support/tabby/config.yaml.tmpl) (🍎)
