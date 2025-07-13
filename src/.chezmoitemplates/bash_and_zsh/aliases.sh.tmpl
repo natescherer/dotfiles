@@ -3,5 +3,6 @@ mkdircd () {
   cd $1
 }
 
+alias cl=clear
 alias k=kubectl
 alias ll="{{ if eq .chezmoi.os "darwin" }}gls{{ else }}ls{{ end }} -AFGhl --group-directories-first --color=auto"

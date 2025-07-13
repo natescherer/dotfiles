@@ -1,5 +1,5 @@
 function Invoke-GetChildItemWithOptions {
-    Get-ChildItem -Force 
+    Get-ChildItem -Force
 }
 
 function mkdircd([string]$Path) {
@@ -11,5 +11,6 @@ function rmrf([string]$Target) {
     Remove-Item -Recurse -Force $Target
 }
 
+Set-Alias -Name cl -Value clear
 Set-Alias -Name k -Value kubectl
 Set-Alias -Name ll -Value Invoke-GetChildItemWithOptions
