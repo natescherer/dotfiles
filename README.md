@@ -61,7 +61,6 @@ Currently managed:
 - [rustup](https://rustup.rs/) 🐧 🍎 🪟
   - Config Files
     - [src/.chezmoidata/env_vars.toml](src/.chezmoidata/env_vars.toml)
-    - [src/dot_config/npm/npmrc](src/dot_config/npm/npmrc)
 - [Tabby](https://tabby.sh/) 🐧 🍎 🪟
   - Config Files
     - [src/.chezmoitemplates/tabby/config.yaml.tmpl](src/.chezmoitemplates/tabby/config.yaml.tmpl)
