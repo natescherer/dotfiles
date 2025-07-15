@@ -16,7 +16,7 @@ shell = "zsh"
 
 [plugins.fzf-tab]
 github = 'Aloxaf/fzf-tab'
-tag = "1.2.0"
+tag = "v1.2.0"
 
 [plugins.zsh-autosuggestions]
 github = "zsh-users/zsh-autosuggestions"
