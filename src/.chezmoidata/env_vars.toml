@@ -1,6 +1,6 @@
 # All variables specified in this file are included automatically in Bash, PowerShell, and Zsh via these files:
 # Bash: .chezmoitemplates/bash_and_zsh/env.sh.tmpl
-# PowerShell: .chezmoitemplates/powershell/env.sh.tmpl
+# PowerShell: .chezmoitemplates/powershell/env.ps.1tmpl
 # Zsh: .chezmoitemplates/bash_and_zsh/env.sh.tmpl
 
 [[env_vars_core]]

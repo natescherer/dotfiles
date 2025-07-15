@@ -11,21 +11,18 @@ Currently managed:
 
 - [Azure CLI](https://learn.microsoft.com/en-us/cli/azure/) 🐧 🍎 🪟
   - Config Files
-    - [src/.chezmoitemplates/bash_and_zsh/env.sh.tmpl](src/.chezmoitemplates/bash_and_zsh/env.sh.tmpl) via [src/dot_zshenv](src/dot_zshenv.tmpl) and [src/dot_bash_profile.tmpl](src/dot_bash_profile.tmpl)
-    - [src/.chezmoitemplates/powershell/env.ps1.tmpl](src/.chezmoitemplates/powershell/env.ps1.tmpl) via [src/Documents/PowerShell/env.ps1.tmpl](src/Documents/PowerShell/env.ps1.tmpl) (🪟) and [src/dot_config/powershell/env.ps1.tmpl](src/dot_config/powershell/env.ps1.tmpl) (🐧 🍎)
+    - [src/.chezmoidata/env_vars.toml](src/.chezmoidata/env_vars.toml)
 - [Bash](https://www.gnu.org/software/bash/) 🐧 🍎
   - Notes
     - Bash configuration is just enough to support bash-only servers, first-class shell experiences are Zsh or Powershell
   - Config Files
-    - [src/.chezmoitemplates/bash_and_zsh/aliases.sh.tmpl](src/.chezmoitemplates/bash_and_zsh/aliases.sh.tmpl) via [src/dot_bash_aliases.tmpl](src/dot_bash_aliases.tmpl)
-    - [src/.chezmoitemplates/bash_and_zsh/env.sh.tmpl](src/.chezmoitemplates/bash_and_zsh/env.sh.tmpl) via [src/dot_bash_profile.tmpl](src/dot_bash_profile.tmpl)
+    - [src/.chezmoitemplates/bash_and_zsh/aliases.sh.tmpl](src/.chezmoitemplates/bash_and_zsh/aliases.sh.tmpl)
+    - [src/.chezmoitemplates/bash_and_zsh/env.sh.tmpl](src/.chezmoitemplates/bash_and_zsh/env.sh.tmpl)
     - [src/dot_bash_profile.tmpl](src/dot_bash_profile.tmpl)
     - [src/dot_bashrc](src/dot_bashrc)
 - [Cargo](https://github.com/rust-lang/cargo) 🐧 🍎 🪟
   - Config Files
-    - [src/.chezmoitemplates/bash_and_zsh/env_vars.sh.tmpl](src/.chezmoitemplates/bash_and_zsh/env.sh.tmpl) via [src/dot_zshenv](src/dot_zshenv.tmpl) and [src/dot_bash_profile.tmpl](src/dot_bash_profile.tmpl)
-    - [src/.chezmoitemplates/powershell/env.ps1.tmpl](src/.chezmoitemplates/powershell/env.ps1.tmpl) via [src/Documents/PowerShell/env.ps1.tmpl](src/Documents/PowerShell/env.ps1.tmpl) (🪟) and [src/dot_config/powershell/env.ps1.tmpl](src/dot_config/powershell/env.ps1.tmpl) (🐧 🍎)
-    - [src/dot_config/npm/npmrc](src/dot_config/npm/npmrc)
+    - [src/.chezmoidata/env_vars.toml](src/.chezmoidata/env_vars.toml)
 - [Clocker](https://abhishekbanthia.com/clocker/) 🍎
   - Notes
     - Configuration is imported via script [src/.chezmoiscripts/macos/run_onchange_defaults-importer.sh.tmpl](src/.chezmoiscripts/macos/run_onchange_defaults-importer.sh.tmpl)
@@ -41,48 +38,41 @@ Currently managed:
     - [src/dot_config/git/ignore](src/dot_config/git/ignore)
 - [GnuPG](https://gnupg.org/) 🐧 🍎 🪟
   - Config Files
-    - [src/.chezmoitemplates/bash_and_zsh/env_vars.sh.tmpl](src/.chezmoitemplates/bash_and_zsh/env.sh.tmpl) via [src/dot_zshenv](src/dot_zshenv.tmpl) and [src/dot_bash_profile.tmpl](src/dot_bash_profile.tmpl)
-    - [src/.chezmoitemplates/powershell/env.ps1.tmpl](src/.chezmoitemplates/powershell/env.ps1.tmpl) via [src/Documents/PowerShell/env.ps1.tmpl](src/Documents/PowerShell/env.ps1.tmpl) (🪟) and [src/dot_config/powershell/env.ps1.tmpl](src/dot_config/powershell/env.ps1.tmpl) (🐧 🍎)
-    - [src/dot_config/npm/npmrc](src/dot_config/npm/npmrc)
+    - [src/.chezmoidata/env_vars.toml](src/.chezmoidata/env_vars.toml)
 - [Go](https://https://go.dev/) 🐧 🍎 🪟
   - Config Files
-    - [src/.chezmoitemplates/bash_and_zsh/env_vars.sh.tmpl](src/.chezmoitemplates/bash_and_zsh/env.sh.tmpl) via [src/dot_zshenv](src/dot_zshenv.tmpl) and [src/dot_bash_profile.tmpl](src/dot_bash_profile.tmpl)
-    - [src/.chezmoitemplates/powershell/env.ps1.tmpl](src/.chezmoitemplates/powershell/env.ps1.tmpl) via [src/Documents/PowerShell/env.ps1.tmpl](src/Documents/PowerShell/env.ps1.tmpl) (🪟) and [src/dot_config/powershell/env.ps1.tmpl](src/dot_config/powershell/env.ps1.tmpl) (🐧 🍎)
-    - [src/dot_config/npm/npmrc](src/dot_config/npm/npmrc)
+    - [src/.chezmoidata/env_vars.toml](src/.chezmoidata/env_vars.toml)
 - [k9s](https://github.com/derailed/k9s) 🐧 🍎 🪟
   - Config Files
     - [src/dot_config/k9s/config.tmpl](src/dot_config/git/config.tmpl)
 - [kubie](https://github.com/sbstp/kubie) 🐧 🍎
-  - Config Fiales
+  - Config Files
     - [src/dot_kube/kubie.yaml](src/dot_kube/kubie.yaml)
 - [Nano](https://www.nano-editor.org/) 🐧 🍎 🪟
   - Config Files
-    - [src/.chezmoitemplates/bash_and_zsh/env.sh.tmpl](src/.chezmoitemplates/bash_and_zsh/env.sh.tmpl) via [src/dot_zshenv](src/dot_zshenv.tmpl) and [src/dot_bash_profile.tmpl](src/dot_bash_profile.tmpl)
-    - [src/.chezmoitemplates/powershell/env.ps1.tmpl](src/.chezmoitemplates/powershell/env.ps1.tmpl) via [src/Documents/PowerShell/env.ps1.tmpl](src/Documents/PowerShell/env.ps1.tmpl) (🪟) and [src/dot_config/powershell/env.ps1.tmpl](src/dot_config/powershell/env.ps1.tmpl) (🐧 🍎)
+    - [src/.chezmoidata/env_vars.toml](src/.chezmoidata/env_vars.toml)
     - [src/dot_config/nano/nanorc](src/dot_config/nano/nanorc)
     - Contents of [src/dot_config/nano/includes](src/dot_config/nano/includes)
       - This is a redistribution of [https://github.com/scopatz/nanorc](https://github.com/scopatz/nanorc)
 - [npm](https://www.npmjs.com/) 🐧 🍎 🪟
   - Config Files
-    - [src/.chezmoitemplates/bash_and_zsh/env_vars.sh.tmpl](src/.chezmoitemplates/bash_and_zsh/env.sh.tmpl) via [src/dot_zshenv](src/dot_zshenv.tmpl) and [src/dot_bash_profile.tmpl](src/dot_bash_profile.tmpl)
-    - [src/.chezmoitemplates/powershell/env.ps1.tmpl](src/.chezmoitemplates/powershell/env.ps1.tmpl) via [src/Documents/PowerShell/env.ps1.tmpl](src/Documents/PowerShell/env.ps1.tmpl) (🪟) and [src/dot_config/powershell/env.ps1.tmpl](src/dot_config/powershell/env.ps1.tmpl) (🐧 🍎)
+    - [src/.chezmoidata/env_vars.toml](src/.chezmoidata/env_vars.toml)
     - [src/dot_config/npm/npmrc](src/dot_config/npm/npmrc)
 - [rustup](https://rustup.rs/) 🐧 🍎 🪟
   - Config Files
-    - [src/.chezmoitemplates/bash_and_zsh/env_vars.sh.tmpl](src/.chezmoitemplates/bash_and_zsh/env.sh.tmpl) via [src/dot_zshenv](src/dot_zshenv.tmpl) and [src/dot_bash_profile.tmpl](src/dot_bash_profile.tmpl)
-    - [src/.chezmoitemplates/powershell/env.ps1.tmpl](src/.chezmoitemplates/powershell/env.ps1.tmpl) via [src/Documents/PowerShell/env.ps1.tmpl](src/Documents/PowerShell/env.ps1.tmpl) (🪟) and [src/dot_config/powershell/env.ps1.tmpl](src/dot_config/powershell/env.ps1.tmpl) (🐧 🍎)
+    - [src/.chezmoidata/env_vars.toml](src/.chezmoidata/env_vars.toml)
     - [src/dot_config/npm/npmrc](src/dot_config/npm/npmrc)
 - [Tabby](https://tabby.sh/) 🐧 🍎 🪟
   - Config Files
-    - [src/.chezmoitemplates/tabby/config.yaml.tmpl](src/.chezmoitemplates/tabby/config.yaml.tmpl) via [src/AppData/Roaming/tabby/config.yaml.tmpl](src/AppData/Roaming/tabby/config.yaml.tmpl) (🪟) and [src/dot_config/tabby/config.yaml.tmpl](src/dot_config/tabby/config.yaml.tmpl) (🐧) and [src/Library/Application%20Support/tabby/config.yaml.tmpl](src/Library/Application%20Support/tabby/config.yaml.tmpl) (🍎)
+    - [src/.chezmoitemplates/tabby/config.yaml.tmpl](src/.chezmoitemplates/tabby/config.yaml.tmpl)
 - Terminal Color Scheme
   - Applied to both tabby and VSCode (though VSCode isn't chezmoi compatible as of v1.101.1)
   - Generated by [Root Loops](https://rootloops.sh/?sugar=6&colors=9&sogginess=0&flavor=1&fruit=10&milk=0)
 - [PowerShell](https://github.com/PowerShell/PowerShell) 🐧 🍎 🪟
   - Config Files
-    - [src/.chezmoitemplates/powershell/aliases.ps1.tmpl](src/.chezmoitemplates/powershell/env.ps1.tmpl) via [src/Documents/PowerShell/aliases.ps1.tmpl](src/Documents/PowerShell/aliases.ps1.tmpl) (🪟) and [src/dot_config/powershell/aliases.ps1.tmpl](src/dot_config/powershell/aliases.ps1.tmpl) (🐧 🍎)
-    - [src/.chezmoitemplates/powershell/env.ps1.tmpl](src/.chezmoitemplates/powershell/env.ps1.tmpl) via [src/Documents/PowerShell/env.ps1.tmpl](src/Documents/PowerShell/env.ps1.tmpl) (🪟) and [src/dot_config/powershell/env.ps1.tmpl](src/dot_config/powershell/env.ps1.tmpl) (🐧 🍎)
-    - [src/.chezmoitemplates/powershell/profile.ps1.tmpl](src/.chezmoitemplates/powershell/profile.ps1.tmpl) via [src/Documents/PowerShell/profile.ps1.tmpl](src/Documents/PowerShell/profile.ps1.tmpl) (🪟) and [src/dot_config/powershell/profile.ps1.tmpl](src/dot_config/powershell/profile.ps1.tmpl) (🐧 🍎)
+    - [src/.chezmoitemplates/powershell/aliases.ps1.tmpl](src/.chezmoitemplates/powershell/env.ps1.tmpl)
+    - [src/.chezmoitemplates/powershell/env.ps1.tmpl](src/.chezmoitemplates/powershell/env.ps1.tmpl)
+    - [src/.chezmoitemplates/powershell/profile.ps1.tmpl](src/.chezmoitemplates/powershell/profile.ps1.tmpl)
 - [Sheldon](https://github.com/rossmacarthur/sheldon) 🐧 🍎
   - Config Files
     - [src/dot_config/sheldon/plugins.toml](src/dot_config/sheldon/plugins.toml)
@@ -97,7 +87,7 @@ Currently managed:
       - Note this is a non-editable binary file, made via `defaults export eu.exelban.Stats eu.exelban.Stats.plist`
 - [Zsh](https://www.zsh.org/) 🐧 🍎
   - Config Files
-    - [src/.chezmoitemplates/bash_and_zsh/aliases.sh.tmpl](src/.chezmoitemplates/bash_and_zsh/aliases.sh.tmpl) via [src/dot_config/zsh/dot_zsh_aliases.tmpl](src/dot_config/zsh/dot_zsh_aliases.tmpl)
+    - [src/.chezmoitemplates/bash_and_zsh/aliases.sh.tmpl](src/.chezmoitemplates/bash_and_zsh/aliases.sh.tmpl)
     - [src/dot_config/zsh/dot_zshrc.tmpl](src/dot_config/zsh/dot_zshrc.tmpl)
     - [src/dot_zshenv.tmpl](src/dot_zshenv.tmpl)
 
