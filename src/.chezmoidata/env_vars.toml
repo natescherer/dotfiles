@@ -1,0 +1,7 @@
+[[env_vars_all_platforms]]
+name = "XDG_CONFIG_HOME"
+home_dir_subpath_elements = [".config"]
+
+[[env_vars_all_platforms]]
+name = "AZURE_CORE_SURVEY_MESSAGE"
+value = "false"
