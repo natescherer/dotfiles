@@ -1,7 +1,103 @@
-[[env_vars_all_platforms]]
-name = "XDG_CONFIG_HOME"
-home_dir_subpath_elements = [".config"]
+# All variables specified in this file are included automatically in Bash, PowerShell, and Zsh via these files:
+# Bash: .chezmoitemplates/bash_and_zsh/env.sh.tmpl
+# PowerShell: .chezmoitemplates/powershell/env.sh.tmpl
+# Zsh: .chezmoitemplates/bash_and_zsh/env.sh.tmpl
 
-[[env_vars_all_platforms]]
+[[env_vars_core]]
+name = "XDG_CONFIG_HOME"
+home_subpath_part1 = ".config"
+comment = "XDG Directory Specification: Setup"
+
+[[env_vars_core]]
+name = "XDG_DATA_HOME"
+home_subpath_part1 = ".local"
+home_subpath_part2 = "share"
+comment = "XDG Directory Specification: Setup"
+
+[[env_vars_core]]
+name = "XDG_CACHE_HOME"
+home_subpath_part1 = ".cache"
+comment = "XDG Directory Specification: Setup"
+
+[[env_vars_core]]
+name = "XDG_STATE_HOME"
+home_subpath_part1 = ".local"
+home_subpath_part2 = "state"
+comment = "XDG Directory Specification: Setup"
+
+[[env_vars_apps]]
 name = "AZURE_CORE_SURVEY_MESSAGE"
 value = "false"
+comment = "Azure CLI: Disable prompts to take surveys"
+
+[[env_vars_apps]]
+name = "AZURE_CONFIG_DIR"
+path_part1 = "$XDG_DATA_HOME"
+path_part2 = "azure"
+comment = "Azure CLI: Repoint data from home"
+
+[[env_vars_apps]]
+name = "CARGO_HOME"
+path_part1 = "$XDG_DATA_HOME"
+path_part2 = "cargo"
+comment = "Cargo: Repoint data from home"
+
+[[env_vars_apps]]
+name = "LESSHISTFILE"
+value = "-"
+comment = "Less: Disable history file in home"
+
+[[env_vars_apps]]
+name = "GNUPGHOME"
+path_part1 = "$XDG_DATA_HOME"
+path_part2 = "gnupg"
+comment = "GnuPG: Repoint data from home"
+
+[[env_vars_apps]]
+name = "GOPATH"
+path_part1 = "$XDG_DATA_HOME"
+path_part2 = "go"
+comment = "Go: Repoint data from home"
+
+[[env_vars_apps]]
+name = "GOMODCACHE"
+path_part1 = "$XDG_CACHE_HOME"
+path_part2 = "go"
+path_part3 = "mod"
+comment = "Go: Repoint cache from home"
+
+[[env_vars_apps]]
+name = "NPM_CONFIG_USERCONFIG"
+path_part1 = "$XDG_CONFIG_HOME"
+path_part2 = "npm"
+path_part3 = "npmrc"
+comment = "Node: Repoint config from home"
+
+[[env_vars_apps]]
+name = "PYTHON_HISTORY"
+path_part1 = "$XDG_STATE_HOME"
+path_part2 = "python_history"
+comment = "Python: Repoint state from home"
+
+[[env_vars_apps]]
+name = "PYTHONPYCACHEPREFIX"
+path_part1 = "$XDG_CACHE_HOME"
+path_part2 = "python"
+comment = "Python: Repoint cache from home"
+
+[[env_vars_apps]]
+name = "PYTHONUSERBASE"
+path_part1 = "$XDG_DATA_HOME"
+path_part2 = "python"
+comment = "Python: Repoint data from home"
+
+[[env_vars_apps]]
+name = "VIRTUAL_ENV_DISABLE_PROMPT"
+value = "false"
+comment = "Python: Disable built-in venv prompt in favor of Starship"
+
+[[env_vars_apps]]
+name = "RUSTUP_HOME"
+path_part1 = "$XDG_DATA_HOME"
+path_part2 = "rustup"
+comment = "rustup: Repoint data from home"

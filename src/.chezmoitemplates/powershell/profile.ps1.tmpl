@@ -4,14 +4,6 @@ $Host.UI.RawUI.WindowTitle = "PowerShell"
 # Fix weird formatting in Get-ChildItem Output
 $PSStyle.Formatting.CustomTableHeaderLabel = $PSStyle.Formatting.TableHeader
 
-{{ if eq .chezmoi.os "windows" -}}
-# Unset $env:HOME (if it exists), as it breaks devcontainer mounts if it is set on Windows
-if (Test-Path env:HOME) {Remove-Item env:HOME}
-
-{{ end -}}
-# Add ~\bin to PATH
-$env:PATH = "$env:PATH;{{ .chezmoi.homeDir }}\bin"
-
 {{ if findExecutable "brew" (list "/opt/homebrew/bin" "/home/linuxbrew/.linuxbrew/bin") -}}
 # Activate Homebrew
 $({{ findExecutable "brew" (list "/opt/homebrew/bin" "/home/linuxbrew/.linuxbrew/bin") }} shellenv) | Invoke-Expression
