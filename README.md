@@ -32,6 +32,9 @@ Currently managed:
   - Config Files
     - [src/.scriptdata/macos_defaults/com.abhishek.Clocker.plist](src/.scriptdata/macos_defaults/com.abhishek.Clocker.plist)
       - Note this is a non-editable binary file, made via `defaults export com.abhishek.Clocker com.abhishek.Clocker.plist`
+- [fzf](https://github.com/junegunn/fzf) 🐧 🍎
+  - Config Files
+    - [src/dot_config/zsh/dot_zshrc.tmpl](src/dot_config/zsh/dot_zshrc.tmpl)
 - [Git](https://git-scm.com/) 🐧 🍎 🪟
   - Config Files
     - [src/dot_config/git/config.tmpl](src/dot_config/git/config.tmpl)

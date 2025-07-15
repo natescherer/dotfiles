@@ -1,6 +1,6 @@
 #! /bin/bash
 
-dependencies=("starship"{{ if eq .isServer false }} "sheldon" "mise"{{ end }})
+dependencies=("starship" {{ if eq .isServer false }} "fzf" "sheldon" "mise"{{ end }})
 
 for dep in "${dependencies[@]}"; do
     if ! command -v $dep >/dev/null 2>&1; then

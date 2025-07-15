@@ -1,6 +1,6 @@
 #! /bin/bash
 
-dependencies=("starship" "gls" "sheldon" "mise")
+dependencies=("starship" "fzf" "gls" "sheldon" "mise")
 
 for dep in "${dependencies[@]}"; do
     if ! command -v $dep >/dev/null 2>&1; then
