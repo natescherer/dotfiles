@@ -1,4 +1,7 @@
 {{- template "bash_and_zsh/env.sh.tmpl" . }}
 
+# PATH additions
+export PATH="$PATH:{{ .chezmoi.homeDir }}/bin"
+
 # Source .bashrc to ensure login and non-login shells behave the same
 [[ -r ~/.bashrc ]] && . ~/.bashrc

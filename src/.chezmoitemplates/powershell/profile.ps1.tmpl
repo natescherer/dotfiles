@@ -1,6 +1,9 @@
 {{/* The contents of this file are included in the following config files:
 Linux/macOS: src/dot_config/powershell/profile.ps1.tmpl
 Windows: src\Documents\PowerShell\profile.ps1.tmpl */}}
+# PATH additions
+$env:PATH = "$env:PATH;{{ joinPath .chezmoi.homeDir "bin" }}"
+
 # Set terminal title for Tabby
 $Host.UI.RawUI.WindowTitle = "PowerShell"
 
