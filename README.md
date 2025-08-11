@@ -48,6 +48,9 @@ Currently managed:
 - [kubie](https://github.com/sbstp/kubie) 🐧 🍎
   - Config Files
     - [src/dot_kube/kubie.yaml](src/dot_kube/kubie.yaml)
+- [mise](https://mise.jdx.dev) 🐧 🍎 🪟
+  - Config Files
+    - [src/dot_config/mise/config.toml.tmpl](src/dot_config/mise/config.toml.tmpl)
 - [Nano](https://www.nano-editor.org/) 🐧 🍎 🪟
   - Config Files
     - [src/.chezmoidata/env_vars.toml](src/.chezmoidata/env_vars.toml)
