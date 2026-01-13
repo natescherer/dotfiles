@@ -1,0 +1,12 @@
+{{- if eq .chezmoi.os "darwin" }}
+    {{- $fontDir = "Library/Fonts" }}
+{{- else if eq .chezmoi.os "linux" }}
+    {{- $fontDir = ".local/share/fonts" }}
+{{- else if eq .chezmoi.os "windows" }}
+    {{- $fontDir = "AppData/Local/Microsoft/Windows/Fonts" }}
+{{- end }}
+["{{ $fontDir }}/CascadiaCodeNF-Regular.otf"]
+    type = "archive"
+    url = "https://github.com/microsoft/cascadia-code/releases/download/v2407.24/CascadiaCode-2407.24.zip"
+    stripComponents = 2
+    include = ["*/CascadiaCodeNF-Regular.otf"]
