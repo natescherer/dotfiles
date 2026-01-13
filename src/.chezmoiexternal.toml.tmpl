@@ -4,9 +4,13 @@
 {{- else if eq .chezmoi.os "linux" }}
     {{- $fontDir = ".local/share/fonts" }}
 {{- else if eq .chezmoi.os "windows" }}
-    {{- $fontDir = "AppData/Local/Microsoft/Windows/Fonts" }}
+    {{- $fontDir = ".local/share/chezmoifonts" }} ##@ This is a staging directory, fonts deposited here will be later installed as part of winget configure
 {{- end }}
 ["{{ $fontDir }}/CascadiaCodeNF-Regular.otf"]
     type = "archive-file"
     url = "https://github.com/microsoft/cascadia-code/releases/download/v2407.24/CascadiaCode-2407.24.zip"
     path = "otf/static/CascadiaCodeNF-Regular.otf"
+["{{ $fontDir }}/CascadiaCodeNF-Regular.otf"]
+    type = "archive-file"
+    url = "https://github.com/RedHatOfficial/Overpass/releases/download/v3.0.5/overpass-3.0.5.zip"
+    path = "Overpass-3.0.5/desktop-fonts/overpass/overpass-regular.otf"
