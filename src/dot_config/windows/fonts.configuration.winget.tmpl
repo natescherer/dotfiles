@@ -6,11 +6,11 @@ properties:
     {{- $globOutput := joinPath .chezmoi.homeDir ".local" "share" "chezmoifonts" "**.otf" | glob }}
     {{- range $fontPath := $globOutput }}
     - resource: DSCR_Font/cFont
-      id: {{trimSuffix ".otf" (osBase $fontPath) }}
+      id: {{ trimSuffix ".otf" (osBase $fontPath) }}
       directives:
         securityContext: elevated
       settings:
-        FontName: {{trimSuffix ".otf" (osBase $fontPath) }}
+        FontName: {{ trimSuffix ".otf" (osBase $fontPath) }}
         FontFile: {{ $fontPath }}
     {{- end }}
     ### Fonts End
