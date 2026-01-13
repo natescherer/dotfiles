@@ -1,3 +1,4 @@
+{{- $fontDir := "" }}
 {{- if eq .chezmoi.os "darwin" }}
     {{- $fontDir = "Library/Fonts" }}
 {{- else if eq .chezmoi.os "linux" }}
