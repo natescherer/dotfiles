@@ -3,18 +3,14 @@ properties:
   configurationVersion: 0.2.0
   resources:
     ### Fonts Start
+    {{- $globOutput := joinPath .chezmoi.homeDir ".local" "share" "chezmoifonts" "**.otf" | glob }}
+    {{- range $fontPath := $globOutput }}
     - resource: DSCR_Font/cFont
-      id: CascadiaCodeNFInstall
+      id: {{trimSuffix ".otf" (osBase $fontPath) }}
       directives:
         securityContext: elevated
       settings:
-        FontName: Cascadia Code NF Regular
-        FontFile: {{ joinPath .chezmoi.homeDir ".local" "share" "chezmoifonts" "CascadiaCodeNF-Regular.otf" }}
-    - resource: DSCR_Font/cFont
-      id: OverpassInstall
-      directives:
-        securityContext: elevated
-      settings:
-        FontName: Overpass Regular
-        FontFile: {{ joinPath .chezmoi.homeDir ".local" "share" "chezmoifonts" "overpass-regular.otf" }}
+        FontName: {{trimSuffix ".otf" (osBase $fontPath) }}
+        FontFile: {{ $fontPath }}
+    {{- end }}
     ### Fonts End
