@@ -1,0 +1,96 @@
+# yaml-language-server: $schema=https://aka.ms/configuration-dsc-schema/0.2
+properties:
+  configurationVersion: 0.2.0
+  resources:
+    ### Windows Optional Features Start
+    - resource: xPSDesiredStateConfiguration/xWindowsOptionalFeature
+      id: Containers
+      directives:
+        securityContext: elevated
+      settings:
+        Name: Containers
+        Ensure: Present
+    - resource: xPSDesiredStateConfiguration/xWindowsOptionalFeature
+      id: DotNet3
+      directives:
+        securityContext: elevated
+      settings:
+        Name: NetFx3
+        Ensure: Present
+    - resource: xPSDesiredStateConfiguration/xWindowsOptionalFeature
+      id: HyperV
+      directives:
+        securityContext: elevated
+      settings:
+        Name: Microsoft-Hyper-V-All
+        Ensure: Present
+    - resource: xPSDesiredStateConfiguration/xWindowsOptionalFeature
+      id: HypervisorPlatform
+      directives:
+        securityContext: elevated
+      settings:
+        Name: HypervisorPlatform
+        Ensure: Present
+    - resource: xPSDesiredStateConfiguration/xWindowsOptionalFeature
+      id: Sandbox
+      directives:
+        securityContext: elevated
+      settings:
+        Name: Containers-DisposableClientVM
+        Ensure: Present
+    - resource: xPSDesiredStateConfiguration/xWindowsOptionalFeature
+      id: SimpleTCP
+      directives:
+        securityContext: elevated
+      settings:
+        Name: SimpleTCP
+        Ensure: Present
+    - resource: xPSDesiredStateConfiguration/xWindowsOptionalFeature
+      id: TelnetClient
+      directives:
+        securityContext: elevated
+      settings:
+        Name: TelnetClient
+        Ensure: Present
+    - resource: xPSDesiredStateConfiguration/xWindowsOptionalFeature
+      id: TFTPClient
+      directives:
+        securityContext: elevated
+      settings:
+        Name: TFTP
+        Ensure: Present
+    - resource: xPSDesiredStateConfiguration/xWindowsOptionalFeature
+      id: VirtualMachinePlatform
+      directives:
+        securityContext: elevated
+      settings:
+        Name: VirtualMachinePlatform
+        Ensure: Present
+    - resource: xPSDesiredStateConfiguration/xWindowsOptionalFeature
+      id: WSL
+      directives:
+        securityContext: elevated
+      settings:
+        Name: Microsoft-Windows-Subsystem-Linux
+        Ensure: Present
+    ### Windows Optional Features End
+    ### WSL Setup Start
+    - resource: xPSDesiredStateConfiguration/xScript
+      id: WSLUpdate
+      directives:
+        securityContext: elevated
+      settings:
+        GetScript: |
+          return @{
+            Result = "The get verb doesn't really make sense here."
+          }
+        SetScript: |
+          wsl --update
+        TestScript: |
+          $WSLOutput = wsl --help
+          if ($WSLOutput | Where-Object { $_ -eq "    --version, -v" }) {
+            return $true
+          } else {
+            return $false
+          }
+    ### WSL Setup End

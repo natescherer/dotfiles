@@ -1,0 +1,514 @@
+# yaml-language-server: $schema=https://aka.ms/configuration-dsc-schema/0.2
+properties:
+  configurationVersion: 0.2.0
+  resources:
+    ### Settings Start
+    - resource: Microsoft.Windows.Settings/WindowsSettings
+      directives:
+        allowPrerelease: true
+        securityContext: elevated
+      settings:
+        AppColorMode: Dark
+        DeveloperMode: true
+        SystemColorMode: Dark
+        TaskbarAlignment: Left
+    - resource: Microsoft.Windows.Setting.Accessibility/StickyKeys
+      directives:
+        allowPrerelease: true
+        securityContext: elevated
+      settings:
+        Active: False
+        Available: False
+        HotkeyActive: False
+    - resource: Microsoft.Windows.Developer/Taskbar
+      directives:
+        allowPrerelease: true
+        securityContext: elevated
+      settings:
+        SearchBoxMode: Hide
+        WidgetsButton: Hide
+        RestartExplorer: True
+    - resource: Microsoft.Windows.Developer/WindowsExplorer
+      directives:
+        allowPrerelease: true
+        securityContext: elevated
+      settings:
+        FileExtensions: Show
+        HiddenFiles: Show
+        RestartExplorer: True
+    - resource: Registry
+      id: ExplorerFullPathInTitleBar
+      settings:
+        Key: HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\CabinetState
+        ValueName: FullPath
+        ValueData: 1
+        ValueType: Dword
+        Ensure: Present
+        Force: true
+    - resource: Registry
+      id: EnableClipboardHistory
+      settings:
+        Key: HKEY_CURRENT_USER\Software\Microsoft\Clipboard
+        ValueName: EnableClipboardHistory
+        ValueData: 1
+        ValueType: Dword
+        Ensure: Present
+        Force: true
+    - resource: Registry
+      id: DisableRecentFilesInStartMenu
+      settings:
+        Key: HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced
+        ValueName: Start_TrackDocs
+        ValueData: 0
+        ValueType: Dword
+        Ensure: Present
+        Force: true
+    - resource: Registry
+      id: DisableRecomendationsInStartMenu
+      settings:
+        Key: HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced
+        ValueName: Start_IrisRecommendations
+        ValueData: 0
+        ValueType: Dword
+        Ensure: Present
+        Force: true
+    - resource: Registry
+      id: DisableFunFactsInStartMenu1
+      settings:
+        Key: HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager
+        ValueName: RotatingLockScreenOverlayEnabled
+        ValueData: 0
+        ValueType: Dword
+        Ensure: Present
+        Force: true
+    - resource: Registry
+      id: DisableFunFactsInStartMenu2
+      settings:
+        Key: HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager
+        ValueName: SubscribedContent-338387Enabled
+        ValueData: 0
+        ValueType: Dword
+        Ensure: Present
+        Force: true
+    - resource: Registry
+      id: DisableWeatherAndMoreOnLockScreen
+      directives:
+        securityContext: elevated
+      settings:
+        Key: HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\System
+        ValueName: DisableLockScreenAppNotifications
+        ValueData: 1
+        ValueType: Dword
+        Ensure: Present
+        Force: true
+    - resource: Registry
+      id: DisableAppLaunchTracking
+      settings:
+        Key: HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced
+        ValueName: Start_TrackProgs
+        ValueData: 0
+        ValueType: Dword
+        Ensure: Present
+        Force: true
+    - resource: Registry
+      id: DisableWebsiteLanguageAccess
+      settings:
+        Key: HKEY_CURRENT_USER\Control Panel\International\User Profile
+        ValueName: HttpAcceptLanguageOptOut
+        ValueData: 1
+        ValueType: Dword
+        Ensure: Present
+        Force: true
+    - resource: Registry
+      id: DisableSettingsSuggestedContent1
+      settings:
+        Key: HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager
+        ValueName: SubscribedContent-338393Enabled
+        ValueData: 0
+        ValueType: Dword
+        Ensure: Present
+        Force: true
+    - resource: Registry
+      id: DisableSettingsSuggestedContent2
+      settings:
+        Key: HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager
+        ValueName: SubscribedContent-353694Enabled
+        ValueData: 0
+        ValueType: Dword
+        Ensure: Present
+        Force: true
+    - resource: Registry
+      id: DisableSettingsSuggestedContent3
+      settings:
+        Key: HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager
+        ValueName: SubscribedContent-353696Enabled
+        ValueData: 0
+        ValueType: Dword
+        Ensure: Present
+        Force: true
+    - resource: Registry
+      id: DisableCustomInkingAndTypingDictionary1
+      settings:
+        Key: HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\CPSS\Store\InkingAndTypingPersonalization
+        ValueName: Value
+        ValueData: 0
+        ValueType: Dword
+        Ensure: Present
+        Force: true
+    - resource: Registry
+      id: DisableCustomInkingAndTypingDictionary2
+      settings:
+        Key: HKEY_CURRENT_USER\Software\Microsoft\Personalization\Settings
+        ValueName: AcceptedPrivacyPolicy
+        ValueData: 0
+        ValueType: Dword
+        Ensure: Present
+        Force: true
+    - resource: Registry
+      id: DisableCustomInkingAndTypingDictionary3
+      settings:
+        Key: HKEY_CURRENT_USER\Software\Microsoft\InputPersonalization
+        ValueName: RestrictImplicitInkCollection
+        ValueData: 1
+        ValueType: Dword
+        Ensure: Present
+        Force: true
+    - resource: Registry
+      id: DisableCustomInkingAndTypingDictionary4
+      settings:
+        Key: HKEY_CURRENT_USER\Software\Microsoft\InputPersonalization
+        ValueName: RestrictImplicitTextCollection
+        ValueData: 1
+        ValueType: Dword
+        Ensure: Present
+        Force: true
+    - resource: Registry
+      id: DisableCustomInkingAndTypingDictionary5
+      settings:
+        Key: HKEY_CURRENT_USER\Software\Microsoft\InputPersonalization\TrainedDataStore
+        ValueName: HarvestContacts
+        ValueData: 0
+        ValueType: Dword
+        Ensure: Present
+        Force: true
+    - resource: Registry
+      id: DisableOptionalDiagnosticData1
+      settings:
+        Key: HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Diagnostics\DiagTrack
+        ValueName: ShowedToastAtLevel
+        ValueData: 1
+        ValueType: Dword
+        Ensure: Present
+        Force: true
+    - resource: Registry
+      id: DisableOptionalDiagnosticData2
+      directives:
+        securityContext: elevated
+      settings:
+        Key: HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\DataCollection
+        ValueName: AllowTelemetry
+        ValueData: 1
+        ValueType: Dword
+        Ensure: Present
+        Force: true
+    - resource: Registry
+      id: DisableOptionalDiagnosticData3
+      directives:
+        securityContext: elevated
+      settings:
+        Key: HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\DataCollection
+        ValueName: MaxTelemetryAllowed
+        ValueData: 1
+        ValueType: Dword
+        Ensure: Present
+        Force: true
+    - resource: Registry
+      id: DisableImproveInkingAndTyping
+      settings:
+        Key: HKEY_CURRENT_USER\Software\Microsoft\Input\TIPC
+        ValueName: Enabled
+        ValueData: 0
+        ValueType: Dword
+        Ensure: Present
+        Force: true
+    - resource: Registry
+      id: DisableDiagnosticDataForTailoredExperiences
+      settings:
+        Key: HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Privacy
+        ValueName: TailoredExperiencesWithDiagnosticDataEnabled
+        ValueData: 0
+        ValueType: Dword
+        Ensure: Present
+        Force: true
+    - resource: Registry
+      id: DisableFeedbackPrompts1
+      settings:
+        Key: HKEY_CURRENT_USER\SOFTWARE\Microsoft\Siuf\Rules
+        ValueName: NumberOfSIUFInPeriod
+        ValueData: 0
+        ValueType: Dword
+        Ensure: Present
+        Force: true
+    - resource: Registry
+      id: DisableFeedbackPrompts2
+      settings:
+        Key: HKEY_CURRENT_USER\SOFTWARE\Microsoft\Siuf\Rules
+        ValueName: PeriodInNanoSeconds
+        ValueType: Dword
+        Ensure: Absent
+        Force: true
+    - resource: Registry
+      id: EnableUpdatesForOtherMicrosoftProducts
+      directives:
+        securityContext: elevated
+      settings:
+        Key: HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings
+        ValueName: AllowMUUpdateService
+        ValueData: 1
+        ValueType: Dword
+        Ensure: Present
+        Force: true
+    - resource: Registry
+      id: DisableBingSearchInStart
+      settings:
+        Key: HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Search
+        ValueName: BingSearchEnabled
+        ValueData: 0
+        ValueType: Dword
+        Ensure: Present
+        Force: true
+    - resource: Registry
+      id: DisableEnhancePointerPrecision1
+      settings:
+        Key: HKEY_CURRENT_USER\Control Panel\Mouse
+        ValueName: MouseSpeed
+        ValueData: 0
+        ValueType: String
+        Ensure: Present
+        Force: true
+    - resource: Registry
+      id: DisableEnhancePointerPrecision2
+      settings:
+        Key: HKEY_CURRENT_USER\Control Panel\Mouse
+        ValueName: MouseThreshold1
+        ValueData: 0
+        ValueType: String
+        Ensure: Present
+        Force: true
+    - resource: Registry
+      id: DisableEnhancePointerPrecision3
+      settings:
+        Key: HKEY_CURRENT_USER\Control Panel\Mouse
+        ValueName: MouseThreshold2
+        ValueData: 0
+        ValueType: String
+        Ensure: Present
+        Force: true
+    - resource: Registry
+      id: WindowsProtectedPrintMode
+      directives:
+        securityContext: elevated
+      settings:
+        Key: HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows NT\Printers\WPP
+        ValueName: WindowsProtectedPrintMode
+        ValueData: 1
+        ValueType: Dword
+        Ensure: Present
+        Force: true
+    ### Apps Start
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: 1Password
+      settings:
+        id: AgileBits.1Password
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: 1PasswordCLI
+      settings:
+        id: AgileBits.1Password.CLI
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: AcrobatReader
+      settings:
+        id: Adobe.Acrobat.Reader.64-bit
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: AppleMusic
+      settings:
+        id: 9PFHDD62MXS1
+        source: msstore
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: AppleTV
+      settings:
+        id: 9NM4T8B9JQZ1
+        source: msstore
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: Brave
+      settings:
+        id: Brave.Brave
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: chezmoi
+      settings:
+        id: twpayne.chezmoi
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: Discord
+      settings:
+        id: Discord.Discord
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: DisneyPlus
+      settings:
+        id: 9NXQXXLFST89
+        source: msstore
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: DolbyAccess
+      settings:
+        id: 9N0866FS04W8
+        source: msstore
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: Firefox
+      settings:
+        id: Mozilla.Firefox
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: fzf
+      settings:
+        id: junegunn.fzf
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: HPSmart
+      settings:
+        id: 9WZDNCRFHWLH
+        source: msstore
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: Hulu
+      settings:
+        id: 9WZDNCRFJ3L1
+        source: msstore
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: iCloud
+      settings:
+        id: 9PKTQ5699M62
+        source: msstore
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: mise
+      settings:
+        id: jdx.mise
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: MullvadVPN
+      settings:
+        id: MullvadVPN.MullvadVPN
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: nano
+      settings:
+        id: okibcn.nano
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: Netflix
+      settings:
+        id: 9WZDNCRFJ3TJ
+        source: msstore
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: Obsidian
+      settings:
+        id: Obsidian.Obsidian
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: ParamountPlus
+      settings:
+        id: 9WZDNCRFJ0WK
+        source: msstore
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: Podman
+      settings:
+        id: RedHat.Podman
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: PodmanDesktop
+      settings:
+        id: RedHat.Podman-Desktop
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: PowerToys
+      settings:
+        id: Microsoft.PowerToys
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: PowerShell
+      settings:
+        id: Microsoft.PowerShell
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: PrimeVideo
+      settings:
+        id: 9P6RC76MSMMJ
+        source: msstore
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: Rufus
+      settings:
+        id: Rufus.Rufus
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: Slack
+      settings:
+        id: SlackTechnologies.Slack
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: Speedtest
+      settings:
+        id: Ookla.Speedtest.Desktop
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: Starship
+      settings:
+        id: Starship.Starship
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: Tabby
+      settings:
+        id: Eugeny.Tabby
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: Ubuntu
+      settings:
+        id: 9PDXGNCFSCZV
+        source: msstore
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: VLC
+      settings:
+        id: VideoLAN.VLC
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: VSCode
+      settings:
+        id: Microsoft.VisualStudioCode
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: WindowsApp
+      settings:
+        id: Microsoft.WindowsApp
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: WingetAutoupdate
+      settings:
+        id: Romanitho.Winget-AutoUpdate
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: WinRAR
+      settings:
+        id: RARLab.WinRAR
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: YubicoAuthenticator
+      settings:
+        id: Yubico.Authenticator
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: YubikeyManager
+      settings:
+        id: Yubico.YubikeyManager
+        source: winget
+    ### Apps End

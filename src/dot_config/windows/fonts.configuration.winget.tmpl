@@ -1,0 +1,20 @@
+# yaml-language-server: $schema=https://aka.ms/configuration-dsc-schema/0.2
+properties:
+  configurationVersion: 0.2.0
+  resources:
+    ### Fonts Start
+    - resource: DSCR_Font/cFont
+      id: CascadiaCodeNFInstall
+      directives:
+        securityContext: elevated
+      settings:
+        FontName: Cascadia Code NF Regular
+        FontFile: {{ joinPath .chezmoi.homeDir ".local" "share" "chezmoifonts" "CascadiaCodeNF-Regular.otf" }}
+    - resource: DSCR_Font/cFont
+      id: OverpassInstall
+      directives:
+        securityContext: elevated
+      settings:
+        FontName: Overpass Regular
+        FontFile: {{ joinPath .chezmoi.homeDir ".local" "share" "chezmoifonts" "overpass-regular.otf" }}
+    ### Fonts End
