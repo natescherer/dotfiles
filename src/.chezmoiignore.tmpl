@@ -100,3 +100,9 @@ AppData/Roaming/tabby/**
 .bash_profile
 .bashrc
 {{- end }}
+
+{{- if eq .isPersonal false }}
+# Personal Configuration
+git/gh
+git/gh/**
+{{- end }}

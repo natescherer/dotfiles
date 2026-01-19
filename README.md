@@ -36,6 +36,9 @@ Currently managed:
   - Config Files
     - [src/dot_config/git/config.tmpl](src/dot_config/git/config.tmpl)
     - [src/dot_config/git/ignore](src/dot_config/git/ignore)
+  - Folders
+    - [src/git/gh](src/git/gh) for GitHub repos
+    - [src/git/azdo](src/git/azdo) for Azure DevOps repos
 - [GnuPG](https://gnupg.org/) 🐧 🍎 🪟
   - Config Files
     - [src/.chezmoidata/env_vars.toml](src/.chezmoidata/env_vars.toml)
