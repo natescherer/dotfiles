@@ -477,6 +477,11 @@ properties:
         id: 9PDXGNCFSCZV
         source: msstore
     - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: VirtualBox
+      settings:
+        id: Oracle.VirtualBox
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
       id: VLC
       settings:
         id: VideoLAN.VLC
