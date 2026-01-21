@@ -472,6 +472,11 @@ properties:
         id: Eugeny.Tabby
         source: winget
     - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: TickTick
+      settings:
+        id: Appest.TickTick
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
       id: Ubuntu
       settings:
         id: 9PDXGNCFSCZV
