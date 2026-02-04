@@ -332,6 +332,11 @@ properties:
         id: Adobe.Acrobat.Reader.64-bit
         source: winget
     - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: Airdroid
+      settings:
+        id: AirDroid.AirDroid
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
       id: AppleMusic
       settings:
         id: 9PFHDD62MXS1
