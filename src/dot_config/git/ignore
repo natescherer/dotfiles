@@ -1,2 +1,5 @@
 # Used to configure mise for a local machine, not committed to a repo
 mise.local.toml
+
+# Used to set up a local .gitignore that won't be tracked
+.gitignore.local
