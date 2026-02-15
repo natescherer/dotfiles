@@ -93,7 +93,7 @@ comment = "Python: Repoint data from home"
 
 [[env_vars_apps]]
 name = "STARSHIP_CONFIG"
-path_part1 = "$XDG_DATA_HOME"
+path_part1 = "$XDG_CONFIG_HOME"
 path_part2 = "starship"
 path_part3 = "config.toml"
 comment = "Python: Repoint data from home"
