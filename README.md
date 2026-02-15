@@ -3,7 +3,7 @@
 
 This repository contains my personal dotfiles for synchronization via [chezmoi](https://www.chezmoi.io).
 
-Where possible, each configuration is set up to work for Linux 🐧, macOS 15 🍎, and Windows 11 🪟. (OS compatibility for each product is indicated with emoji.)
+Where possible, each configuration is set up to work for Linux 🐧, macOS 15/26 🍎, and Windows 11 🪟. (OS compatibility for each product is indicated with emoji.)
 
 Feel free to use anything here according to your needs!
 
