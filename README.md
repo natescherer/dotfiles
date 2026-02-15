@@ -83,7 +83,8 @@ Currently managed:
     - [src/dot_config/sheldon/plugins.toml](src/dot_config/sheldon/plugins.toml)
 - [Starship](https://starship.rs) 🐧 🍎 🪟
   - Config Files
-    - [src/dot_config/starship.toml.tmpl](src/dot_config/starship.toml.tmpl)
+    - [src/.chezmoidata/env_vars.toml](src/.chezmoidata/env_vars.toml)
+    - [src/dot_config/starship/config.toml.tmpl](src/dot_config/starship/config.toml.tmpl)
 - [Stats](https://github.com/exelban/stats) 🍎
   - Notes
     - Configuration is imported via script [src/.chezmoiscripts/macos/run_onchange_defaults-importer.sh.tmpl](src/.chezmoiscripts/macos/run_onchange_defaults-importer.sh.tmpl)
