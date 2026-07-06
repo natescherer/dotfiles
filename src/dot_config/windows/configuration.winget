@@ -304,17 +304,6 @@ properties:
         ValueType: String
         Ensure: Present
         Force: true
-    - resource: Registry
-      id: WindowsProtectedPrintMode
-      directives:
-        securityContext: elevated
-      settings:
-        Key: HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows NT\Printers\WPP
-        ValueName: WindowsProtectedPrintMode
-        ValueData: 1
-        ValueType: Dword
-        Ensure: Present
-        Force: true
     ### Apps Start
     - resource: Microsoft.WinGet.DSC/WinGetPackage
       id: 1Password
@@ -327,9 +316,9 @@ properties:
         id: AgileBits.1Password.CLI
         source: winget
     - resource: Microsoft.WinGet.DSC/WinGetPackage
-      id: AcrobatReader
+      id: AdobeCreativeCloud
       settings:
-        id: Adobe.Acrobat.Reader.64-bit
+        id: Adobe.CreativeCloud
         source: winget
     - resource: Microsoft.WinGet.DSC/WinGetPackage
       id: Airdroid
@@ -357,6 +346,21 @@ properties:
         id: twpayne.chezmoi
         source: winget
     - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: Claude
+      settings:
+        id: Anthropic.Claude
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: Coreutils
+      settings:
+        id: Microsoft.Coreutils
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: DockerDesktop
+      settings:
+        id: Docker.DockerDesktop
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
       id: Discord
       settings:
         id: Discord.Discord
@@ -382,11 +386,6 @@ properties:
         id: junegunn.fzf
         source: winget
     - resource: Microsoft.WinGet.DSC/WinGetPackage
-      id: HPSmart
-      settings:
-        id: 9WZDNCRFHWLH
-        source: msstore
-    - resource: Microsoft.WinGet.DSC/WinGetPackage
       id: Hulu
       settings:
         id: 9WZDNCRFJ3L1
@@ -397,6 +396,16 @@ properties:
         id: 9PKTQ5699M62
         source: msstore
     - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: MEGASync
+      settings:
+        id: Mega.MEGASync
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: micro
+      settings:
+        id: zyedidia.micro
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
       id: mise
       settings:
         id: jdx.mise
@@ -405,11 +414,6 @@ properties:
       id: MullvadVPN
       settings:
         id: MullvadVPN.MullvadVPN
-        source: winget
-    - resource: Microsoft.WinGet.DSC/WinGetPackage
-      id: nano
-      settings:
-        id: okibcn.nano
         source: winget
     - resource: Microsoft.WinGet.DSC/WinGetPackage
       id: Netflix
@@ -426,16 +430,6 @@ properties:
       settings:
         id: 9WZDNCRFJ0WK
         source: msstore
-    - resource: Microsoft.WinGet.DSC/WinGetPackage
-      id: Podman
-      settings:
-        id: RedHat.Podman
-        source: winget
-    - resource: Microsoft.WinGet.DSC/WinGetPackage
-      id: PodmanDesktop
-      settings:
-        id: RedHat.Podman-Desktop
-        source: winget
     - resource: Microsoft.WinGet.DSC/WinGetPackage
       id: PowerToys
       settings:
@@ -487,9 +481,9 @@ properties:
         id: 9PDXGNCFSCZV
         source: msstore
     - resource: Microsoft.WinGet.DSC/WinGetPackage
-      id: VirtualBox
+      id: UniGetUI
       settings:
-        id: Oracle.VirtualBox
+        id: Devolutions.UniGetUI
         source: winget
     - resource: Microsoft.WinGet.DSC/WinGetPackage
       id: VLC
@@ -505,11 +499,6 @@ properties:
       id: WindowsApp
       settings:
         id: Microsoft.WindowsApp
-        source: winget
-    - resource: Microsoft.WinGet.DSC/WinGetPackage
-      id: WingetAutoupdate
-      settings:
-        id: Romanitho.Winget-AutoUpdate
         source: winget
     - resource: Microsoft.WinGet.DSC/WinGetPackage
       id: WinRAR
