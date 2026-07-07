@@ -122,9 +122,10 @@ Install the following tools however is appropriate for your distro:
 ### Windows
 
 ```PowerShell
-winget install twpayne.chezmoi
-winget install Starship.Starship
 winget install jdx.mise
+winget install Microsoft.Coreutils
+winget install Starship.Starship
+winget install twpayne.chezmoi
 ```
 
 ## Activating
