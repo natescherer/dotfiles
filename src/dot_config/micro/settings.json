@@ -1,0 +1,13 @@
+{
+    "colorscheme": "twilight",
+    "fileformat": "unix",
+    "helpsplit": "hsplit",
+    "hlsearch": true,
+    "hltaberrors": true,
+    "hltrailingws": true,
+    "keymenu": true,
+    "scrollbar": true,
+    "scrollbarchar": "|",
+    "softwrap": true,
+    "wordwrap": true
+}

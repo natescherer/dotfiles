@@ -54,15 +54,12 @@ Currently managed:
 - [kubie](https://github.com/sbstp/kubie) 🐧 🍎
   - Config Files
     - [src/dot_kube/kubie.yaml](src/dot_kube/kubie.yaml)
+- [micro](https://www.nano-editor.org/) 🐧 🍎 🪟
+  - Config Files
+    - [src/dot_config/micro/nanorc](src/dot_config/nano/nanorc)
 - [mise](https://mise.jdx.dev) 🐧 🍎 🪟
   - Config Files
     - [src/dot_config/mise/config.toml.tmpl](src/dot_config/mise/config.toml.tmpl)
-- [Nano](https://www.nano-editor.org/) 🐧 🍎 🪟
-  - Config Files
-    - [src/.chezmoidata/env_vars.toml](src/.chezmoidata/env_vars.toml)
-    - [src/dot_config/nano/nanorc](src/dot_config/nano/nanorc)
-    - Contents of [src/dot_config/nano/includes](src/dot_config/nano/includes)
-      - This is a redistribution of [https://github.com/scopatz/nanorc](https://github.com/scopatz/nanorc)
 - [npm](https://www.npmjs.com/) 🐧 🍎 🪟
   - Config Files
     - [src/.chezmoidata/env_vars.toml](src/.chezmoidata/env_vars.toml)
