@@ -9,6 +9,9 @@ Feel free to use anything here according to your needs!
 
 Currently managed:
 
+- [1Password](https://1password.com/) 🐧 🍎 🪟
+  - Config Files
+    - [src/.chezmoitemplates/1password/agent.toml](src/.chezmoitemplates/1password/agent.toml)
 - [Azure CLI](https://learn.microsoft.com/en-us/cli/azure/) 🐧 🍎 🪟
   - Config Files
     - [src/.chezmoidata/env_vars.toml](src/.chezmoidata/env_vars.toml)

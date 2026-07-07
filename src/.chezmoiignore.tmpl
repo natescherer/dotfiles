@@ -47,7 +47,10 @@ Documents/**
 .bash_aliases
 .bash_profile
 .bashrc
-## Linux Tabb
+## Linux/macOS 1Password
+.config/1Password
+.config/1Password/**
+## Linux Tabby
 .config/tabby/
 .config/tabby/**
 ## Linux/macOS PowerShell
@@ -91,7 +94,6 @@ AppData/Roaming/tabby/**
 ## Sheldon
 .config/sheldon/
 .config/sheldon/**
-## Starship
 {{- end }}
 
 {{- if eq .skipBash true }}
@@ -103,6 +105,10 @@ AppData/Roaming/tabby/**
 
 {{- if eq .isPersonal false }}
 # Personal Configuration
+.config/1Password
+.config/1Password/**
+AppData/Local/1Password
+AppData/Local/1Password/**
 git/gh
 git/gh/**
 {{- end }}
