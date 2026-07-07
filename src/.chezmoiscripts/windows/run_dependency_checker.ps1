@@ -1,4 +1,5 @@
 $Dependencies = @(
+    @{Name = "coreutils"; WinGetId = "Microsoft.Coreutils" },
     @{Name = "starship"; WinGetId = "Starship.Starship"},
     @{Name = "mise"; WinGetId = "jdx.mise" }
 )
