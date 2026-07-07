@@ -2,7 +2,7 @@
 Linux/macOS: src/dot_config/powershell/aliases.ps1.tmpl
 Windows: src\Documents\PowerShell\aliases.ps1.tmpl */}}
 function Invoke-LsWithOptions {
-    {{ lookPath "ls" }} -AFGhl --group-directories-first --color=auto
+    & "{{ lookPath "ls" }}" -AFGhl --group-directories-first --color=auto
 }
 
 function mkdircd([string]$Path) {
