@@ -1,3 +1,7 @@
+{{/* The contents of this file are included in the following config files:
+Linux/macOS: dot_config/1Password/ssh/agent.toml.tmpl
+Windows: AppData/Local/1Password/config/ssh/agent.toml.tmpl */}}
+
 # This is the 1Password SSH agent config file, which allows you to customize the
 # behavior of the SSH agent running on this machine.
 #

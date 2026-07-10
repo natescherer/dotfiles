@@ -1,3 +1,5 @@
+## WARNING: This file is chezmoi-managed and should not be manually edited!
+
 # If not running interactively, don't do anything
 case $- in
     *i*) ;;
