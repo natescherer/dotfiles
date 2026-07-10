@@ -1,4 +1,4 @@
-#! /bin/bash
+#!/usr/bin/env bash
 
 dependencies=("starship" "fzf" "gls" "sheldon" "mise")
 
