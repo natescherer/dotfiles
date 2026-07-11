@@ -91,6 +91,12 @@ Currently managed:
   - Config Files
     - [src/.scriptdata/macos_defaults/eu.exelban.Stats.plist](src/.scriptdata/macos_defaults/eu.exelban.Stats.plist)
       - Note this is a non-editable binary file, made via `defaults export eu.exelban.Stats eu.exelban.Stats.plist`
+- [Windows](https://windows.com) 🪟
+  - Config Files
+    - [src/dot_wslconfig](src/dot_wslconfig)
+    - [src/dot_config/windows/configuration.winget](src/dot_config/windows/configuration.winget)
+    - [src/dot_config/windows/features.configuration.winget](src/dot_config/windows/features.configuration.winget)
+    - [src/dot_config/windows/fonts.configuration.winget.tmpl](src/dot_config/windows/fonts.configuration.winget.tmpl)
 - [Zsh](https://www.zsh.org/) 🐧 🍎
   - Config Files
     - [src/.chezmoitemplates/bash_and_zsh/aliases.sh.tmpl](src/.chezmoitemplates/bash_and_zsh/aliases.sh.tmpl)

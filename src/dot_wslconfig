@@ -1,0 +1,12 @@
+# Applies to all Linux distributions running on WSL 2
+[wsl2]
+# RAM ceiling allocated to the VM (default: 50% of total RAM)
+memory=4GB
+# Disk space used as overflow RAM (default: 25% of total RAM)
+swap=2GB
+# Number of logical processors accessible to WSL (default: all)
+processors=4
+ 
+[experimental]
+# Gradually reclaims cached memory when WSL is less active
+autoMemoryReclaim=gradual
