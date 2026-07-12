@@ -378,6 +378,11 @@ properties:
         id: 9N0866FS04W8
         source: msstore
     - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: DotNetDesktopRuntime10
+      settings:
+        id: Microsoft.DotNet.DesktopRuntime.10
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
       id: Firefox
       settings:
         id: Mozilla.Firefox
