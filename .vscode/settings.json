@@ -3,6 +3,5 @@
     "**.tmpl": "gotemplate",
     "dot_config/defaults/**": "plaintext"
   },
-  "git.branchProtection": [],
-  "python.defaultInterpreterPath": "C:\\Users\\nate\\.local\\share\\mise\\installs\\python\\3.13.3\\python.exe"
+  "git.branchProtection": []
 }
