@@ -1,0 +1,42 @@
+# Colors (Root Loops)
+# via https://rootloops.sh?sugar=6&colors=9&sogginess=0&flavor=1&fruit=10&milk=0
+background = 060606
+foreground = f3f3f3
+# black
+palette = 0=#222222
+palette = 8=#525252
+# red
+palette = 1=#e73359
+palette = 9=#f75b72
+# green
+palette = 2=#59972d
+palette = 10=#67af34
+# yellow
+palette = 3=#ae7714
+palette = 11=#c98b1a
+# blue
+palette = 4=#2d83e8
+palette = 12=#509af6
+# purple
+palette = 5=#ba3ce8
+palette = 13=#ca64f3
+# aqua
+palette = 6=#1a9696
+palette = 14=#1faeae
+# white
+palette = 7=#ababab
+palette = 15=#e2e2e2
+
+
+font-family = Cascadia Mono NF Regular
+window-title-font-family = Cascadia Mono NF Regular
+cursor-style = block
+background-opacity = 0.9
+background-blur = 20
+notify-on-command-finish = unfocused
+window-padding-x = 10
+window-padding-y = 10
+window-padding-color = background
+window-padding-balance = true
+window-show-tab-bar = always
+shell-integration-features = ssh-env, ssh-terminfo, sudo
