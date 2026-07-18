@@ -1,0 +1,155 @@
+#!/usr/bin/env python3
+# Installs each VS Code profile's extensions (from .chezmoidata/vscode.toml) and, for named
+# profiles, syncs their settings.json into VS Code's own (machine-generated) profile folder.
+# The Default profile's settings.json is managed directly by the per-OS settings.json.tmpl files.
+#
+# A named profile's settings.json is only overwritten if it's untouched since the last time this
+# script wrote it (tracked via a settings.json.chezmoi-hash sidecar file), so local customizations
+# never get clobbered; if drift is detected, it warns instead of overwriting.
+
+import hashlib
+import json
+import os
+import platform
+import shutil
+import subprocess
+import sys
+
+{{- $profiles := list }}
+{{- range .vscode.profiles }}
+{{- $settings := "" }}
+{{- if ne .name "Default" }}
+{{- $settings = include (printf ".chezmoitemplates/vscode/%s" .settings_file) }}
+{{- end }}
+{{- $profiles = append $profiles (dict "name" .name "extensions" .extensions "settings" $settings) }}
+{{- end }}
+PROFILES = {{ $profiles | toJson }}
+
+IS_WINDOWS = platform.system() == "Windows"
+
+
+def vscode_user_dir():
+    system = platform.system()
+    if system == "Windows":
+        return os.path.join(os.environ["APPDATA"], "Code", "User")
+    if system == "Darwin":
+        return os.path.join(os.path.expanduser("~"), "Library", "Application Support", "Code", "User")
+    return os.path.join(os.path.expanduser("~"), ".config", "Code", "User")
+
+
+def run_code(*args):
+    # code/code.cmd is a shell script/batch file on most platforms, so it needs a shell to execute;
+    # on Windows that means routing through cmd.exe rather than launching it directly.
+    cmd = ["cmd", "/c", "code", *args] if IS_WINDOWS else ["code", *args]
+    return subprocess.run(cmd, capture_output=True, text=True)
+
+
+def list_extensions(profile_name):
+    profile_args = () if profile_name == "Default" else ("--profile", profile_name)
+    result = run_code(*profile_args, "--list-extensions")
+    return {line.strip() for line in result.stdout.splitlines() if line.strip()}
+
+
+def install_extension(profile_name, extension_id):
+    profile_args = () if profile_name == "Default" else ("--profile", profile_name)
+    print(f"Installing '{extension_id}' into VS Code profile '{profile_name}'...")
+    run_code(*profile_args, "--install-extension", extension_id)
+
+
+def sync_extensions(profile_name, desired_extensions):
+    desired = set(desired_extensions)
+    installed = list_extensions(profile_name)
+
+    for extension_id in sorted(desired - installed):
+        install_extension(profile_name, extension_id)
+
+    extra = installed - desired
+    if extra:
+        print(
+            f"Warning: VS Code profile '{profile_name}' has extensions installed that aren't "
+            f"tracked in vscode.toml: {', '.join(sorted(extra))}",
+            file=sys.stderr,
+        )
+
+
+def hash_string(value):
+    return hashlib.sha256(value.encode("utf-8")).hexdigest()
+
+
+def write_profile_settings(user_dir, profile_name, settings_content):
+    storage_path = os.path.join(user_dir, "globalStorage", "storage.json")
+    with open(storage_path, "r", encoding="utf-8") as f:
+        storage = json.load(f)
+
+    location = next(
+        (p.get("location") for p in storage.get("userDataProfiles", []) if p.get("name") == profile_name),
+        None,
+    )
+    if location is None:
+        print(
+            f"Warning: Could not find VS Code profile '{profile_name}' in storage.json; skipping its "
+            f"settings.json sync. Open VS Code once with '--profile \"{profile_name}\"' and re-run "
+            f"'chezmoi apply'.",
+            file=sys.stderr,
+        )
+        return
+
+    profile_dir = os.path.join(user_dir, "profiles", location)
+    os.makedirs(profile_dir, exist_ok=True)
+    settings_path = os.path.join(profile_dir, "settings.json")
+    hash_path = os.path.join(profile_dir, "settings.json.chezmoi-hash")
+    desired_hash = hash_string(settings_content)
+
+    if not os.path.exists(settings_path):
+        with open(settings_path, "w", encoding="utf-8", newline="") as f:
+            f.write(settings_content)
+        with open(hash_path, "w", encoding="utf-8", newline="") as f:
+            f.write(desired_hash)
+        return
+
+    if not os.path.exists(hash_path):
+        print(
+            f"Warning: VS Code profile '{profile_name}' has a settings.json that chezmoi doesn't have a "
+            f"record of writing; leaving it as-is. Delete '{settings_path}' and re-run 'chezmoi apply' "
+            f"to let chezmoi manage it.",
+            file=sys.stderr,
+        )
+        return
+
+    with open(hash_path, "r", encoding="utf-8", newline="") as f:
+        last_written_hash = f.read().strip()
+    with open(settings_path, "r", encoding="utf-8", newline="") as f:
+        live_hash = hash_string(f.read())
+
+    if live_hash != last_written_hash:
+        print(
+            f"Warning: VS Code profile '{profile_name}' has local changes to settings.json that aren't "
+            f"tracked in chezmoi; leaving it as-is. Reconcile manually, or delete '{settings_path}' and "
+            f"re-run 'chezmoi apply' to let chezmoi overwrite it.",
+            file=sys.stderr,
+        )
+        return
+
+    if live_hash != desired_hash:
+        with open(settings_path, "w", encoding="utf-8", newline="") as f:
+            f.write(settings_content)
+        with open(hash_path, "w", encoding="utf-8", newline="") as f:
+            f.write(desired_hash)
+
+
+def main():
+    if shutil.which("code") is None:
+        print("VS Code ('code' command) not found; skipping VS Code profile/extension sync.", file=sys.stderr)
+        return
+
+    for profile in PROFILES:
+        sync_extensions(profile["name"], profile["extensions"])
+
+    user_dir = vscode_user_dir()
+    for profile in PROFILES:
+        if profile["name"] != "Default":
+            write_profile_settings(user_dir, profile["name"], profile["settings"])
+
+
+if __name__ == "__main__":
+    main()
