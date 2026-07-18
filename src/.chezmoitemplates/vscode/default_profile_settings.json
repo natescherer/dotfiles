@@ -30,10 +30,6 @@
   "git.autofetch": true,
   "git.autofetchPeriod": 900,
   "git.autoStash": true,
-  "git.branchProtection": [
-    "main",
-    "master"
-  ],
   "git.confirmSync": false,
   "git.discardUntrackedChangesToTrash": false,
   "git.enableSmartCommit": true,
