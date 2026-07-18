@@ -513,6 +513,11 @@ properties:
         id: RARLab.WinRAR
         source: winget
     - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: XPipe
+      settings:
+        id: xpipe-io.xpipe
+        source: winget
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
       id: YubicoAuthenticator
       settings:
         id: Yubico.Authenticator
