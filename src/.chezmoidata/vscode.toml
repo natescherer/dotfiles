@@ -57,6 +57,7 @@ extensions = [
 
 [[vscode.profiles]]
 name = "Code"
+icon = "code"
 settings_file = "code_profile_settings.json"
 extensions = [
   "anthropic.claude-code",
@@ -101,6 +102,7 @@ extensions = [
 
 [[vscode.profiles]]
 name = "Text Editing"
+icon = "record-keys"
 settings_file = "text-editing_profile_settings.json"
 extensions = [
   "bluebrown.yamlfmt",
@@ -116,6 +118,7 @@ extensions = [
 
 [[vscode.profiles]]
 name = "Work"
+icon = "briefcase"
 settings_file = "work_profile_settings.json"
 extensions = [
   "astral-sh.ty",

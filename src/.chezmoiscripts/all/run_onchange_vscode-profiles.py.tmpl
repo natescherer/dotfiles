@@ -7,6 +7,7 @@
 # script wrote it (tracked via a settings.json.chezmoi-hash sidecar file), so local customizations
 # never get clobbered; if drift is detected, it warns instead of overwriting.
 
+import ctypes
 import hashlib
 import json
 import os
@@ -15,17 +16,59 @@ import shutil
 import subprocess
 import sys
 
+{{/* The section below embeds the content of .chezmoiscript/vscode.toml as well as the files under 
+.chezmoitemplates/vscode, ensuring changes to those files will cause the hash of this files to change,
+triggering the run_onchange_. */}}
 {{- $profiles := list }}
 {{- range .vscode.profiles }}
 {{- $settings := "" }}
+{{- $icon := "" }}
 {{- if ne .name "Default" }}
 {{- $settings = include (printf ".chezmoitemplates/vscode/%s" .settings_file) }}
+{{- $icon = .icon }}
 {{- end }}
-{{- $profiles = append $profiles (dict "name" .name "extensions" .extensions "settings" $settings) }}
+{{- $profiles = append $profiles (dict "name" .name "extensions" .extensions "settings" $settings "icon" $icon) }}
 {{- end }}
 PROFILES = {{ $profiles | toJson }}
 
 IS_WINDOWS = platform.system() == "Windows"
+
+CYAN_TERM_COLOR = "\033[0;36m"
+RED_TERM_COLOR = "\033[0;31m"
+YELLOW_TERM_COLOR = "\033[1;33m"
+RESET_TERM_STYLE = "\033[0m"
+
+
+def enable_windows_ansi_support():
+    # Legacy conhost.exe doesn't handle ANSI escape sequences unless a console explicitly opts in
+    # via SetConsoleMode. Modern terminals (like Windows Terminal) run consoles via ConPTY
+    # which has ANSI escape support, so we test and only enable when needed
+    from ctypes import wintypes # Doing this here so wintypes doesn't get imported on Linux/macOS
+
+    STD_OUTPUT_HANDLE = -11
+    INVALID_HANDLE_VALUE = wintypes.HANDLE(-1).value
+    ENABLE_VIRTUAL_TERMINAL_PROCESSING = 0x0004
+
+    kernel32 = ctypes.windll.kernel32
+    kernel32.GetStdHandle.argtypes = [wintypes.DWORD]
+    kernel32.GetStdHandle.restype = wintypes.HANDLE
+    kernel32.GetConsoleMode.argtypes = [wintypes.HANDLE, ctypes.POINTER(wintypes.DWORD)]
+    kernel32.GetConsoleMode.restype = wintypes.BOOL
+    kernel32.SetConsoleMode.argtypes = [wintypes.HANDLE, wintypes.DWORD]
+    kernel32.SetConsoleMode.restype = wintypes.BOOL
+
+    handle = kernel32.GetStdHandle(STD_OUTPUT_HANDLE)
+    if handle == INVALID_HANDLE_VALUE or not handle:
+        return  # no real handle at all (e.g. fully detached process)
+
+    mode = wintypes.DWORD()
+    if not kernel32.GetConsoleMode(handle, ctypes.byref(mode)):
+        return  # stdout isn't a real console (e.g. redirected to a file/pipe); nothing to enable
+
+    if mode.value & ENABLE_VIRTUAL_TERMINAL_PROCESSING:
+        return  # already enabled
+
+    kernel32.SetConsoleMode(handle, mode.value | ENABLE_VIRTUAL_TERMINAL_PROCESSING)
 
 
 def vscode_user_dir():
@@ -38,8 +81,7 @@ def vscode_user_dir():
 
 
 def run_code(*args):
-    # code/code.cmd is a shell script/batch file on most platforms, so it needs a shell to execute;
-    # on Windows that means routing through cmd.exe rather than launching it directly.
+    # 'code' needs launched through a shell on Windows.
     cmd = ["cmd", "/c", "code", *args] if IS_WINDOWS else ["code", *args]
     return subprocess.run(cmd, capture_output=True, text=True)
 
@@ -66,14 +108,29 @@ def sync_extensions(profile_name, desired_extensions):
     extra = installed - desired
     if extra:
         print(
-            f"Warning: VS Code profile '{profile_name}' has extensions installed that aren't "
-            f"tracked in vscode.toml: {', '.join(sorted(extra))}",
+            f"{YELLOW_TERM_COLOR}Warning: VS Code profile '{profile_name}' has the following extensions "
+            f"installed that aren't tracked by chezmoi. They have not been uninstalled, but you "
+            f"should consider adding them to '.chezmoidata/vscode.toml': "
+            f"{', '.join(sorted(extra))}{RESET_TERM_STYLE}",
             file=sys.stderr,
         )
 
 
 def hash_string(value):
     return hashlib.sha256(value.encode("utf-8")).hexdigest()
+
+
+
+def provision_profile(profile_name):
+    # VS Code only registers a new profile in storage.json when it's opened as a real window, so
+    # there's no way to create one headlessly. Open it ourselves and wait for the user to close it.
+    print(
+        f"{CYAN_TERM_COLOR}VS Code profile '{profile_name}' needs to be provisioned before chezmoi can manage "
+        f"it. After you press Enter, VS Code will open with this profile. Close it once it appears. "
+        f"This is a one-time process on this machine.{RESET_TERM_STYLE}"
+    )
+    input("Press Enter to continue... ")
+    run_code("--profile", profile_name, "--wait")
 
 
 def get_profile_location(user_dir, profile_name):
@@ -88,24 +145,65 @@ def get_profile_location(user_dir, profile_name):
     )
 
 
+def set_profile_icon(user_dir, profile_name, icon):
+    # `code --profile "Name"` creates the profile but doesn't set its icon (it defaults to VS
+    # Code's generic profile icon), so this patches it into storage.json to match vscode.toml.
+    if not icon:
+        return
+
+    storage_path = os.path.join(user_dir, "globalStorage", "storage.json")
+    with open(storage_path, "r", encoding="utf-8") as f:
+        storage = json.load(f)
+
+    changed = False
+    for p in storage.get("userDataProfiles", []):
+        if p.get("name") == profile_name:
+            if p.get("icon") != icon:
+                p["icon"] = icon
+                changed = True
+            break
+
+    if not changed:
+        return
+
+    # Write to a temp file and rename over the original (atomic on both Windows and POSIX) rather
+    # than writing storage.json in place, so a crash mid-write can't leave it corrupted.
+    tmp_path = storage_path + ".chezmoi-tmp"
+    with open(tmp_path, "w", encoding="utf-8", newline="") as f:
+        json.dump(storage, f, indent=4)
+    os.replace(tmp_path, storage_path)
+
+
 def write_profile_settings(profile_name, profile_dir, settings_content):
     os.makedirs(profile_dir, exist_ok=True)
     settings_path = os.path.join(profile_dir, "settings.json")
     hash_path = os.path.join(profile_dir, "settings.json.chezmoi-hash")
+    desired_path = os.path.join(profile_dir, "settings.json.chezmoi-desired")
     desired_hash = hash_string(settings_content)
+
+    def remove_desired_reference():
+        if os.path.exists(desired_path):
+            os.remove(desired_path)
 
     if not os.path.exists(settings_path):
         with open(settings_path, "w", encoding="utf-8", newline="") as f:
             f.write(settings_content)
         with open(hash_path, "w", encoding="utf-8", newline="") as f:
             f.write(desired_hash)
+        remove_desired_reference()
         return
 
     if not os.path.exists(hash_path):
+        # We're writing a copy of the contents here in case the source file
+        # is a template, which couldn't be directly compared against.
+        # The copy will be cleaned up by future runs.
+        with open(desired_path, "w", encoding="utf-8", newline="") as f:
+            f.write(settings_content)
         print(
-            f"Warning: VS Code profile '{profile_name}' has a settings.json that chezmoi doesn't have a "
-            f"record of writing; leaving it as-is. Delete '{settings_path}' and re-run 'chezmoi apply' "
-            f"to let chezmoi manage it.",
+            f"{YELLOW_TERM_COLOR}Warning: VS Code profile '{profile_name}' has a settings.json that is not "
+            f"chezmoi-managed. Compare it against what chezmoi would write with: "
+            f"code --diff \"{settings_path}\" \"{desired_path}\". Delete '{settings_path}' and re-run "
+            f"'chezmoi apply' to let chezmoi manage it.{RESET_TERM_STYLE}",
             file=sys.stderr,
         )
         return
@@ -116,13 +214,18 @@ def write_profile_settings(profile_name, profile_dir, settings_content):
         live_hash = hash_string(f.read())
 
     if live_hash != last_written_hash:
+        with open(desired_path, "w", encoding="utf-8", newline="") as f:
+            f.write(settings_content)
         print(
-            f"Warning: VS Code profile '{profile_name}' has local changes to settings.json that aren't "
-            f"tracked in chezmoi; leaving it as-is. Reconcile manually, or delete '{settings_path}' and "
-            f"re-run 'chezmoi apply' to let chezmoi overwrite it.",
+            f"{YELLOW_TERM_COLOR}Warning: VS Code profile '{profile_name}' has local changes to settings.json that aren't "
+            f"tracked in chezmoi; leaving it as-is. Compare it against what chezmoi would write with: "
+            f"code --diff \"{settings_path}\" \"{desired_path}\". Reconcile manually, or delete '{settings_path}' "
+            f"and re-run 'chezmoi apply' to let chezmoi overwrite it.{RESET_TERM_STYLE}",
             file=sys.stderr,
         )
         return
+
+    remove_desired_reference()
 
     if live_hash != desired_hash:
         with open(settings_path, "w", encoding="utf-8", newline="") as f:
@@ -136,6 +239,9 @@ def main():
         print("VS Code ('code' command) not found; skipping VS Code profile/extension sync.", file=sys.stderr)
         return
 
+    if IS_WINDOWS:
+        enable_windows_ansi_support()
+
     user_dir = vscode_user_dir()
 
     for profile in PROFILES:
@@ -145,21 +251,20 @@ def main():
             sync_extensions(name, profile["extensions"])
             continue
 
-        # Unlike the Default profile, named profiles can't be bootstrapped headlessly: `code
-        # --profile "Name" --install-extension ...` installs the extension but does not actually
-        # create the profile entry in storage.json if it doesn't already exist. VS Code only
-        # registers a new profile when it's opened as a real window, so that has to happen once,
-        # manually, before this script can do anything for that profile.
         location = get_profile_location(user_dir, name)
         if location is None:
+            provision_profile(name)
+            location = get_profile_location(user_dir, name)
+
+        if location is None:
             print(
-                f"Warning: VS Code profile '{name}' doesn't exist yet; skipping its extension and "
-                f"settings sync. Open VS Code once with '--profile \"{name}\"' to create it, then "
-                f"re-run 'chezmoi apply'.",
+                f"{RED_TERM_COLOR}Error: VS Code profile '{name}' still isn't registered; skipping its extension "
+                f"and settings sync this run. Re-run 'chezmoi apply' to try again.{RESET_TERM_STYLE}",
                 file=sys.stderr,
             )
             continue
 
+        set_profile_icon(user_dir, name, profile["icon"])
         sync_extensions(name, profile["extensions"])
         profile_dir = os.path.join(user_dir, "profiles", location)
         write_profile_settings(name, profile_dir, profile["settings"])
