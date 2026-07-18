@@ -76,25 +76,19 @@ def hash_string(value):
     return hashlib.sha256(value.encode("utf-8")).hexdigest()
 
 
-def write_profile_settings(user_dir, profile_name, settings_content):
+def get_profile_location(user_dir, profile_name):
     storage_path = os.path.join(user_dir, "globalStorage", "storage.json")
+    if not os.path.exists(storage_path):
+        return None
     with open(storage_path, "r", encoding="utf-8") as f:
         storage = json.load(f)
-
-    location = next(
+    return next(
         (p.get("location") for p in storage.get("userDataProfiles", []) if p.get("name") == profile_name),
         None,
     )
-    if location is None:
-        print(
-            f"Warning: Could not find VS Code profile '{profile_name}' in storage.json; skipping its "
-            f"settings.json sync. Open VS Code once with '--profile \"{profile_name}\"' and re-run "
-            f"'chezmoi apply'.",
-            file=sys.stderr,
-        )
-        return
 
-    profile_dir = os.path.join(user_dir, "profiles", location)
+
+def write_profile_settings(profile_name, profile_dir, settings_content):
     os.makedirs(profile_dir, exist_ok=True)
     settings_path = os.path.join(profile_dir, "settings.json")
     hash_path = os.path.join(profile_dir, "settings.json.chezmoi-hash")
@@ -142,13 +136,33 @@ def main():
         print("VS Code ('code' command) not found; skipping VS Code profile/extension sync.", file=sys.stderr)
         return
 
-    for profile in PROFILES:
-        sync_extensions(profile["name"], profile["extensions"])
-
     user_dir = vscode_user_dir()
+
     for profile in PROFILES:
-        if profile["name"] != "Default":
-            write_profile_settings(user_dir, profile["name"], profile["settings"])
+        name = profile["name"]
+
+        if name == "Default":
+            sync_extensions(name, profile["extensions"])
+            continue
+
+        # Unlike the Default profile, named profiles can't be bootstrapped headlessly: `code
+        # --profile "Name" --install-extension ...` installs the extension but does not actually
+        # create the profile entry in storage.json if it doesn't already exist. VS Code only
+        # registers a new profile when it's opened as a real window, so that has to happen once,
+        # manually, before this script can do anything for that profile.
+        location = get_profile_location(user_dir, name)
+        if location is None:
+            print(
+                f"Warning: VS Code profile '{name}' doesn't exist yet; skipping its extension and "
+                f"settings sync. Open VS Code once with '--profile \"{name}\"' to create it, then "
+                f"re-run 'chezmoi apply'.",
+                file=sys.stderr,
+            )
+            continue
+
+        sync_extensions(name, profile["extensions"])
+        profile_dir = os.path.join(user_dir, "profiles", location)
+        write_profile_settings(name, profile_dir, profile["settings"])
 
 
 if __name__ == "__main__":
