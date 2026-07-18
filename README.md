@@ -37,7 +37,7 @@ Currently managed:
     - [src/dot_config/zsh/dot_zshrc.tmpl](src/dot_config/zsh/dot_zshrc.tmpl)
 - [Ghostty](https://ghostty.org/) 🐧 🍎
   - Config Files
-    - [src/dot_config/ghostty/config](src/dot_config/ghostty/config)
+    - [src/dot_config/ghostty/config.tmpl](src/dot_config/ghostty/config.tmpl)
 - [Git](https://git-scm.com/) 🐧 🍎 🪟
   - Config Files
     - [src/dot_config/git/config.tmpl](src/dot_config/git/config.tmpl)
