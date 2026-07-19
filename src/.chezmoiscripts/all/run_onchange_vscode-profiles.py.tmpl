@@ -7,16 +7,11 @@
 # script wrote it (tracked via a settings.json.chezmoi-hash sidecar file), so local customizations
 # never get clobbered; if drift is detected, it warns instead of overwriting.
 
-# The below ensures the script changes when VS Code is installed, so that it will rerun if the first
-# run of the script was before VS Code was installed.
-# chezmoi-code-available: {{ if lookPath "code" }}yes{{ else }}no{{ end }}
-
 import ctypes
 import hashlib
 import json
 import os
 import platform
-import shutil
 import subprocess
 import sys
 
@@ -34,6 +29,10 @@ triggering the run_onchange_. */}}
 {{- $profiles = append $profiles (dict "name" .name "extensions" .extensions "settings" $settings "icon" $icon) }}
 {{- end }}
 PROFILES = {{ $profiles | toJson }}
+
+# The below is set via chezmoi templating and serves as both a check to make sure VS Code is installed before
+# doing anything, and to ensure the script will change (triggering it to run) when VS Code is installed.
+CODE_AVAILABLE = {{ if lookPath "code" }}True{{ else }}False{{ end }}
 
 IS_WINDOWS = platform.system() == "Windows"
 
@@ -239,7 +238,7 @@ def write_profile_settings(profile_name, profile_dir, settings_content):
 
 
 def main():
-    if shutil.which("code") is None:
+    if not CODE_AVAILABLE:
         print("VS Code ('code' command) not found; skipping VS Code profile/extension sync.", file=sys.stderr)
         return
 
