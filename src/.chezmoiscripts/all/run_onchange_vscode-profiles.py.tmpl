@@ -7,7 +7,6 @@
 # script wrote it (tracked via a settings.json.chezmoi-hash sidecar file), so local customizations
 # never get clobbered; if drift is detected, it warns instead of overwriting.
 
-import ctypes
 import hashlib
 import json
 import os
@@ -36,42 +35,23 @@ CODE_AVAILABLE = {{ if lookPath "code" }}True{{ else }}False{{ end }}
 
 IS_WINDOWS = platform.system() == "Windows"
 
+# Normally, a profile's settings.json that has drifted from what chezmoi last wrote is left alone
+# (see write_profile_settings) so local customizations never get silently clobbered. Setting this
+# opts back into always overwriting it with what chezmoi wants instead.
+CHEZMOI_VSCODE_CLOBBER = os.environ.get("CHEZMOI_VSCODE_CLOBBER", "").lower() in ("1", "true", "yes")
+
+# Setting an env var for a single command differs by shell, so give the warning below a copy-pasteable
+# example matching however this script itself is actually being run.
+CLOBBER_COMMAND = (
+    '$env:CHEZMOI_VSCODE_CLOBBER = "true"; chezmoi apply'
+    if IS_WINDOWS
+    else "CHEZMOI_VSCODE_CLOBBER=true chezmoi apply"
+)
+
 CYAN_TERM_COLOR = "\033[0;36m"
 RED_TERM_COLOR = "\033[0;31m"
 YELLOW_TERM_COLOR = "\033[1;33m"
 RESET_TERM_STYLE = "\033[0m"
-
-
-def enable_windows_ansi_support():
-    # Legacy conhost.exe doesn't handle ANSI escape sequences unless a console explicitly opts in
-    # via SetConsoleMode. Modern terminals (like Windows Terminal) run consoles via ConPTY
-    # which has ANSI escape support, so we test and only enable when needed
-    from ctypes import wintypes # Doing this here so wintypes doesn't get imported on Linux/macOS
-
-    STD_OUTPUT_HANDLE = -11
-    INVALID_HANDLE_VALUE = wintypes.HANDLE(-1).value
-    ENABLE_VIRTUAL_TERMINAL_PROCESSING = 0x0004
-
-    kernel32 = ctypes.windll.kernel32
-    kernel32.GetStdHandle.argtypes = [wintypes.DWORD]
-    kernel32.GetStdHandle.restype = wintypes.HANDLE
-    kernel32.GetConsoleMode.argtypes = [wintypes.HANDLE, ctypes.POINTER(wintypes.DWORD)]
-    kernel32.GetConsoleMode.restype = wintypes.BOOL
-    kernel32.SetConsoleMode.argtypes = [wintypes.HANDLE, wintypes.DWORD]
-    kernel32.SetConsoleMode.restype = wintypes.BOOL
-
-    handle = kernel32.GetStdHandle(STD_OUTPUT_HANDLE)
-    if handle == INVALID_HANDLE_VALUE or not handle:
-        return  # no real handle at all (e.g. fully detached process)
-
-    mode = wintypes.DWORD()
-    if not kernel32.GetConsoleMode(handle, ctypes.byref(mode)):
-        return  # stdout isn't a real console (e.g. redirected to a file/pipe); nothing to enable
-
-    if mode.value & ENABLE_VIRTUAL_TERMINAL_PROCESSING:
-        return  # already enabled
-
-    kernel32.SetConsoleMode(handle, mode.value | ENABLE_VIRTUAL_TERMINAL_PROCESSING)
 
 
 def vscode_user_dir():
@@ -121,7 +101,6 @@ def sync_extensions(profile_name, desired_extensions):
 
 def hash_string(value):
     return hashlib.sha256(value.encode("utf-8")).hexdigest()
-
 
 
 def provision_profile(profile_name):
@@ -184,31 +163,42 @@ def write_profile_settings(profile_name, profile_dir, settings_content):
     desired_path = os.path.join(profile_dir, "settings.json.chezmoi-desired")
     desired_hash = hash_string(settings_content)
 
-    def remove_desired_reference():
-        if os.path.exists(desired_path):
-            os.remove(desired_path)
-
-    if not os.path.exists(settings_path):
+    def write_settings():
         with open(settings_path, "w", encoding="utf-8", newline="") as f:
             f.write(settings_content)
         with open(hash_path, "w", encoding="utf-8", newline="") as f:
             f.write(desired_hash)
-        remove_desired_reference()
-        return
+        if os.path.exists(desired_path):
+            os.remove(desired_path)
 
-    if not os.path.exists(hash_path):
-        # We're writing a copy of the contents here in case the source file
-        # is a template, which couldn't be directly compared against.
-        # The copy will be cleaned up by future runs.
+    def warn_drifted(reason):
+        # We're writing a copy of the contents here in case the source file is a template, which
+        # couldn't be directly compared against. The copy will be cleaned up by future runs.
         with open(desired_path, "w", encoding="utf-8", newline="") as f:
             f.write(settings_content)
         print(
-            f"{YELLOW_TERM_COLOR}Warning: VS Code profile '{profile_name}' has a settings.json that is not "
-            f"chezmoi-managed. Compare it against what chezmoi would write with: "
-            f"code --diff \"{settings_path}\" \"{desired_path}\". Delete '{settings_path}' and re-run "
-            f"'chezmoi apply' to let chezmoi manage it.{RESET_TERM_STYLE}",
+            f"{YELLOW_TERM_COLOR}Warning: VS Code profile '{profile_name}' {reason}.\n"
+            f"\n"
+            f"Compare it against what chezmoi would write with:\n"
+            f"    code --diff \"{settings_path}\" \"{desired_path}\"\n"
+            f"\n"
+            f"Then either reconcile the differences manually, or run the following to have chezmoi\n"
+            f"overwrite it automatically:\n"
+            f"    {CLOBBER_COMMAND}{RESET_TERM_STYLE}",
             file=sys.stderr,
         )
+
+    if not os.path.exists(settings_path):
+        write_settings()
+        return
+
+    if not os.path.exists(hash_path):
+        if CHEZMOI_VSCODE_CLOBBER:
+            print(f"{CYAN_TERM_COLOR}VS Code profile '{profile_name}' had an untracked settings.json; "
+                  f"overwriting it since CHEZMOI_VSCODE_CLOBBER is set.{RESET_TERM_STYLE}")
+            write_settings()
+            return
+        warn_drifted("has a settings.json that is not chezmoi-managed")
         return
 
     with open(hash_path, "r", encoding="utf-8", newline="") as f:
@@ -217,33 +207,25 @@ def write_profile_settings(profile_name, profile_dir, settings_content):
         live_hash = hash_string(f.read())
 
     if live_hash != last_written_hash:
-        with open(desired_path, "w", encoding="utf-8", newline="") as f:
-            f.write(settings_content)
-        print(
-            f"{YELLOW_TERM_COLOR}Warning: VS Code profile '{profile_name}' has local changes to settings.json that aren't "
-            f"tracked in chezmoi; leaving it as-is. Compare it against what chezmoi would write with: "
-            f"code --diff \"{settings_path}\" \"{desired_path}\". Reconcile manually, or delete '{settings_path}' "
-            f"and re-run 'chezmoi apply' to let chezmoi overwrite it.{RESET_TERM_STYLE}",
-            file=sys.stderr,
-        )
+        if CHEZMOI_VSCODE_CLOBBER:
+            print(f"{CYAN_TERM_COLOR}VS Code profile '{profile_name}' had local changes to settings.json; "
+                  f"overwriting them since CHEZMOI_VSCODE_CLOBBER is set.{RESET_TERM_STYLE}")
+            write_settings()
+            return
+        warn_drifted("has local changes to settings.json that aren't tracked in chezmoi; leaving it as-is")
         return
 
-    remove_desired_reference()
+    if os.path.exists(desired_path):
+        os.remove(desired_path)
 
     if live_hash != desired_hash:
-        with open(settings_path, "w", encoding="utf-8", newline="") as f:
-            f.write(settings_content)
-        with open(hash_path, "w", encoding="utf-8", newline="") as f:
-            f.write(desired_hash)
+        write_settings()
 
 
 def main():
     if not CODE_AVAILABLE:
-        print("VS Code ('code' command) not found; skipping VS Code profile/extension sync.", file=sys.stderr)
+        print("{YELLOW_TERM_COLOR}VS Code ('code' command) not found; skipping VS Code profile/extension sync.{RESET_TERM_STYLE}", file=sys.stderr)
         return
-
-    if IS_WINDOWS:
-        enable_windows_ansi_support()
 
     user_dir = vscode_user_dir()
 
