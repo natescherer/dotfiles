@@ -1,5 +1,4 @@
 # README
-<!-- markdownlint-disable MD033 -->
 
 This repository contains my personal dotfiles for synchronization via [chezmoi](https://www.chezmoi.io).
 
@@ -11,7 +10,7 @@ Currently managed:
 
 - [1Password](https://1password.com/) 🐧 🍎 🪟
   - Config Files
-    - [src/.chezmoitemplates/1password/agent.toml](src/.chezmoitemplates/1password/agent.toml)
+    - [src/.chezmoitemplates/1password/agent.toml.tmpl](src/.chezmoitemplates/1password/agent.toml.tmpl)
 - [Azure CLI](https://learn.microsoft.com/en-us/cli/azure/) 🐧 🍎 🪟
   - Config Files
     - [src/.chezmoidata/env_vars.toml](src/.chezmoidata/env_vars.toml)
@@ -143,6 +142,7 @@ winget install jdx.mise
 winget install Microsoft.Coreutils
 winget install Starship.Starship
 winget install twpayne.chezmoi
+mise use -g python@latest
 ```
 
 ## Activating
