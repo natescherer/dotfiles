@@ -7,6 +7,10 @@
 # script wrote it (tracked via a settings.json.chezmoi-hash sidecar file), so local customizations
 # never get clobbered; if drift is detected, it warns instead of overwriting.
 
+# The below ensures the script changes when VS Code is installed, so that it will rerun if the first
+# run of the script was before VS Code was installed.
+# chezmoi-code-available: {{ if lookPath "code" }}yes{{ else }}no{{ end }}
+
 import ctypes
 import hashlib
 import json
