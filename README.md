@@ -14,14 +14,6 @@ Currently managed:
 - [Azure CLI](https://learn.microsoft.com/en-us/cli/azure/) 🐧 🍎 🪟
   - Config Files
     - [src/.chezmoidata/env_vars.toml](src/.chezmoidata/env_vars.toml)
-- [Bash](https://www.gnu.org/software/bash/) 🐧 🍎
-  - Notes
-    - Bash configuration is just enough to support bash-only servers, first-class shell experiences are Zsh or Powershell
-  - Config Files
-    - [src/.chezmoitemplates/bash_and_zsh/aliases.sh.tmpl](src/.chezmoitemplates/bash_and_zsh/aliases.sh.tmpl)
-    - [src/.chezmoitemplates/bash_and_zsh/env.sh.tmpl](src/.chezmoitemplates/bash_and_zsh/env.sh.tmpl)
-    - [src/dot_bash_profile.tmpl](src/dot_bash_profile.tmpl)
-    - [src/dot_bashrc](src/dot_bashrc)
 - [Cargo](https://github.com/rust-lang/cargo) 🐧 🍎 🪟
   - Config Files
     - [src/.chezmoidata/env_vars.toml](src/.chezmoidata/env_vars.toml)
@@ -112,7 +104,7 @@ Currently managed:
     - [src/dot_config/windows/fonts.configuration.winget.tmpl](src/dot_config/windows/fonts.configuration.winget.tmpl)
 - [Zsh](https://www.zsh.org/) 🐧 🍎
   - Config Files
-    - [src/.chezmoitemplates/bash_and_zsh/aliases.sh.tmpl](src/.chezmoitemplates/bash_and_zsh/aliases.sh.tmpl)
+    - [src/dot_config/zsh/dot_zsh_aliases.tmpl](src/dot_config/zsh/dot_zsh_aliases.tmpl)
     - [src/dot_config/zsh/dot_zshrc.tmpl](src/dot_config/zsh/dot_zshrc.tmpl)
     - [src/dot_zshenv.tmpl](src/dot_zshenv.tmpl)
 

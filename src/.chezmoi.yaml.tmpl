@@ -2,11 +2,6 @@
 {{- $isServer := promptBoolOnce . "isServer" "Is this a server? (Enter for default)" false }}
 {{- $editor := promptStringOnce . "editor" "Set preferred console editor (Enter for default):" "micro" }}
 
-{{- $skipBash := false }}
-{{- if lookPath "zsh" }}
-{{- $skipBash = promptBoolOnce . "skipBash" "Zsh installation detected. Should bash config files be skipped?" false }}
-{{- end }}
-
 {{- $macOSAdminRights := false }}
 {{- if eq .chezmoi.os "darwin" }}
 {{- $macOSAdminRights = promptBoolOnce . "macOSAdminRights" "Does your regular user account have admin rights on this Mac?" false }}
@@ -30,7 +25,6 @@ data:
 {{- if eq $isServer false }}
     modKey: {{ if eq .chezmoi.os "darwin" }}⌘{{ else }}Ctrl{{ end }}
 {{- end }}
-    skipBash: {{ $skipBash }}
 diff:
 {{- if eq $isServer false }}
     command: "code"

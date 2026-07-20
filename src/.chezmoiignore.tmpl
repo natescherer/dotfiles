@@ -48,10 +48,6 @@ dot_wslconfig
 
 {{- if eq .chezmoi.os "windows" }}
 # Ignore on Windows
-## Bash
-.bash_aliases
-.bash_profile
-.bashrc
 ## Ghostty
 .config/ghostty
 .config/ghostty/**
@@ -105,13 +101,6 @@ AppData/Roaming/tabby/**
 ## Sheldon
 .config/sheldon/
 .config/sheldon/**
-{{- end }}
-
-{{- if eq .skipBash true }}
-# Bash
-.bash_aliases
-.bash_profile
-.bashrc
 {{- end }}
 
 {{- if eq .isPersonal false }}

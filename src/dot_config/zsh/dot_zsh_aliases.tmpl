@@ -1,3 +1,11 @@
 ## WARNING: This file is chezmoi-managed and should not be manually edited!
 
-{{- template "bash_and_zsh/aliases.sh.tmpl" . -}}
+mkdircd () {
+  mkdir $1
+  cd $1
+}
+
+alias cl=clear
+alias k=kubectl
+alias ll="{{ if eq .chezmoi.os "darwin" }}gls{{ else }}ls{{ end }} -AFGhl --group-directories-first --color=auto"
+alias rmrf=rm -rf
