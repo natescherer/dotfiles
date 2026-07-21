@@ -1,5 +1,6 @@
 {
   "security.workspace.trust.startupPrompt": "always",
   "telemetry.feedback.enabled": false,
-  "workbench.colorTheme": "sandstorm - darker"
+  "workbench.colorTheme": "sandstorm - darker",
+  "workbench.enableExperiments": false
 }
