@@ -1,6 +1,13 @@
 {
+  "security.workspace.trust.banner": "always",
   "security.workspace.trust.startupPrompt": "always",
+  "security.workspace.trust.untrustedFiles": "newWindow",
   "telemetry.feedback.enabled": false,
+  "telemetry.telemetryLevel": "off",
+  "window.newWindowDimensions": "inherit",
+  "window.openFilesInNewWindow": "on",
+  "window.openFoldersInNewWindow": "on",
+  "workbench.browser.searchEngine": "duckduckgo",
   "workbench.colorTheme": "sandstorm - darker",
   "workbench.enableExperiments": false
 }
