@@ -1,7 +1,7 @@
 {
   "files.associations": {
     "**.tmpl": "gotemplate",
-    "dot_config/defaults/**": "plaintext"
+    "**/src/.chezmoitemplates/vscode/*.json": "jsonc"
   },
   "git.branchProtection": []
 }

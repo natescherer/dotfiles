@@ -1,13 +1,16 @@
 {
-  "security.workspace.trust.banner": "always",
-  "security.workspace.trust.startupPrompt": "always",
-  "security.workspace.trust.untrustedFiles": "newWindow",
-  "telemetry.feedback.enabled": false,
-  "telemetry.telemetryLevel": "off",
-  "window.newWindowDimensions": "inherit",
-  "window.openFilesInNewWindow": "on",
-  "window.openFoldersInNewWindow": "on",
-  "workbench.browser.searchEngine": "duckduckgo",
-  "workbench.colorTheme": "sandstorm - darker",
-  "workbench.enableExperiments": false
+  // Glossary
+  // DEFAULT-ONLY: Required to be set in the default profile applies to all profiles
+  // TRIGGERS-RESTART: Triggers a program restart if it differs between profiles, so functionally needs set across all profiles
+  "security.workspace.trust.banner": "always", // Always show banner for untrusted workspaces DEFAULT-ONLY
+  "security.workspace.trust.startupPrompt": "always", // Prompt when an untrusted workspace is opened DEFAULT-ONLY
+  "security.workspace.trust.untrustedFiles": "newWindow", // Open untrusted files in a new window DEFAULT-ONLY
+  "telemetry.feedback.enabled": false, // Stops sending data to Microsoft TRIGGERS-RESTART
+  "telemetry.telemetryLevel": "off", // Stops sending data to Microsoft TRIGGERS-RESTART
+  "window.newWindowDimensions": "inherit", // Windows remember size/position DEFAULT-ONLY 
+  "window.openFilesInNewWindow": "on", // OS-opened files always open in a new window DEFAULT-ONLY
+  "window.openFoldersInNewWindow": "on", // OS-opened folders always open in a new window DEFAULT-ONLY
+  "workbench.browser.searchEngine": "duckduckgo", // Default search engine DEFAULT-ONLY
+  "workbench.colorTheme": "sandstorm - darker", // Sets a red color scheme to remind you to change profiles
+  "workbench.enableExperiments": false // Disables Microsoft A/B testing DEFAULT-ONLY
 }
