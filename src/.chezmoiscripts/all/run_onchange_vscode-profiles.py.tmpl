@@ -14,10 +14,11 @@ import platform
 import subprocess
 import sys
 
-{{/* The section below embeds the content of .chezmoiscript/vscode.toml as well as the files under 
+{{/* The section below embeds the content of .chezmoiscript/vscode.toml as well as the files under
 .chezmoitemplates/vscode, ensuring changes to those files will cause the hash of this files to change,
 triggering the run_onchange_. */}}
 {{- $profiles := list }}
+{{- $common := .vscode.common_extensions | default (list) }}
 {{- range .vscode.profiles }}
 {{- $settings := "" }}
 {{- $icon := "" }}
@@ -25,8 +26,15 @@ triggering the run_onchange_. */}}
 {{- $settings = include (printf ".chezmoitemplates/vscode/%s" .settings_file) }}
 {{- $icon = .icon }}
 {{- end }}
-{{- $profiles = append $profiles (dict "name" .name "extensions" .extensions "settings" $settings "icon" $icon) }}
+{{- $extensions := .extensions }}
+{{- if and (ne .name "Default") $common }}
+{{- range $c := $common }}
+{{- $extensions = append $extensions $c }}
 {{- end }}
+{{- end }}
+{{- $profiles = append $profiles (dict "name" .name "extensions" $extensions "settings" $settings "icon" $icon) }}
+{{- end }}
+
 PROFILES = {{ $profiles | toJson }}
 
 # The below is set via chezmoi templating and serves as both a check to make sure VS Code is installed before
