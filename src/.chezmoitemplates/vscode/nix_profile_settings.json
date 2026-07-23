@@ -1,0 +1,7 @@
+{
+    "[nix]": {
+        "editor.tabSize": 2
+    },
+    "nix.enableLanguageServer": true,
+    "nix.serverPath": "nixd"
+}

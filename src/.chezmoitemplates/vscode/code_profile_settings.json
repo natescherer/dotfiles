@@ -2,9 +2,6 @@
   "[github-actions-workflow]": {
     "editor.tabSize": 2
   },
-  "[nix]": {
-    "editor.tabSize": 2
-  },
   "[powershell]": {
     "editor.rulers": [
       115
@@ -77,8 +74,6 @@
   },
   "merge-conflict.autoNavigateNextConflict.enabled": true,
   "mise.checkForNewMiseVersion": false,
-  "nix.enableLanguageServer": true,
-  "nix.serverPath": "nixd",
   "outline.showVariables": false,
   "powershell.codeFormatting.autoCorrectAliases": true,
   "powershell.codeFormatting.avoidSemicolonsAsLineTerminators": true,
