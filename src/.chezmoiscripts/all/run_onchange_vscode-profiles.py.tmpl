@@ -18,7 +18,7 @@ import sys
 .chezmoitemplates/vscode, ensuring changes to those files will cause the hash of this files to change,
 triggering the run_onchange_. */}}
 {{- $profiles := list }}
-{{- $extensionSets := .vscode.extension-sets | default (dict) }}
+{{- $extension_sets := .vscode.extension_sets | default (dict) }}
 {{- range .vscode.profiles }}
 {{- $settings := "" }}
 {{- $icon := "" }}
@@ -27,7 +27,7 @@ triggering the run_onchange_. */}}
 {{- $icon = .icon }}
 {{- end }}
 {{- $extensions := list }}
-{{- range $extensionSetName := .extension-sets | default (list) }}
+{{- range $extensionSetName := .extension_sets | default (list) }}
 {{- $extensionSetExtensions := index $extensionSets $extensionSetName | default (list) }}
 {{- range $extension := $extensionSetExtensions }}
 {{- $extensions = append $extensions $extension }}

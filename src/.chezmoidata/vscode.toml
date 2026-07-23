@@ -1,7 +1,7 @@
 [vscode]
-# Extension extension-sets can be reused across multiple profiles.
+# Extension extension_sets can be reused across multiple profiles.
 
-[vscode.extension-sets]
+[vscode.extension_sets]
 core = [
   "blueglassblock.better-json5",  # JSON5 language server
   "editorconfig.editorconfig",  # EditorConfig support, see https://editorconfig.org/
@@ -31,7 +31,7 @@ containers = [
 [[vscode.profiles]]
 name = "Default"
 settings_file = "default_profile_settings.json"
-extension-sets = []
+extension_sets = []
 extensions = [
   "bardleware.sandstorm",
 ]
@@ -39,7 +39,7 @@ extensions = [
 [[vscode.profiles]]
 name = "Nix"
 settings_file = "nix_profile_settings.json"
-extension-sets = ["core", "containers"]
+extension_sets = ["core", "containers"]
 extensions = [
   "jnoortheen.nix-ide",  # Nix language server
 ]
@@ -48,7 +48,7 @@ extensions = [
 name = "Code"
 icon = "code"
 settings_file = "code_profile_settings.json"
-extension-sets = ["core", "python"]
+extension_sets = ["core", "python"]
 extensions = [
   "casualjim.gotemplate",
   "charliermarsh.ruff",
@@ -70,7 +70,7 @@ extensions = [
 name = "Text Editing"
 icon = "record-keys"
 settings_file = "text-editing_profile_settings.json"
-extension-sets = ["core"]
+extension_sets = ["core"]
 extensions = [
   "bluebrown.yamlfmt",
   "davidanson.vscode-markdownlint",
@@ -83,7 +83,7 @@ extensions = [
 name = "Work"
 icon = "briefcase"
 settings_file = "work_profile_settings.json"
-extension-sets = ["core", "python"]
+extension_sets = ["core", "python"]
 extensions = [
   "astral-sh.ty",
   "bluebrown.yamlfmt",
