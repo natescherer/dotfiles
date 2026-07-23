@@ -1,0 +1,10 @@
+// Note: The settings in this file will be applied to every non-Default profile
+// Glossary
+// TRIGGERS-RESTART: Triggers a program restart if it differs between profiles, so functionally needs set across all profiles
+{
+    "[github-actions-workflow]": {
+        "editor.tabSize": 2
+    },
+    "telemetry.feedback.enabled": false, // Stops sending data to Microsoft TRIGGERS-RESTART
+    "telemetry.telemetryLevel": "off", // Stops sending data to Microsoft TRIGGERS-RESTART
+}

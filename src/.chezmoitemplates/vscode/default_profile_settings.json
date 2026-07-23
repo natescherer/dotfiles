@@ -1,7 +1,7 @@
+// Glossary
+// DEFAULT-ONLY: Required to be set in the default profile, and applies to all profiles
+// TRIGGERS-RESTART: Triggers a program restart if it differs between profiles, so functionally needs set across all profiles
 {
-  // Glossary
-  // DEFAULT-ONLY: Required to be set in the default profile applies to all profiles
-  // TRIGGERS-RESTART: Triggers a program restart if it differs between profiles, so functionally needs set across all profiles
   "security.workspace.trust.banner": "always", // Always show banner for untrusted workspaces DEFAULT-ONLY
   "security.workspace.trust.startupPrompt": "always", // Prompt when an untrusted workspace is opened DEFAULT-ONLY
   "security.workspace.trust.untrustedFiles": "newWindow", // Open untrusted files in a new window DEFAULT-ONLY

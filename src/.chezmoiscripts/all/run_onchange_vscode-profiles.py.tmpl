@@ -19,11 +19,13 @@ import sys
 triggering the run_onchange_. */}}
 {{- $profiles := list }}
 {{- $extensionSets := .vscode.extension_sets | default (dict) }}
+{{- $universalSettings := include ".chezmoitemplates/vscode/universal_settings.json" | fromJson }}
 {{- range .vscode.profiles }}
 {{- $settings := "" }}
 {{- $icon := "" }}
 {{- if ne .name "Default" }}
-{{- $settings = include (printf ".chezmoitemplates/vscode/%s" .settings_file) }}
+{{- $profileSettings := include (printf ".chezmoitemplates/vscode/%s" .settings_file) | fromJson }}
+{{- $settings = merge $universalSettings $profileSettings | toJson }}
 {{- $icon = .icon }}
 {{- end }}
 {{- $extensions := list }}
