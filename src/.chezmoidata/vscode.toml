@@ -38,6 +38,7 @@ extensions = [
 
 [[vscode.profiles]]
 name = "Nix"
+icon = "terminal-linux"
 settings_file = "nix_profile_settings.json"
 extension_sets = ["core", "containers"]
 extensions = [
