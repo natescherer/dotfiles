@@ -7,7 +7,7 @@
   "security.workspace.trust.untrustedFiles": "newWindow", // Open untrusted files in a new window DEFAULT-ONLY
   "telemetry.feedback.enabled": false, // Stops sending data to Microsoft TRIGGERS-RESTART
   "telemetry.telemetryLevel": "off", // Stops sending data to Microsoft TRIGGERS-RESTART
-  "window.newWindowDimensions": "inherit", // Windows remember size/position DEFAULT-ONLY 
+  "window.newWindowDimensions": "inherit", // Windows remember size/position DEFAULT-ONLY
   "window.openFilesInNewWindow": "on", // OS-opened files always open in a new window DEFAULT-ONLY
   "window.openFoldersInNewWindow": "on", // OS-opened folders always open in a new window DEFAULT-ONLY
   "workbench.browser.searchEngine": "duckduckgo", // Default search engine DEFAULT-ONLY

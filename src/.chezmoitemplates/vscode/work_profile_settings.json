@@ -60,8 +60,7 @@
   "javascript.updateImportsOnFileMove.enabled": "always",
   "markdown.occurrencesHighlight.enabled": true,
   "markdown.validate.enabled": true,
-  "markdownlint.config": {
-    // This is set to match .mado.toml settings from https://github.com/natescherer/postmodern-repo-copiertemplate/
+  "markdownlint.config": { // This is set to match .mado.toml settings from https://github.com/natescherer/postmodern-repo-copiertemplate/
     "MD048": false,
     "MD049": false,
     "MD050": false,

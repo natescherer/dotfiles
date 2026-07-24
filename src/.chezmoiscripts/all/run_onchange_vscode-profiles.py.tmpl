@@ -19,13 +19,11 @@ import sys
 triggering the run_onchange_. */}}
 {{- $profiles := list }}
 {{- $extensionSets := .vscode.extension_sets | default (dict) }}
-{{- $universalSettings := include ".chezmoitemplates/vscode/universal_settings.json" | fromJson }}
 {{- range .vscode.profiles }}
-{{- $settings := "" }}
+{{- $settingsFiles := .settings_files | default (list) }}
+{{- $settingsContents := list }}
 {{- $icon := "" }}
 {{- if ne .name "Default" }}
-{{- $profileSettings := include (printf ".chezmoitemplates/vscode/%s" .settings_file) | fromJson }}
-{{- $settings = merge $universalSettings $profileSettings | toJson }}
 {{- $icon = .icon }}
 {{- end }}
 {{- $extensions := list }}
@@ -38,10 +36,55 @@ triggering the run_onchange_. */}}
 {{- range $extension := .extensions | default (list) }}
 {{- $extensions = append $extensions $extension }}
 {{- end }}
-{{- $profiles = append $profiles (dict "name" .name "extensions" $extensions "settings" $settings "icon" $icon) }}
+{{- $profiles = append $profiles (dict "name" .name "extensions" $extensions "settings_files" $settingsFiles "settings_jsonc" $settingsContents "icon" $icon) }}
 {{- end }}
 
+
+def strip_jsonc_comments(text):
+    lines = []
+    in_string = False
+    escaped = False
+    for line in text.splitlines():
+        result = []
+        for i, ch in enumerate(line):
+            if in_string:
+                result.append(ch)
+                if escaped:
+                    escaped = False
+                elif ch == "\\":
+                    escaped = True
+                elif ch == '"':
+                    in_string = False
+                continue
+
+            if ch == '"':
+                in_string = True
+                result.append(ch)
+            elif ch == "/" and i + 1 < len(line) and line[i + 1] == "/":
+                break
+            else:
+                result.append(ch)
+        lines.append("".join(result))
+    return "\n".join(lines)
+
+
+def parse_jsonc(text):
+    return json.loads(strip_jsonc_comments(text))
+
+
 PROFILES = {{ $profiles | toJson }}
+for profile in PROFILES:
+    if profile["name"] != "Default":
+        merged_settings = {}
+        for relative_path in profile["settings_files"]:
+            path = os.path.join(os.getcwd(), relative_path)
+            with open(path, "r", encoding="utf-8") as handle:
+                merged_settings.update(parse_jsonc(handle.read()))
+        profile["settings"] = json.dumps(merged_settings, indent=2)
+    else:
+        profile["settings"] = ""
+    del profile["settings_jsonc"]
+    del profile["settings_files"]
 
 # The below is set via chezmoi templating and serves as both a check to make sure VS Code is installed before
 # doing anything, and to ensure the script will change (triggering it to run) when VS Code is installed.

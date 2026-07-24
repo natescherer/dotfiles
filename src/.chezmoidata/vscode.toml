@@ -30,7 +30,7 @@ containers = [
 
 [[vscode.profiles]]
 name = "Default"
-settings_file = "default_profile_settings.json"
+settings_files = ["src/.chezmoitemplates/vscode/default_profile_settings.json"]
 extension_sets = []
 extensions = [
   "bardleware.sandstorm",
@@ -39,7 +39,7 @@ extensions = [
 [[vscode.profiles]]
 name = "Nix"
 icon = "terminal-linux"
-settings_file = "nix_profile_settings.json"
+settings_files = ["src/.chezmoitemplates/vscode/universal_settings.json", "src/.chezmoitemplates/vscode/nix_profile_settings.json"]
 extension_sets = ["core", "containers"]
 extensions = [
   "jnoortheen.nix-ide",  # Nix language server
@@ -48,7 +48,7 @@ extensions = [
 [[vscode.profiles]]
 name = "Code"
 icon = "code"
-settings_file = "code_profile_settings.json"
+settings_files = ["src/.chezmoitemplates/vscode/universal_settings.json", "src/.chezmoitemplates/vscode/code_profile_settings.json"]
 extension_sets = ["core", "python"]
 extensions = [
   "casualjim.gotemplate",
@@ -70,7 +70,7 @@ extensions = [
 [[vscode.profiles]]
 name = "Text Editing"
 icon = "record-keys"
-settings_file = "text-editing_profile_settings.json"
+settings_files = ["src/.chezmoitemplates/vscode/universal_settings.json", "src/.chezmoitemplates/vscode/text-editing_profile_settings.json"]
 extension_sets = ["core"]
 extensions = [
   "bluebrown.yamlfmt",
@@ -83,7 +83,7 @@ extensions = [
 [[vscode.profiles]]
 name = "Work"
 icon = "briefcase"
-settings_file = "work_profile_settings.json"
+settings_files = ["src/.chezmoitemplates/vscode/universal_settings.json", "src/.chezmoitemplates/vscode/work_profile_settings.json"]
 extension_sets = ["core", "python"]
 extensions = [
   "astral-sh.ty",
