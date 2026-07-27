@@ -1,7 +1,33 @@
 {
   "files.associations": {
-    "**.tmpl": "gotemplate",
-    "**/src/.chezmoitemplates/vscode/*.json": "jsonc"
+    "**/dot_ssh/*": "plaintext",
+    "**/git/*": "plaintext",
+    "**/src/.chezmoitemplates/vscode/**/*.json": "jsonc",
+    "*.json.tmpl": "jsonc",
+    "*.sh.tmpl": "shellscript",
+    "*.ps1.tmpl": "powershell",
+    "*.toml.tmpl": "toml",
+    "*.winget.tmpl": "yaml",
+    "*.yaml.tmpl": "yaml",
+    "dot_zshenv.tmpl": "shellscript",
+    "dot_zsh_aliases.tmpl": "shellscript",
+    "dot_zshrc.tmpl": "shellscript",
   },
-  "git.branchProtection": []
+  "git.branchProtection": [],
+  "go-template.patterns": [
+    "**/*.tmpl",
+    "**/.chezmoitemplates/**"
+  ],
+  "yaml.disableSchemaDetection": [
+    "**/*.yaml.tmpl",
+    "**/*.yml.tmpl",
+    "**/.github/workflows/*.yml",
+    "**/.github/workflows/*.yaml",
+    "**/.gitea/workflows/*.yml",
+    "**/.gitea/workflows/*.yaml",
+    "**/.forgejo/workflows/*.yml",
+    "**/.forgejo/workflows/*.yaml",
+    "azure-pipelines.yml",
+    "azure-pipelines.yaml"
+  ]
 }

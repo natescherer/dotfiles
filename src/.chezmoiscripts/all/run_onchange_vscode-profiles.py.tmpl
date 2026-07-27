@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-# Installs each VS Code profile's extensions (from .chezmoidata/vscode.toml) and, for named
-# profiles, syncs their settings.json into VS Code's own (machine-generated) profile folder.
-# The Default profile's settings.json is managed directly by the per-OS settings.json.tmpl files.
+# Installs each VS Code profile's extensions (from .chezmoidata/vscode.toml) and syncs its
+# settings.json into VS Code's own profile folder - user_dir itself for Default, or the
+# machine-generated User/profiles/<hash>/ folder for named profiles.
 #
-# A named profile's settings.json is only overwritten if it's untouched since the last time this
+# A profile's settings.json is only overwritten if it's untouched since the last time this
 # script wrote it (tracked via a settings.json.chezmoi-hash sidecar file), so local customizations
 # never get clobbered; if drift is detected, it warns instead of overwriting.
 
@@ -18,17 +18,21 @@ import sys
 .chezmoitemplates/vscode, ensuring changes to those files will cause the hash of this files to change,
 triggering the run_onchange_. */}}
 {{- $profiles := list }}
-{{- $extensionSets := .vscode.extension_sets | default (dict) }}
+{{- $extensionSetDefns := .vscode.extension_sets | default (dict) }}
 {{- range .vscode.profiles }}
-{{- $settingsFiles := .settings_files | default (list) }}
-{{- $settingsContents := list }}
 {{- $icon := "" }}
 {{- if ne .name "Default" }}
 {{- $icon = .icon }}
 {{- end }}
+{{- $merged := dict }}
+{{- range $settingsFile := .settings_files | default (list) }}
+{{- $fileContent := include $settingsFile | fromJsonc }}
+{{- $merged = merge $fileContent $merged }}
+{{- end }}
+{{- $settings := $merged | toPrettyJson }}
 {{- $extensions := list }}
 {{- range $extensionSetName := .extension_sets | default (list) }}
-{{- $extensionSetExtensions := index $extensionSets $extensionSetName | default (list) }}
+{{- $extensionSetExtensions := index $extensionSetDefns $extensionSetName | default (list) }}
 {{- range $extension := $extensionSetExtensions }}
 {{- $extensions = append $extensions $extension }}
 {{- end }}
@@ -36,55 +40,9 @@ triggering the run_onchange_. */}}
 {{- range $extension := .extensions | default (list) }}
 {{- $extensions = append $extensions $extension }}
 {{- end }}
-{{- $profiles = append $profiles (dict "name" .name "extensions" $extensions "settings_files" $settingsFiles "settings_jsonc" $settingsContents "icon" $icon) }}
+{{- $profiles = append $profiles (dict "name" .name "extensions" $extensions "settings" $settings "icon" $icon) }}
 {{- end }}
-
-
-def strip_jsonc_comments(text):
-    lines = []
-    in_string = False
-    escaped = False
-    for line in text.splitlines():
-        result = []
-        for i, ch in enumerate(line):
-            if in_string:
-                result.append(ch)
-                if escaped:
-                    escaped = False
-                elif ch == "\\":
-                    escaped = True
-                elif ch == '"':
-                    in_string = False
-                continue
-
-            if ch == '"':
-                in_string = True
-                result.append(ch)
-            elif ch == "/" and i + 1 < len(line) and line[i + 1] == "/":
-                break
-            else:
-                result.append(ch)
-        lines.append("".join(result))
-    return "\n".join(lines)
-
-
-def parse_jsonc(text):
-    return json.loads(strip_jsonc_comments(text))
-
-
 PROFILES = {{ $profiles | toJson }}
-for profile in PROFILES:
-    if profile["name"] != "Default":
-        merged_settings = {}
-        for relative_path in profile["settings_files"]:
-            path = os.path.join(os.getcwd(), relative_path)
-            with open(path, "r", encoding="utf-8") as handle:
-                merged_settings.update(parse_jsonc(handle.read()))
-        profile["settings"] = json.dumps(merged_settings, indent=2)
-    else:
-        profile["settings"] = ""
-    del profile["settings_jsonc"]
-    del profile["settings_files"]
 
 # The below is set via chezmoi templating and serves as both a check to make sure VS Code is installed before
 # doing anything, and to ensure the script will change (triggering it to run) when VS Code is installed.
@@ -281,7 +239,7 @@ def write_profile_settings(profile_name, profile_dir, settings_content):
 
 def main():
     if not CODE_AVAILABLE:
-        print("{YELLOW_TERM_COLOR}VS Code ('code' command) not found; skipping VS Code profile/extension sync.{RESET_TERM_STYLE}", file=sys.stderr)
+        print(f"{YELLOW_TERM_COLOR}VS Code ('code' command) not found; skipping VS Code profile/extension sync.{RESET_TERM_STYLE}", file=sys.stderr)
         return
 
     user_dir = vscode_user_dir()
@@ -290,25 +248,27 @@ def main():
         name = profile["name"]
 
         if name == "Default":
-            sync_extensions(name, profile["extensions"])
-            continue
-
-        location = get_profile_location(user_dir, name)
-        if location is None:
-            provision_profile(name)
+            # Default always exists at a fixed path - no storage.json lookup, provisioning, or
+            # icon needed (it's not one of the entries in storage.json's userDataProfiles).
+            profile_dir = user_dir
+        else:
             location = get_profile_location(user_dir, name)
+            if location is None:
+                provision_profile(name)
+                location = get_profile_location(user_dir, name)
 
-        if location is None:
-            print(
-                f"{RED_TERM_COLOR}Error: VS Code profile '{name}' still isn't registered; skipping its extension "
-                f"and settings sync this run. Re-run 'chezmoi apply' to try again.{RESET_TERM_STYLE}",
-                file=sys.stderr,
-            )
-            continue
+            if location is None:
+                print(
+                    f"{RED_TERM_COLOR}Error: VS Code profile '{name}' still isn't registered; skipping its "
+                    f"extension and settings sync this run. Re-run 'chezmoi apply' to try again.{RESET_TERM_STYLE}",
+                    file=sys.stderr,
+                )
+                continue
 
-        set_profile_icon(user_dir, name, profile["icon"])
+            set_profile_icon(user_dir, name, profile["icon"])
+            profile_dir = os.path.join(user_dir, "profiles", location)
+
         sync_extensions(name, profile["extensions"])
-        profile_dir = os.path.join(user_dir, "profiles", location)
         write_profile_settings(name, profile_dir, profile["settings"])
 
 

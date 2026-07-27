@@ -92,14 +92,9 @@ Currently managed:
     - [src/.chezmoidata/vscode.toml](src/.chezmoidata/vscode.toml)
       - Defines data used to provision profiles
     - [src/.chezmoitemplates/vscode](src/.chezmoitemplates/vscode)
-      - Each file in this directory defines the settings for a (non-Default) profile
+      - Each file in this directory defines the settings for a profile
     - [src/.chezmoiscripts/all/run_onchange_vscode-profiles.py.tmpl](src/.chezmoiscripts/all/run_onchange_vscode-profiles.py.tmpl)
       - Performs profile provisioning and updating
-    - [src/dot_config/Code/User/settings.json.tmpl](src/dot_config/Code/User/settings.json.tmpl)
-      - This stores the default profile's settings, which is templated into each of the below per-platform file:
-        - 🐧 [src/dot_config/Code/User/settings.json.tmpl](src/dot_config/Code/User/settings.json.tmpl)
-        - 🍎 [src/Library/Application Support/Code/User/settings.json.tmpl](src/Library/Application%20Support/Code/User/settings.json.tmpl)
-        - 🪟 [src/AppData/Roaming/Code/User/settings.json.tmpl](src/AppData/Roaming/Code/User/settings.json.tmpl)
 - [Windows](https://windows.com) 🪟
   - Config Files
     - [src/dot_wslconfig](src/dot_wslconfig)
