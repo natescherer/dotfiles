@@ -2,8 +2,11 @@
 
 [core]
     autocrlf = false
+    eol = lf
     editor = {{ .editor }}
     excludesFile = {{ joinPath .chezmoi.homeDir ".config" "git" "ignore" | replace "\\" "\\\\" }}
+[init]
+    defaultBranch = main
 [user]
     name = {{ .gitName }}
     email = {{ .gitEmail }}
