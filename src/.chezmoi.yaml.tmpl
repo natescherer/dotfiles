@@ -7,6 +7,11 @@
 {{- $macOSAdminRights = promptBoolOnce . "macOSAdminRights" "Does your regular user account have admin rights on this Mac?" false }}
 {{- end }}
 
+{{- $applyWingetConfiguration := false }}
+{{- if eq .chezmoi.os "windows" }}
+{{- $applyWingetConfiguration = promptBoolOnce . "applyWingetConfiguration" "Apply WinGet Configuration files to declaratively configure this Windows machine? (Enter for default)" false }}
+{{- end }}
+
 {{- if eq .chezmoi.os "windows" }}
 cd:
     command: pwsh
@@ -19,6 +24,7 @@ data:
 {{- $gitEmail := promptStringOnce . "gitEmail" "Git email (Enter for default):" "376408+natescherer@users.noreply.github.com" }}
     gitEmail: {{ $gitEmail }}
 {{- end }}
+    applyWingetConfiguration: {{ $applyWingetConfiguration }}
     isPersonal: {{ $isPersonal }}
     isServer: {{ $isServer }}
     macOSAdminRights: {{ $macOSAdminRights }}

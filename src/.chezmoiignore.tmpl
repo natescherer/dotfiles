@@ -106,3 +106,8 @@ AppData/Local/1Password/**
 git/gh
 git/gh/**
 {{- end }}
+
+{{- if eq .applyWingetConfiguration false }}
+# Skip applying WinGet Configuration files
+.chezmoiscripts/windows/run_onchange_winget-configure.ps1.tmpl
+{{- end }}

@@ -1,0 +1,289 @@
+## WARNING: This file is chezmoi-managed and should not be manually edited!
+
+# yaml-language-server: $schema=https://aka.ms/configuration-dsc-schema/0.3
+$schema: https://raw.githubusercontent.com/PowerShell/DSC/main/schemas/2023/08/config/document.json
+metadata:
+  winget:
+    processor:
+      identifier: dscv3
+resources:
+  ### Settings Start
+  - type: Microsoft.Windows.Settings/WindowsSettings
+    name: WindowsSettings
+    metadata:
+      winget:
+        securityContext: elevated
+    properties:
+      AppColorMode: Dark
+      DeveloperMode: true
+      SystemColorMode: Dark
+      TaskbarAlignment: Left
+  - type: Microsoft.Windows/Registry
+    name: StickyKeys
+    properties:
+      keyPath: HKEY_CURRENT_USER\Control Panel\Accessibility\StickyKeys
+      valueName: Flags
+      valueData:
+        String: "504"
+      _exist: true
+  - type: Microsoft.Windows.Developer/Taskbar
+    name: Taskbar
+    metadata:
+      winget:
+        securityContext: elevated
+    properties:
+      SearchBoxMode: Hide
+      WidgetsButton: Hide
+      RestartExplorer: True
+  - type: Microsoft.Windows.Developer/WindowsExplorer
+    name: WindowsExplorer
+    metadata:
+      winget:
+        securityContext: elevated
+    properties:
+      FileExtensions: Show
+      HiddenFiles: Show
+      RestartExplorer: True
+  - type: Microsoft.Windows/Registry
+    name: ExplorerFullPathInTitleBar
+    properties:
+      keyPath: HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\CabinetState
+      valueName: FullPath
+      valueData:
+        DWord: 1
+      _exist: true
+  - type: Microsoft.Windows/Registry
+    name: EnableClipboardHistory
+    properties:
+      keyPath: HKEY_CURRENT_USER\Software\Microsoft\Clipboard
+      valueName: EnableClipboardHistory
+      valueData:
+        DWord: 1
+      _exist: true
+  - type: Microsoft.Windows/Registry
+    name: DisableRecentFilesInStartMenu
+    properties:
+      keyPath: HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced
+      valueName: Start_TrackDocs
+      valueData:
+        DWord: 0
+      _exist: true
+  - type: Microsoft.Windows/Registry
+    name: DisableRecomendationsInStartMenu
+    properties:
+      keyPath: HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced
+      valueName: Start_IrisRecommendations
+      valueData:
+        DWord: 0
+      _exist: true
+  - type: Microsoft.Windows/Registry
+    name: DisableFunFactsInStartMenu1
+    properties:
+      keyPath: HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager
+      valueName: RotatingLockScreenOverlayEnabled
+      valueData:
+        DWord: 0
+      _exist: true
+  - type: Microsoft.Windows/Registry
+    name: DisableFunFactsInStartMenu2
+    properties:
+      keyPath: HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager
+      valueName: SubscribedContent-338387Enabled
+      valueData:
+        DWord: 0
+      _exist: true
+  - type: Microsoft.Windows/Registry
+    name: DisableWeatherAndMoreOnLockScreen
+    metadata:
+      winget:
+        securityContext: elevated
+    properties:
+      keyPath: HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\System
+      valueName: DisableLockScreenAppNotifications
+      valueData:
+        DWord: 1
+      _exist: true
+  - type: Microsoft.Windows/Registry
+    name: DisableAppLaunchTracking
+    properties:
+      keyPath: HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced
+      valueName: Start_TrackProgs
+      valueData:
+        DWord: 0
+      _exist: true
+  - type: Microsoft.Windows/Registry
+    name: DisableWebsiteLanguageAccess
+    properties:
+      keyPath: HKEY_CURRENT_USER\Control Panel\International\User Profile
+      valueName: HttpAcceptLanguageOptOut
+      valueData:
+        DWord: 1
+      _exist: true
+  - type: Microsoft.Windows/Registry
+    name: DisableSettingsSuggestedContent1
+    properties:
+      keyPath: HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager
+      valueName: SubscribedContent-338393Enabled
+      valueData:
+        DWord: 0
+      _exist: true
+  - type: Microsoft.Windows/Registry
+    name: DisableSettingsSuggestedContent2
+    properties:
+      keyPath: HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager
+      valueName: SubscribedContent-353694Enabled
+      valueData:
+        DWord: 0
+      _exist: true
+  - type: Microsoft.Windows/Registry
+    name: DisableSettingsSuggestedContent3
+    properties:
+      keyPath: HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager
+      valueName: SubscribedContent-353696Enabled
+      valueData:
+        DWord: 0
+      _exist: true
+  - type: Microsoft.Windows/Registry
+    name: DisableCustomInkingAndTypingDictionary1
+    properties:
+      keyPath: HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\CPSS\Store\InkingAndTypingPersonalization
+      valueName: Value
+      valueData:
+        DWord: 0
+      _exist: true
+  - type: Microsoft.Windows/Registry
+    name: DisableCustomInkingAndTypingDictionary2
+    properties:
+      keyPath: HKEY_CURRENT_USER\Software\Microsoft\Personalization\Settings
+      valueName: AcceptedPrivacyPolicy
+      valueData:
+        DWord: 0
+      _exist: true
+  - type: Microsoft.Windows/Registry
+    name: DisableCustomInkingAndTypingDictionary3
+    properties:
+      keyPath: HKEY_CURRENT_USER\Software\Microsoft\InputPersonalization
+      valueName: RestrictImplicitInkCollection
+      valueData:
+        DWord: 1
+      _exist: true
+  - type: Microsoft.Windows/Registry
+    name: DisableCustomInkingAndTypingDictionary4
+    properties:
+      keyPath: HKEY_CURRENT_USER\Software\Microsoft\InputPersonalization
+      valueName: RestrictImplicitTextCollection
+      valueData:
+        DWord: 1
+      _exist: true
+  - type: Microsoft.Windows/Registry
+    name: DisableCustomInkingAndTypingDictionary5
+    properties:
+      keyPath: HKEY_CURRENT_USER\Software\Microsoft\InputPersonalization\TrainedDataStore
+      valueName: HarvestContacts
+      valueData:
+        DWord: 0
+      _exist: true
+  - type: Microsoft.Windows/Registry
+    name: DisableOptionalDiagnosticData1
+    properties:
+      keyPath: HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Diagnostics\DiagTrack
+      valueName: ShowedToastAtLevel
+      valueData:
+        DWord: 1
+      _exist: true
+  - type: Microsoft.Windows/Registry
+    name: DisableOptionalDiagnosticData2
+    metadata:
+      winget:
+        securityContext: elevated
+    properties:
+      keyPath: HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\DataCollection
+      valueName: AllowTelemetry
+      valueData:
+        DWord: 1
+      _exist: true
+  - type: Microsoft.Windows/Registry
+    name: DisableOptionalDiagnosticData3
+    metadata:
+      winget:
+        securityContext: elevated
+    properties:
+      keyPath: HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\DataCollection
+      valueName: MaxTelemetryAllowed
+      valueData:
+        DWord: 1
+      _exist: true
+  - type: Microsoft.Windows/Registry
+    name: DisableImproveInkingAndTyping
+    properties:
+      keyPath: HKEY_CURRENT_USER\Software\Microsoft\Input\TIPC
+      valueName: Enabled
+      valueData:
+        DWord: 0
+      _exist: true
+  - type: Microsoft.Windows/Registry
+    name: DisableDiagnosticDataForTailoredExperiences
+    properties:
+      keyPath: HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Privacy
+      valueName: TailoredExperiencesWithDiagnosticDataEnabled
+      valueData:
+        DWord: 0
+      _exist: true
+  - type: Microsoft.Windows/Registry
+    name: DisableFeedbackPrompts1
+    properties:
+      keyPath: HKEY_CURRENT_USER\SOFTWARE\Microsoft\Siuf\Rules
+      valueName: NumberOfSIUFInPeriod
+      valueData:
+        DWord: 0
+      _exist: true
+  - type: Microsoft.Windows/Registry
+    name: DisableFeedbackPrompts2
+    properties:
+      keyPath: HKEY_CURRENT_USER\SOFTWARE\Microsoft\Siuf\Rules
+      valueName: PeriodInNanoSeconds
+      _exist: false
+  - type: Microsoft.Windows/Registry
+    name: EnableUpdatesForOtherMicrosoftProducts
+    metadata:
+      winget:
+        securityContext: elevated
+    properties:
+      keyPath: HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings
+      valueName: AllowMUUpdateService
+      valueData:
+        DWord: 1
+      _exist: true
+  - type: Microsoft.Windows/Registry
+    name: DisableBingSearchInStart
+    properties:
+      keyPath: HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Search
+      valueName: BingSearchEnabled
+      valueData:
+        DWord: 0
+      _exist: true
+  - type: Microsoft.Windows/Registry
+    name: DisableEnhancePointerPrecision1
+    properties:
+      keyPath: HKEY_CURRENT_USER\Control Panel\Mouse
+      valueName: MouseSpeed
+      valueData:
+        String: "0"
+      _exist: true
+  - type: Microsoft.Windows/Registry
+    name: DisableEnhancePointerPrecision2
+    properties:
+      keyPath: HKEY_CURRENT_USER\Control Panel\Mouse
+      valueName: MouseThreshold1
+      valueData:
+        String: "0"
+      _exist: true
+  - type: Microsoft.Windows/Registry
+    name: DisableEnhancePointerPrecision3
+    properties:
+      keyPath: HKEY_CURRENT_USER\Control Panel\Mouse
+      valueName: MouseThreshold2
+      valueData:
+        String: "0"
+      _exist: true
+  ### Settings End

@@ -1,0 +1,34 @@
+# This script applies the WinGet Configuration files that declaratively configure this Windows machine.
+
+{{ $modulesFile := joinPath .chezmoi.sourceDir "dot_config/windows/modules.configuration.winget" -}}
+{{ $settingsFile := joinPath .chezmoi.sourceDir "dot_config/windows/settings.configuration.winget" -}}
+{{ $appsFile := joinPath .chezmoi.sourceDir "dot_config/windows/apps.configuration.winget" -}}
+{{ $featuresFile := joinPath .chezmoi.sourceDir "dot_config/windows/features.configuration.winget" -}}
+{{ $fontsFile := joinPath .chezmoi.sourceDir "dot_config/windows/fonts.configuration.winget.tmpl" -}}
+# The hashes below ensure this script reruns whenever any of the source files change.
+## modules.configuration.winget hash: {{ include $modulesFile | sha256sum }}
+## settings.configuration.winget hash: {{ include $settingsFile | sha256sum }}
+## apps.configuration.winget hash: {{ include $appsFile | sha256sum }}
+## features.configuration.winget hash: {{ include $featuresFile | sha256sum }}
+## fonts.configuration.winget.tmpl hash: {{ include $fontsFile | sha256sum }}
+
+# modules must be applied before settings, since settings resources (e.g. Microsoft.Windows.Settings/*)
+# depend on the PowerShell modules that modules.configuration.winget installs.
+$ConfigDir = Join-Path $HOME ".config" "windows"
+$ConfigFiles = @(
+  "modules.configuration.winget",
+  "settings.configuration.winget",
+  "apps.configuration.winget",
+  "features.configuration.winget",
+  "fonts.configuration.winget"
+)
+
+foreach ($File in $ConfigFiles) {
+  $Path = Join-Path $ConfigDir $File
+  Write-Host "Applying $File via 'winget configure'..." -ForegroundColor Cyan
+  winget configure -f $Path --accept-configuration-agreements --disable-interactivity
+}
+
+# winget configure returns a non-zero exit code even on a fully successful apply (e.g. for
+# benign "module not provided" warnings), so its exit code isn't a reliable success signal here.
+exit 0
