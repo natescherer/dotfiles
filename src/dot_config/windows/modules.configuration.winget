@@ -7,7 +7,6 @@ metadata:
     processor:
       identifier: dscv3
 resources:
-  ### Module Installs Start
   - type: Microsoft.DSC.Transitional/RunCommandOnSet
     name: WindowsSettingsModule
     metadata:
@@ -30,4 +29,3 @@ resources:
         - -NoLogo
         - -Command
         - "if (-not (Get-Module -ListAvailable -Name Microsoft.Windows.Developer)) { Install-PSResource -Name Microsoft.Windows.Developer -Prerelease -TrustRepository -AcceptLicense }"
-  ### Module Installs End

@@ -7,7 +7,6 @@ metadata:
     processor:
       identifier: dscv3
 resources:
-  ### Windows Optional Features Start
   - type: Microsoft.Windows/OptionalFeatureList
     name: WindowsOptionalFeatures
     metadata:
@@ -19,8 +18,6 @@ resources:
           state: Installed
         - featureName: NetFx3
           state: Installed
-        - featureName: Microsoft-Hyper-V-All
-          state: Installed
         - featureName: HypervisorPlatform
           state: Installed
         - featureName: Containers-DisposableClientVM
@@ -31,18 +28,3 @@ resources:
           state: Installed
         - featureName: TFTP
           state: Installed
-        - featureName: VirtualMachinePlatform
-          state: Installed
-        - featureName: Microsoft-Windows-Subsystem-Linux
-          state: Installed
-  ### Windows Optional Features End
-  ### WSL Setup Start
-  - type: Microsoft.DSC.Transitional/RunCommandOnSet
-    name: WSLUpdate
-    metadata:
-      description: wsl --update is not idempotent-checkable, so this runs unconditionally on every apply; the command itself is a cheap no-op when already current.
-    properties:
-      executable: wsl
-      arguments:
-        - --update
-  ### WSL Setup End

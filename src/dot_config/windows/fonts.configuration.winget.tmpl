@@ -7,7 +7,6 @@ metadata:
     processor:
       identifier: dscv3
 resources:
-  ### Fonts Start
   {{- $otfFonts := joinPath .chezmoi.homeDir ".local" "share" "chezmoifonts" "**.otf" | glob }}
   {{- $ttfFonts := joinPath .chezmoi.homeDir ".local" "share" "chezmoifonts" "**.ttf" | glob }}
   {{- range $fontPath := concat $otfFonts $ttfFonts }}
@@ -58,4 +57,3 @@ resources:
         Copy-Item -Path '{{ $fontPath }}' -Destination "$env:windir\Fonts\{{ $fontFile }}" -Force
         New-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Fonts' -Name $registryName -Value '{{ $fontFile }}' -PropertyType String -Force | Out-Null
   {{- end }}
-  ### Fonts End

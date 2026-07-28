@@ -1,0 +1,104 @@
+## WARNING: This file is chezmoi-managed and should not be manually edited!
+
+# yaml-language-server: $schema=https://aka.ms/configuration-dsc-schema/0.3
+$schema: https://raw.githubusercontent.com/PowerShell/DSC/main/schemas/2023/08/config/document.json
+metadata:
+  winget:
+    processor:
+      identifier: dscv3
+resources:
+  - type: Microsoft.DSC.Transitional/WindowsPowerShellScript
+    name: InstallWslComponents
+    metadata:
+      winget:
+        securityContext: elevated
+      description: wsl --install --no-distribution enables Virtual Machine Platform and the WSL feature, and fetches the WSL2 kernel, in one call. May require a reboot to take effect (see InstallUbuntu below and the pending-reboot check in run_onchange_winget-configure.ps1.tmpl).
+    properties:
+      getScript: |
+        $svc = Get-CimInstance -ClassName Win32_Service -Filter "Name='vmcompute'"
+        return @{ vmcomputePresent = [bool]$svc }
+      testScript: |
+        # vmcompute (Hyper-V Host Compute Service) is registered once Virtual
+        # Machine Platform is active. Presence alone is sufficient -- no need
+        # to check if it is running. Get-CimInstance (not Get-Service) so a
+        # missing service returns $null cleanly instead of erroring.
+        $svc = Get-CimInstance -ClassName Win32_Service -Filter "Name='vmcompute'"
+        return [bool]$svc
+      setScript: |
+        Write-Host "InstallWslComponents: running wsl --install --no-distribution..."
+        # Launch wsl.exe directly WITHOUT -NoNewWindow and WITHOUT -RedirectStandard*
+        # so Start-Process allocates a fresh console (CREATE_NEW_CONSOLE), which
+        # wsl's install bootstrap requires. The dscv3 host has no console to
+        # inherit, so -NoNewWindow (or -RedirectStandardOutput, which also
+        # suppresses the new console) makes wsl fail with "The Windows Subsystem
+        # for Linux is not installed". With no -Redirect* flags PowerShell never
+        # captures wsl's output -- it goes to that console, not PowerShell's error
+        # stream -- so there is no stderr-as-error problem.
+        $p = Start-Process -FilePath 'wsl.exe' -ArgumentList '--install','--no-distribution' -Wait -PassThru
+        if ($p.ExitCode -eq 3010 -or $p.ExitCode -eq 1641) {
+          Write-Host "WSL installed successfully, but a system reboot is required."
+        }
+        elseif ($p.ExitCode -ne 0) {
+          throw "InstallWslComponents: wsl --install failed with exit code $($p.ExitCode)"
+        }
+  - type: Microsoft.DSC.Transitional/WindowsPowerShellScript
+    name: InstallUbuntu
+    dependsOn:
+      - InstallWslComponents
+    metadata:
+      winget:
+        securityContext: elevated
+      description: Installs the default Ubuntu distro via wsl --install -d Ubuntu --no-launch. Requires Virtual Machine Platform to already be active -- on a machine that just had it enabled by InstallWslComponents in this same run, this resource will fail until after a reboot; rerun applies once WSL is confirmed working.
+    properties:
+      getScript: |
+        # Run wsl --list via Start-Process with redirected output. Calling wsl.exe
+        # directly leaks its non-zero exit code (when no distro is installed) into
+        # $LASTEXITCODE and routes its stderr into PowerShell's error stream -- both
+        # of which the dscv3 PowerShell adapter treats as a resource failure.
+        # Start-Process isolates the native call: stderr never reaches the error
+        # stream and $LASTEXITCODE is untouched. Safe to redirect here (unlike
+        # InstallWslComponents above) since WSL itself is already confirmed working
+        # by the time this resource runs.
+        $env:WSL_UTF8 = '1'
+        $distros = @()
+        $out = [System.IO.Path]::GetTempFileName()
+        $err = [System.IO.Path]::GetTempFileName()
+        $p = Start-Process -FilePath 'wsl.exe' -ArgumentList '--list','--quiet' `
+               -NoNewWindow -Wait -PassThru `
+               -RedirectStandardOutput $out -RedirectStandardError $err
+        if ($p.ExitCode -eq 0) {
+          $distros = @(Get-Content -LiteralPath $out -Encoding UTF8 |
+            ForEach-Object { ($_ -replace "`0", '').Trim() } |
+            Where-Object { $_ })
+        }
+        Remove-Item -LiteralPath $out, $err -Force -ErrorAction SilentlyContinue
+        return @{ distroCount = $distros.Count; distros = ($distros -join ',') }
+      testScript: |
+        $env:WSL_UTF8 = '1'
+        $out = [System.IO.Path]::GetTempFileName()
+        $err = [System.IO.Path]::GetTempFileName()
+        $p = Start-Process -FilePath 'wsl.exe' -ArgumentList '--list','--quiet' `
+               -NoNewWindow -Wait -PassThru `
+               -RedirectStandardOutput $out -RedirectStandardError $err
+        if ($p.ExitCode -ne 0) {
+          Remove-Item -LiteralPath $out, $err -Force -ErrorAction SilentlyContinue
+          return $false
+        }
+        $distros = @(Get-Content -LiteralPath $out -Encoding UTF8 |
+          ForEach-Object { ($_ -replace "`0", '').Trim() } |
+          Where-Object { $_ })
+        Remove-Item -LiteralPath $out, $err -Force -ErrorAction SilentlyContinue
+        return $distros.Count -gt 0
+      setScript: |
+        # Suppress the "Welcome to WSL" first-run GUI/OOBE
+        $lxssPath = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Lxss'
+        New-Item -Path $lxssPath -Force | Out-Null
+        Set-ItemProperty -Path $lxssPath -Name 'OOBEComplete' -Value 1 -Type DWord -Force
+
+        Write-Host "InstallUbuntu: running wsl --install -d Ubuntu --no-launch..."
+        # Same unredirected Start-Process pattern as InstallWslComponents -- see
+        # that resource's setScript comment for why.
+        $p = Start-Process -FilePath 'wsl.exe' -ArgumentList '--install','-d','Ubuntu','--no-launch' -Wait -PassThru
+        if ($p.ExitCode -ne 0) {
+          throw "InstallUbuntu: wsl --install -d Ubuntu --no-launch failed with exit code $($p.ExitCode)"
+        }

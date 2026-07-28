@@ -7,263 +7,297 @@ metadata:
     processor:
       identifier: dscv3
 resources:
-  ### Apps Start
   - type: Microsoft.WinGet/Package
     name: 1Password
     properties:
       id: AgileBits.1Password
       source: winget
       useLatest: true
+      installMode: silent
   - type: Microsoft.WinGet/Package
     name: 1PasswordCLI
     properties:
       id: AgileBits.1Password.CLI
       source: winget
       useLatest: true
+      installMode: silent
   - type: Microsoft.WinGet/Package
     name: AdobeCreativeCloud
     properties:
       id: Adobe.CreativeCloud
       source: winget
       useLatest: true
+      installMode: silent
   - type: Microsoft.WinGet/Package
     name: Airdroid
     properties:
       id: AirDroid.AirDroid
       source: winget
       useLatest: true
+      installMode: silent
   - type: Microsoft.WinGet/Package
     name: AppleMusic
     properties:
       id: 9PFHDD62MXS1
       source: msstore
       useLatest: true
+      installMode: silent
   - type: Microsoft.WinGet/Package
     name: AppleTV
     properties:
       id: 9NM4T8B9JQZ1
       source: msstore
       useLatest: true
+      installMode: silent
   - type: Microsoft.WinGet/Package
     name: Brave
     properties:
       id: Brave.Brave
       source: winget
       useLatest: true
+      installMode: silent
   - type: Microsoft.WinGet/Package
     name: chezmoi
     properties:
       id: twpayne.chezmoi
       source: winget
       useLatest: true
+      installMode: silent
   - type: Microsoft.WinGet/Package
     name: Claude
     properties:
       id: Anthropic.Claude
       source: winget
       useLatest: true
+      installMode: silent
   - type: Microsoft.WinGet/Package
     name: Coreutils
     properties:
       id: Microsoft.Coreutils
       source: winget
       useLatest: true
+      installMode: silent
   - type: Microsoft.WinGet/Package
     name: DockerDesktop
     properties:
       id: Docker.DockerDesktop
       source: winget
       useLatest: true
+      installMode: silent
   - type: Microsoft.WinGet/Package
     name: Discord
     properties:
       id: Discord.Discord
       source: winget
       useLatest: true
+      installMode: silent
   - type: Microsoft.WinGet/Package
     name: DisneyPlus
     properties:
       id: 9NXQXXLFST89
       source: msstore
       useLatest: true
+      installMode: silent
   - type: Microsoft.WinGet/Package
     name: DolbyAccess
     properties:
       id: 9N0866FS04W8
       source: msstore
       useLatest: true
+      installMode: silent
   - type: Microsoft.WinGet/Package
     name: DotNetDesktopRuntime10
     properties:
       id: Microsoft.DotNet.DesktopRuntime.10
       source: winget
       useLatest: true
+      installMode: silent
   - type: Microsoft.WinGet/Package
     name: Firefox
     properties:
       id: Mozilla.Firefox
       source: winget
       useLatest: true
+      installMode: silent
   - type: Microsoft.WinGet/Package
     name: fzf
     properties:
       id: junegunn.fzf
       source: winget
       useLatest: true
+      installMode: silent
   - type: Microsoft.WinGet/Package
     name: Hulu
     properties:
       id: 9WZDNCRFJ3L1
       source: msstore
       useLatest: true
+      installMode: silent
   - type: Microsoft.WinGet/Package
     name: iCloud
     properties:
       id: 9PKTQ5699M62
       source: msstore
       useLatest: true
+      installMode: silent
   - type: Microsoft.WinGet/Package
     name: MEGASync
     properties:
       id: Mega.MEGASync
       source: winget
       useLatest: true
+      installMode: silent
   - type: Microsoft.WinGet/Package
     name: micro
     properties:
       id: zyedidia.micro
       source: winget
       useLatest: true
+      installMode: silent
   - type: Microsoft.WinGet/Package
     name: mise
     properties:
       id: jdx.mise
       source: winget
       useLatest: true
+      installMode: silent
   - type: Microsoft.WinGet/Package
     name: MullvadVPN
     properties:
       id: MullvadVPN.MullvadVPN
       source: winget
       useLatest: true
+      installMode: silent
   - type: Microsoft.WinGet/Package
     name: Netflix
     properties:
       id: 9WZDNCRFJ3TJ
       source: msstore
       useLatest: true
+      installMode: silent
   - type: Microsoft.WinGet/Package
     name: Obsidian
     properties:
       id: Obsidian.Obsidian
       source: winget
       useLatest: true
+      installMode: silent
   - type: Microsoft.WinGet/Package
     name: ParamountPlus
     properties:
       id: 9WZDNCRFJ0WK
       source: msstore
       useLatest: true
+      installMode: silent
   - type: Microsoft.WinGet/Package
     name: PowerToys
     properties:
       id: Microsoft.PowerToys
       source: winget
       useLatest: true
+      installMode: silent
   - type: Microsoft.WinGet/Package
     name: PowerShell
     properties:
       id: Microsoft.PowerShell
       source: winget
       useLatest: true
+      installMode: silent
   - type: Microsoft.WinGet/Package
     name: PrimeVideo
     properties:
       id: 9P6RC76MSMMJ
       source: msstore
       useLatest: true
+      installMode: silent
   - type: Microsoft.WinGet/Package
     name: Rufus
     properties:
       id: Rufus.Rufus
       source: winget
       useLatest: true
+      installMode: silent
   - type: Microsoft.WinGet/Package
     name: Slack
     properties:
       id: SlackTechnologies.Slack
       source: winget
       useLatest: true
+      installMode: silent
   - type: Microsoft.WinGet/Package
     name: Speedtest
     properties:
       id: Ookla.Speedtest.Desktop
       source: winget
       useLatest: true
+      installMode: silent
   - type: Microsoft.WinGet/Package
     name: Starship
     properties:
       id: Starship.Starship
       source: winget
       useLatest: true
+      installMode: silent
   - type: Microsoft.WinGet/Package
     name: Tabby
     properties:
       id: Eugeny.Tabby
       source: winget
       useLatest: true
+      installMode: silent
   - type: Microsoft.WinGet/Package
     name: TickTick
     properties:
       id: Appest.TickTick
       source: winget
       useLatest: true
-  - type: Microsoft.WinGet/Package
-    name: Ubuntu
-    properties:
-      id: 9PDXGNCFSCZV
-      source: msstore
-      useLatest: true
+      installMode: silent
   - type: Microsoft.WinGet/Package
     name: UniGetUI
     properties:
       id: Devolutions.UniGetUI
       source: winget
       useLatest: true
+      installMode: silent
   - type: Microsoft.WinGet/Package
     name: VLC
     properties:
       id: VideoLAN.VLC
       source: winget
       useLatest: true
+      installMode: silent
   - type: Microsoft.WinGet/Package
     name: VSCode
     properties:
       id: Microsoft.VisualStudioCode
       source: winget
       useLatest: true
+      installMode: silent
   - type: Microsoft.WinGet/Package
     name: WindowsApp
     properties:
       id: Microsoft.WindowsApp
       source: winget
       useLatest: true
+      installMode: silent
   - type: Microsoft.WinGet/Package
     name: WinRAR
     properties:
       id: RARLab.WinRAR
       source: winget
       useLatest: true
+      installMode: silent
   - type: Microsoft.WinGet/Package
     name: YubicoAuthenticator
     properties:
       id: Yubico.Authenticator
       source: winget
       useLatest: true
+      installMode: silent
   - type: Microsoft.WinGet/Package
     name: YubikeyManager
     properties:
       id: Yubico.YubikeyManager
       source: winget
       useLatest: true
-  ### Apps End
+      installMode: silent

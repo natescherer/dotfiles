@@ -7,7 +7,6 @@ metadata:
     processor:
       identifier: dscv3
 resources:
-  ### Settings Start
   - type: Microsoft.Windows.Settings/WindowsSettings
     name: WindowsSettings
     metadata:
@@ -33,7 +32,6 @@ resources:
         securityContext: elevated
     properties:
       SearchBoxMode: Hide
-      WidgetsButton: Hide
       RestartExplorer: True
   - type: Microsoft.Windows.Developer/WindowsExplorer
     name: WindowsExplorer
@@ -286,4 +284,74 @@ resources:
       valueData:
         String: "0"
       _exist: true
-  ### Settings End
+  - type: Microsoft.Windows/Registry
+    name: Sudo
+    metadata:
+      winget:
+        securityContext: elevated
+    properties:
+      keyPath: HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Sudo
+      valueName: Enabled
+      valueData:
+        DWord: 3
+      _exist: true
+  - type: Microsoft.Windows/Registry
+    name: LongPaths
+    metadata:
+      winget:
+        securityContext: elevated
+    properties:
+      keyPath: HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\FileSystem
+      valueName: LongPathsEnabled
+      valueData:
+        DWord: 1
+      _exist: true
+  - type: Microsoft.Windows/Registry
+    name: GitCodeFolders
+    properties:
+      keyPath: HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced
+      valueName: NavPaneShowVersionControl
+      valueData:
+        DWord: 1
+      _exist: true
+  - type: Microsoft.Windows/Registry
+    name: TaskbarEndTask
+    properties:
+      keyPath: HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced
+      valueName: TaskbarEndTask
+      valueData:
+        DWord: 1
+      _exist: true
+  - type: Microsoft.Windows/Registry
+    name: EdgeNewTab
+    metadata:
+      winget:
+        securityContext: elevated
+    properties:
+      keyPath: HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Edge
+      valueName: NewTabPageLocation
+      valueData:
+        String: about:blank
+      _exist: true
+  - type: Microsoft.Windows/Registry
+    name: EdgeOOBE
+    metadata:
+      winget:
+        securityContext: elevated
+    properties:
+      keyPath: HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Edge
+      valueName: HideFirstRunExperience
+      valueData:
+        DWord: 1
+      _exist: true
+  - type: Microsoft.Windows/Registry
+    name: WidgetServiceOff
+    metadata:
+      winget:
+        securityContext: elevated
+    properties:
+      keyPath: HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Dsh
+      valueName: AllowNewsAndInterests
+      valueData:
+        DWord: 0
+      _exist: true

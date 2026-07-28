@@ -2,7 +2,8 @@
 
 This repository contains my personal dotfiles for synchronization via [chezmoi](https://www.chezmoi.io).
 
-Where possible, each configuration is set up to work for Linux 🐧, macOS 26+ 🍎, and Windows 11 🪟. (OS compatibility for each product is indicated with emoji.)
+Where possible, each configuration is set up to work for Linux 🐧, macOS 26+ 🍎,
+and Windows 11 🪟. (OS compatibility for each product is indicated with emoji.)
 
 Feel free to use anything here according to your needs!
 
@@ -102,6 +103,7 @@ Currently managed:
     - [src/dot_config/windows/settings.configuration.winget](src/dot_config/windows/settings.configuration.winget)
     - [src/dot_config/windows/apps.configuration.winget](src/dot_config/windows/apps.configuration.winget)
     - [src/dot_config/windows/features.configuration.winget](src/dot_config/windows/features.configuration.winget)
+    - [src/dot_config/windows/wsl.configuration.winget](src/dot_config/windows/wsl.configuration.winget)
     - [src/dot_config/windows/fonts.configuration.winget.tmpl](src/dot_config/windows/fonts.configuration.winget.tmpl)
     - [src/.chezmoiscripts/windows/run_onchange_winget-configure.ps1.tmpl](src/.chezmoiscripts/windows/run_onchange_winget-configure.ps1.tmpl)
 - [Zsh](https://www.zsh.org/) 🐧 🍎
@@ -120,6 +122,8 @@ brew install starship
 brew install coretools
 brew install sheldon
 brew install mise
+mise use -g python@latest
+mise env
 ```
 
 ### Linux
@@ -128,15 +132,29 @@ Install the following tools however is appropriate for your distro:
 
 - Starship
 - Sheldon
+- Mise
+
+Then run the below to set up Python and put it the path:
+
+```Shell
+mise use -g python@latest
+mise env
+```
 
 ### Windows
 
 ```PowerShell
+winget install --id Microsoft.PowerShell -e
+```
+
+Reopen Windows Terminal so you're using the newly-installed PowerShell instead
+of Windows PowerShell.
+
+```PowerShell
 winget install jdx.mise
-winget install Microsoft.Coreutils
-winget install Starship.Starship
 winget install twpayne.chezmoi
 mise use -g python@latest
+mise env
 ```
 
 ## Activating
