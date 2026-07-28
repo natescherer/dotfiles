@@ -11,9 +11,11 @@ foreach ($Path in $BadPaths) {
     }
 }
 
-# This is a special check for coreutils
+# This is a special check for coreutils. Skipped if the file doesn't exist yet.
 $CoreUtilsCheckPath = "$HOME\Documents\PowerShell\Microsoft.PowerShell_profile.ps1"
 
-if (((Get-Content -Path $CoreUtilsCheckPath)[1] -notlike '*DO NOT MODIFY -- coreutils*') -and ((Get-Content -Path $CoreUtilsCheckPath)[-1] -notlike '*DO NOT MODIFY -- coreutils*')) {
-    Write-Output "File at '$Path' appears to contain more than just coreutils config. Remove anything not coreutils-related."
+if (Test-Path $CoreUtilsCheckPath) {
+    if (((Get-Content -Path $CoreUtilsCheckPath)[1] -notlike '*DO NOT MODIFY -- coreutils*') -and ((Get-Content -Path $CoreUtilsCheckPath)[-1] -notlike '*DO NOT MODIFY -- coreutils*')) {
+        Write-Output "File at '$CoreUtilsCheckPath' appears to contain more than just coreutils config. Remove anything not coreutils-related."
+    }
 }

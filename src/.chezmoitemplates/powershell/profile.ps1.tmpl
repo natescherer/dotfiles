@@ -34,4 +34,10 @@ mise activate pwsh | Out-String | Invoke-Expression
 
 {{ end -}}
 # Activate Starship
-Invoke-Expression (&starship init powershell)
+# Runtime check (not a template-time {{"{{"}} if lookPath }} gate): winget configure installs
+# Starship later in the same chezmoi apply run, so a template-time check would bake in "not
+# found" on a fresh machine and require a second apply to pick it up. Checking at the moment
+# each shell starts means it self-heals as soon as Starship lands on PATH, no re-apply needed.
+if (Get-Command starship -ErrorAction SilentlyContinue) {
+  Invoke-Expression (&starship init powershell)
+}
