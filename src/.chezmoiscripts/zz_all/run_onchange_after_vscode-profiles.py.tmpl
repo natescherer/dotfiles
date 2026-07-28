@@ -7,6 +7,10 @@
 # script wrote it (tracked via a settings.json.chezmoi-hash sidecar file), so local customizations
 # never get clobbered; if drift is detected, it warns instead of overwriting.
 
+# Why this this in a folder called 'zz_all'?
+# This is necessary to ensure that the vscode-profiles script executes last by
+being alphabetically last.
+
 import hashlib
 import json
 import os
