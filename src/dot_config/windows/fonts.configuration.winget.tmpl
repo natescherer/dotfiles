@@ -8,10 +8,15 @@ metadata:
       identifier: dscv3
 resources:
   ### Fonts Start
-  {{- $globOutput := joinPath .chezmoi.homeDir ".local" "share" "chezmoifonts" "**.otf" | glob }}
-  {{- range $fontPath := $globOutput }}
+  {{- $otfFonts := joinPath .chezmoi.homeDir ".local" "share" "chezmoifonts" "**.otf" | glob }}
+  {{- $ttfFonts := joinPath .chezmoi.homeDir ".local" "share" "chezmoifonts" "**.ttf" | glob }}
+  {{- range $fontPath := concat $otfFonts $ttfFonts }}
   {{- $fontFile := osBase $fontPath }}
-  {{- $fontId := trimSuffix ".otf" $fontFile }}
+  {{- $fontId := $fontFile | trimSuffix ".otf" | trimSuffix ".ttf" }}
+  {{- $fontTypeLabel := "OpenType" }}
+  {{- if hasSuffix ".ttf" $fontFile }}
+  {{- $fontTypeLabel = "TrueType" }}
+  {{- end }}
   - type: Microsoft.DSC.Transitional/PowerShellScript
     name: {{ $fontId }}
     metadata:
@@ -26,7 +31,7 @@ resources:
         if (-not $family) { $family = ($glyphTypeface.Win32FamilyNames.Values | Select-Object -First 1) }
         $face = $glyphTypeface.Win32FaceNames['en-US']
         if (-not $face) { $face = ($glyphTypeface.Win32FaceNames.Values | Select-Object -First 1) }
-        $registryName = if ($face -and $face -ne 'Regular') { "$family $face (OpenType)" } else { "$family (OpenType)" }
+        $registryName = if ($face -and $face -ne 'Regular') { "$family $face ({{ $fontTypeLabel }})" } else { "$family ({{ $fontTypeLabel }})" }
         return @{
           FileExists = (Test-Path "$env:windir\Fonts\{{ $fontFile }}")
           RegistryName = $registryName
@@ -38,7 +43,7 @@ resources:
         if (-not $family) { $family = ($glyphTypeface.Win32FamilyNames.Values | Select-Object -First 1) }
         $face = $glyphTypeface.Win32FaceNames['en-US']
         if (-not $face) { $face = ($glyphTypeface.Win32FaceNames.Values | Select-Object -First 1) }
-        $registryName = if ($face -and $face -ne 'Regular') { "$family $face (OpenType)" } else { "$family (OpenType)" }
+        $registryName = if ($face -and $face -ne 'Regular') { "$family $face ({{ $fontTypeLabel }})" } else { "$family ({{ $fontTypeLabel }})" }
         $fileOk = Test-Path "$env:windir\Fonts\{{ $fontFile }}"
         $regValue = (Get-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Fonts' -Name $registryName -ErrorAction SilentlyContinue).$registryName
         return ($fileOk -and ($regValue -eq '{{ $fontFile }}'))
@@ -49,7 +54,7 @@ resources:
         if (-not $family) { $family = ($glyphTypeface.Win32FamilyNames.Values | Select-Object -First 1) }
         $face = $glyphTypeface.Win32FaceNames['en-US']
         if (-not $face) { $face = ($glyphTypeface.Win32FaceNames.Values | Select-Object -First 1) }
-        $registryName = if ($face -and $face -ne 'Regular') { "$family $face (OpenType)" } else { "$family (OpenType)" }
+        $registryName = if ($face -and $face -ne 'Regular') { "$family $face ({{ $fontTypeLabel }})" } else { "$family ({{ $fontTypeLabel }})" }
         Copy-Item -Path '{{ $fontPath }}' -Destination "$env:windir\Fonts\{{ $fontFile }}" -Force
         New-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Fonts' -Name $registryName -Value '{{ $fontFile }}' -PropertyType String -Force | Out-Null
   {{- end }}

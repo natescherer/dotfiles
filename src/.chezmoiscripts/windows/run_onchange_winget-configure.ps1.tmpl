@@ -14,6 +14,10 @@
 
 # modules must be applied before settings, since settings resources (e.g. Microsoft.Windows.Settings/*)
 # depend on the PowerShell modules that modules.configuration.winget installs.
+#
+# Note on update cadence: this script only reruns when one of these files' content changes (chezmoi's
+# onchange semantics), so apps.configuration.winget's `useLatest: true` brings a machine to baseline at
+# apply time -- it is not a continuous update mechanism. Ongoing app updates are UniGetUI's job.
 $ConfigDir = Join-Path $HOME ".config" "windows"
 $ConfigFiles = @(
   "modules.configuration.winget",
@@ -23,12 +27,36 @@ $ConfigFiles = @(
   "fonts.configuration.winget"
 )
 
+# winget configure's exit code isn't a reliable success signal (see below), and this script runs
+# unattended via chezmoi apply, so full output is captured here rather than only streamed to the
+# console -- otherwise a real failure has no record once the terminal that ran chezmoi apply closes.
+$LogDir = Join-Path $env:LOCALAPPDATA "chezmoi"
+New-Item -ItemType Directory -Path $LogDir -Force | Out-Null
+$LogPath = Join-Path $LogDir "winget-configure.log"
+"Run started $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')" | Set-Content -Path $LogPath
+
 foreach ($File in $ConfigFiles) {
   $Path = Join-Path $ConfigDir $File
   Write-Host "Applying $File via 'winget configure'..." -ForegroundColor Cyan
-  winget configure -f $Path --accept-configuration-agreements --disable-interactivity
+  "=== $File ===" | Add-Content -Path $LogPath
+  winget configure -f $Path --accept-configuration-agreements --disable-interactivity 2>&1 |
+    Tee-Object -FilePath $LogPath -Append
+  "--- exit code: $LASTEXITCODE ---" | Add-Content -Path $LogPath
+  if ($LASTEXITCODE -ne 0) {
+    Write-Host "Warning: $File exited with code $LASTEXITCODE. This may be a benign warning (e.g. 'module not provided') or a real failure -- see $LogPath" -ForegroundColor Yellow
+  }
+}
+
+# features.configuration.winget enables Windows optional features (e.g. Hyper-V, WSL) that typically
+# need a reboot before they take effect, but winget configure gives no indication of this on its own.
+$RebootPending = (Test-Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending') `
+  -or (Test-Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\RebootRequired') `
+  -or ($null -ne (Get-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager' -Name PendingFileRenameOperations -ErrorAction SilentlyContinue))
+if ($RebootPending) {
+  Write-Host "A reboot is pending, likely from Windows optional features that were just installed. Reboot and rerun 'chezmoi apply' to finish applying the configuration." -ForegroundColor Yellow
 }
 
 # winget configure returns a non-zero exit code even on a fully successful apply (e.g. for
 # benign "module not provided" warnings), so its exit code isn't a reliable success signal here.
+# Real failures are still visible above and logged to $LogPath for later inspection.
 exit 0
