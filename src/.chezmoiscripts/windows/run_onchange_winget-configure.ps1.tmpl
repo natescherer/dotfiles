@@ -59,6 +59,19 @@ if ($null -ne $PolicyValue -and [int]$PolicyValue -eq 0) {
   throw "winget configure is disabled by Group Policy ($PolicyPath\EnableWindowsPackageManagerConfiguration = 0). This is the 'Enable Windows Package Manager Configuration' ADMX policy (Computer Configuration > Administrative Templates > Windows Components > App Installer). Fix the policy, then rerun."
 }
 
+# On a fresh machine, winget's `configure` subcommand refuses to run at all until its extended
+# features flag is turned on -- every winget configure call below fails outright with "Extended
+# features are not enabled" until this has run once. `winget configure --enable` is idempotent
+# (a safe no-op when already enabled), so just run it unconditionally rather than trying to detect
+# the flag's state first -- there's no single reliable settings.json/registry check for it across
+# winget versions. Not gated on exit code: winget's own docs note some builds return non-zero even
+# when the flag was already enabled, so a bad exit code here isn't trustworthy either way -- if
+# enabling it genuinely failed, the config-apply loop below will fail too and get logged there.
+Write-Host "Ensuring winget configure extended features are enabled..." -ForegroundColor Cyan
+"=== winget configure --enable ===" | Add-Content -Path $LogPath
+winget configure --enable --disable-interactivity --accept-source-agreements 2>&1 |
+  Tee-Object -FilePath $LogPath -Append
+
 # winget configure depends on the VC++ 2015+ x64 redistributable when invoked from
 # a non-elevated environment, and fails with an opaque internal error without it.
 # Self-heal by installing it directly rather than just diagnosing the gap.
