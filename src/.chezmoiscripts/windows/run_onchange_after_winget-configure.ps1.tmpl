@@ -32,6 +32,32 @@ New-Item -ItemType Directory -Path $LogDir -Force | Out-Null
 $LogPath = Join-Path $LogDir "winget-configure.log"
 "Run started $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')" | Set-Content -Path $LogPath
 
+# Retry with exponential backoff to ride out transient network blips. Each attempt's output is
+# logged, not just the final outcome. Defined up top so it's available to every winget call below,
+# not just the main config-apply loop.
+function Invoke-WithRetry {
+  param(
+    [Parameter(Mandatory)] [scriptblock] $ScriptBlock,
+    [string] $Name = "operation",
+    [int] $MaxAttempts = 3,
+    [int] $InitialDelaySeconds = 5
+  )
+  $Attempt = 0
+  $Delay = $InitialDelaySeconds
+  while ($true) {
+    $Attempt++
+    "[retry] ${Name}: attempt $Attempt/$MaxAttempts" | Add-Content -Path $LogPath
+    & $ScriptBlock
+    if ($LASTEXITCODE -eq 0 -or $Attempt -ge $MaxAttempts) {
+      return
+    }
+    Write-Host "$Name failed (exit code $LASTEXITCODE), retrying in ${Delay}s (attempt $Attempt/$MaxAttempts)..." -ForegroundColor DarkYellow
+    "[retry] ${Name}: attempt $Attempt failed with exit code $LASTEXITCODE, retrying in ${Delay}s" | Add-Content -Path $LogPath
+    Start-Sleep -Seconds $Delay
+    $Delay = $Delay * 2
+  }
+}
+
 # Cheap system-state snapshot at the top of the log -- makes the log useful for
 # after-the-fact troubleshooting weeks from now, when there's no memory of what
 # state the machine was in.
@@ -80,35 +106,40 @@ $VCRedistInstalled = (Get-ItemProperty -Path $VCRedistKey -Name 'Installed' -Err
 if (-not $VCRedistInstalled) {
   Write-Host "Microsoft Visual C++ Redistributable 2015+ (x64) not found -- installing (winget configure can fail with an internal error without it)..." -ForegroundColor Yellow
   "=== Installing Microsoft.VCRedist.2015+.x64 ===" | Add-Content -Path $LogPath
-  winget install --id 'Microsoft.VCRedist.2015+.x64' --source winget --accept-package-agreements --accept-source-agreements --disable-interactivity 2>&1 |
-    Tee-Object -FilePath $LogPath -Append
+  Invoke-WithRetry -Name 'Microsoft.VCRedist.2015+.x64 install' -ScriptBlock {
+    winget install --id 'Microsoft.VCRedist.2015+.x64' --source winget --accept-package-agreements --accept-source-agreements --disable-interactivity 2>&1 |
+      Tee-Object -FilePath $LogPath -Append
+  }
   if ($LASTEXITCODE -ne 0) {
     throw "Failed to install Microsoft.VCRedist.2015+.x64 (exit code $LASTEXITCODE) -- winget configure is likely to fail without it. See $LogPath and rerun."
   }
 }
 
-# Retry with exponential backoff to ride out transient network blips. Each
-# attempt's output is logged, not just the final outcome.
-function Invoke-WithRetry {
-  param(
-    [Parameter(Mandatory)] [scriptblock] $ScriptBlock,
-    [string] $Name = "operation",
-    [int] $MaxAttempts = 3,
-    [int] $InitialDelaySeconds = 5
-  )
-  $Attempt = 0
-  $Delay = $InitialDelaySeconds
-  while ($true) {
-    $Attempt++
-    "[retry] ${Name}: attempt $Attempt/$MaxAttempts" | Add-Content -Path $LogPath
-    & $ScriptBlock
-    if ($LASTEXITCODE -eq 0 -or $Attempt -ge $MaxAttempts) {
-      return
+# Bug https://github.com/microsoft/winget-cli/issues/6091 currently prevents winget configure
+# from installing Microsoft Store apps for the first time. This is a dirty workaround until
+# that bug is fixed that pre-installs every Store app and accepts the agreement
+$AppsConfigPath = Join-Path $ConfigDir "apps.configuration.winget"
+if (Test-Path $AppsConfigPath) {
+  $MsstoreIds = [System.Collections.Generic.List[string]]::new()
+  $PendingId = $null
+  foreach ($Line in Get-Content -Path $AppsConfigPath) {
+    if ($Line -match '^\s*id:\s*(\S+)\s*$') {
+      $PendingId = $Matches[1]
+    } elseif ($Line -match '^\s*source:\s*msstore\s*$' -and $PendingId) {
+      $MsstoreIds.Add($PendingId)
+      $PendingId = $null
     }
-    Write-Host "$Name failed (exit code $LASTEXITCODE), retrying in ${Delay}s (attempt $Attempt/$MaxAttempts)..." -ForegroundColor DarkYellow
-    "[retry] ${Name}: attempt $Attempt failed with exit code $LASTEXITCODE, retrying in ${Delay}s" | Add-Content -Path $LogPath
-    Start-Sleep -Seconds $Delay
-    $Delay = $Delay * 2
+  }
+  foreach ($Id in $MsstoreIds) {
+    Write-Host "Pre-accepting Store license agreement for $Id..." -ForegroundColor Cyan
+    "=== winget install $Id (msstore agreement pre-accept) ===" | Add-Content -Path $LogPath
+    Invoke-WithRetry -Name "msstore agreement accept: $Id" -ScriptBlock {
+      winget install --id $Id --source msstore --accept-package-agreements --accept-source-agreements --disable-interactivity 2>&1 |
+        Tee-Object -FilePath $LogPath -Append
+    }
+    if ($LASTEXITCODE -ne 0) {
+      Write-Host "Warning: pre-accepting $Id failed (exit code $LASTEXITCODE) -- its winget configure resource will likely fail too. See $LogPath" -ForegroundColor Yellow
+    }
   }
 }
 
@@ -117,7 +148,7 @@ foreach ($File in $ConfigFiles) {
   Write-Host "Applying $File via 'winget configure'..." -ForegroundColor Cyan
   "=== $File ===" | Add-Content -Path $LogPath
   Invoke-WithRetry -Name $File -ScriptBlock {
-    winget configure -f $Path --accept-configuration-agreements --disable-interactivity 2>&1 |
+    winget configure -f $Path --accept-configuration-agreements --disable-interactivity --suppress-initial-details 2>&1 |
       Tee-Object -FilePath $LogPath -Append
   }
   "--- exit code: $LASTEXITCODE ---" | Add-Content -Path $LogPath
