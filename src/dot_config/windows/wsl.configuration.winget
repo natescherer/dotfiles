@@ -44,7 +44,7 @@ resources:
   - type: Microsoft.DSC.Transitional/WindowsPowerShellScript
     name: InstallUbuntu
     dependsOn:
-      - InstallWslComponents
+      - InstallWslComponents # This is valid even though there's a schema error, see https://github.com/microsoft/winget-cli/issues/5906
     metadata:
       winget:
         securityContext: elevated
