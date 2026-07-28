@@ -148,11 +148,23 @@ eval "$(mise env -s zsh)"
 winget install --id Microsoft.PowerShell -e
 ```
 
-Reopen Windows Terminal and launch a PowerShell tab instead of
-of Windows PowerShell.
+NOTE: If you are running Windows 11 25H2 and get a certificate error, run the
+below in Admin Terminal to fix, then reopen a non-Admin Terminal and rerun the
+previous command.
 
 ```PowerShell
-winget install jdx.mise
+winget settings --enable BypassCertificatePinningForMicrosoftStore
+winget upgrade Microsoft.AppInstaller --accept-source-agreements --accept-package-agreements
+winget settings --disable BypassCertificatePinningForMicrosoftStore
+winget source reset --force
+```
+
+Once PowerShell is installed, reopen Windows Terminal and launch a PowerShell
+tab instead of Windows PowerShell.
+
+```PowerShell
+winget install --id jdx.mise -e
+winget install --id twpayne.chezmoi -e
 ```
 
 Restart the shell, then run the below:
