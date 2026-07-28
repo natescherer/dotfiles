@@ -12,7 +12,7 @@ resources:
     metadata:
       winget:
         securityContext: elevated
-      description: wsl --install --no-distribution enables Virtual Machine Platform and the WSL feature, and fetches the WSL2 kernel, in one call. May require a reboot to take effect (see InstallUbuntu below and the pending-reboot check in run_onchange_winget-configure.ps1.tmpl).
+      description: wsl --install --no-distribution enables Virtual Machine Platform and the WSL feature, and fetches the WSL2 kernel, in one call. May require a reboot to take effect (see InstallUbuntu below and the pending-reboot check in run_onchange_after_winget-configure.ps1.tmpl).
     properties:
       getScript: |
         $svc = Get-CimInstance -ClassName Win32_Service -Filter "Name='vmcompute'"

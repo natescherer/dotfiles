@@ -94,7 +94,7 @@ Currently managed:
       - Defines data used to provision profiles
     - [src/.chezmoitemplates/vscode](src/.chezmoitemplates/vscode)
       - Each file in this directory defines the settings for a profile
-    - [src/.chezmoiscripts/all/run_onchange_vscode-profiles.py.tmpl](src/.chezmoiscripts/all/run_onchange_vscode-profiles.py.tmpl)
+    - [src/.chezmoiscripts/zz_all/run_onchange_after_vscode-profiles.py.tmpl](src/.chezmoiscripts/zz_all/run_onchange_after_vscode-profiles.py.tmpl)
       - Performs profile provisioning and updating
 - [Windows](https://windows.com) 🪟
   - Config Files
@@ -105,7 +105,7 @@ Currently managed:
     - [src/dot_config/windows/features.configuration.winget](src/dot_config/windows/features.configuration.winget)
     - [src/dot_config/windows/wsl.configuration.winget](src/dot_config/windows/wsl.configuration.winget)
     - [src/dot_config/windows/fonts.configuration.winget.tmpl](src/dot_config/windows/fonts.configuration.winget.tmpl)
-    - [src/.chezmoiscripts/windows/run_onchange_winget-configure.ps1.tmpl](src/.chezmoiscripts/windows/run_onchange_winget-configure.ps1.tmpl)
+    - [src/.chezmoiscripts/windows/run_onchange_after_winget-configure.ps1.tmpl](src/.chezmoiscripts/windows/run_onchange_after_winget-configure.ps1.tmpl)
 - [Zsh](https://www.zsh.org/) 🐧 🍎
   - Config Files
     - [src/dot_config/zsh/dot_zsh_aliases.tmpl](src/dot_config/zsh/dot_zsh_aliases.tmpl)
