@@ -123,7 +123,7 @@ brew install coretools
 brew install sheldon
 brew install mise
 mise use -g python@latest
-mise env
+eval "$(mise env -s zsh)"
 ```
 
 ### Linux
@@ -133,12 +133,13 @@ Install the following tools however is appropriate for your distro:
 - Starship
 - Sheldon
 - Mise
+- Zsh
 
 Then run the below to set up Python and put it the path:
 
 ```Shell
 mise use -g python@latest
-mise env
+eval "$(mise env -s zsh)"
 ```
 
 ### Windows
@@ -147,20 +148,23 @@ mise env
 winget install --id Microsoft.PowerShell -e
 ```
 
-Reopen Windows Terminal so you're using the newly-installed PowerShell instead
+Reopen Windows Terminal and launch a PowerShell tab instead of
 of Windows PowerShell.
 
 ```PowerShell
 winget install jdx.mise
-winget install twpayne.chezmoi
+```
+
+Restart the shell, then run the below:
+
+```PowerShell
 mise use -g python@latest
-mise env
+mise env -s pwsh | iex
 ```
 
 ## Activating
 
 ```shell
 chezmoi init natescherer
-chezmoi diff
 chezmoi apply
 ```
