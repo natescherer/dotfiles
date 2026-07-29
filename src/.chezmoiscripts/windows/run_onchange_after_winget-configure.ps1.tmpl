@@ -165,7 +165,7 @@ $RebootPending = (Test-Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Com
   -or (Test-Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\RebootRequired') `
   -or ($null -ne (Get-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager' -Name PendingFileRenameOperations -ErrorAction SilentlyContinue))
 if ($RebootPending) {
-  Write-Host "A reboot is pending, likely from Windows optional features that were just installed. Reboot and rerun 'chezmoi apply' to finish applying the configuration." -ForegroundColor Yellow
+  Write-Host "A reboot is pending. Reboot and rerun 'chezmoi apply' again to finish applying the configuration." -ForegroundColor Yellow
 }
 
 # winget configure returns a non-zero exit code even on a fully successful apply (e.g. for
