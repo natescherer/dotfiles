@@ -170,8 +170,16 @@ foreach ($File in $ConfigFiles) {
   Write-Host "Applying $File via 'winget configure'..." -ForegroundColor Cyan
   "=== $File ===" | Add-Content -Path $LogPath
   Invoke-WithRetry -Name $File -ScriptBlock {
+    # winget configure has no flag to suppress its "You are responsible for understanding..."
+    # legal disclaimer -- --accept-configuration-agreements only avoids the interactive prompt,
+    # per winget's own docs, and it prints unconditionally otherwise. Filtered out of the console
+    # specifically (still written to the log in full via Add-Content below) since it's identical
+    # boilerplate on every single one of the 6 files here.
     winget configure -f $Path --accept-configuration-agreements --disable-interactivity --suppress-initial-details 2>&1 |
-      Tee-Object -FilePath $LogPath -Append
+      ForEach-Object {
+        Add-Content -Path $LogPath -Value $_
+        if ($_ -notmatch '^You are responsible for understanding') { $_ }
+      }
   }
   "--- exit code: $LASTEXITCODE ---" | Add-Content -Path $LogPath
   if ($LASTEXITCODE -ne 0) {
