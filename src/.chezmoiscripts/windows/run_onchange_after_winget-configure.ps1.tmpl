@@ -136,8 +136,13 @@ if (Test-Path $AppsConfigPath) {
     Write-Host "Pre-accepting Store license agreement for $Id..." -ForegroundColor Cyan
     "=== winget install $Id (msstore agreement pre-accept) ===" | Add-Content -Path $LogPath
     Invoke-WithRetry -Name "msstore agreement accept: $Id" -ScriptBlock {
+      # Log-only, not Tee-Object'd to console: winget has no flag to suppress its own per-package
+      # "Found X / Agreements / License terms" narration (--disable-interactivity only suppresses
+      # prompts), and with 9 msstore apps that's a wall of text with little value on-screen given
+      # the Write-Host line above already reports which app is being processed, and the warning
+      # below already surfaces failures.
       winget install --id $Id --source msstore --accept-package-agreements --accept-source-agreements --disable-interactivity 2>&1 |
-        Tee-Object -FilePath $LogPath -Append
+        Add-Content -Path $LogPath
     }
     if ($LASTEXITCODE -ne 0) {
       Write-Host "Warning: pre-accepting $Id failed (exit code $LASTEXITCODE) -- its winget configure resource will likely fail too. See $LogPath" -ForegroundColor Yellow
