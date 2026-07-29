@@ -89,7 +89,7 @@ resources:
     properties:
       id: Discord.Discord
       source: winget
-      useLatest: true
+      # We are intentionally not using useLatest here, see https://github.com/microsoft/winget-cli/issues/4257
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: DisneyPlus
