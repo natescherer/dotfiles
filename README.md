@@ -144,8 +144,12 @@ eval "$(mise env -s zsh)"
 
 ### Windows
 
+Install the latest PowerShell using this command SPECIFICALLY, as the default
+MSIX install has sandboxing issues, see
+<https://github.com/PowerShell/PowerShell/issues/13866>
+
 ```PowerShell
-winget install --id Microsoft.PowerShell -e
+winget install --id Microsoft.PowerShell --source winget --installer-type wix
 ```
 
 NOTE: If you are running Windows 11 25H2 and get a certificate error, run the
