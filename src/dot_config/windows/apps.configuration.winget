@@ -9,6 +9,9 @@ metadata:
 resources:
   - type: Microsoft.WinGet/Package
     name: 1Password
+    metadata:
+      winget:
+        securityContext: elevated
     properties:
       id: AgileBits.1Password
       source: winget
@@ -16,6 +19,9 @@ resources:
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: 1PasswordCLI
+    metadata:
+      winget:
+        securityContext: elevated
     properties:
       id: AgileBits.1Password.CLI
       source: winget
@@ -23,6 +29,9 @@ resources:
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: AdobeCreativeCloud
+    metadata:
+      winget:
+        securityContext: elevated
     properties:
       id: Adobe.CreativeCloud
       source: winget
@@ -30,6 +39,9 @@ resources:
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: Airdroid
+    metadata:
+      winget:
+        securityContext: elevated
     properties:
       id: AirDroid.AirDroid
       source: winget
@@ -37,6 +49,9 @@ resources:
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: AppleMusic
+    metadata:
+      winget:
+        securityContext: elevated
     properties:
       id: 9PFHDD62MXS1
       source: msstore
@@ -44,6 +59,9 @@ resources:
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: AppleTV
+    metadata:
+      winget:
+        securityContext: elevated
     properties:
       id: 9NM4T8B9JQZ1
       source: msstore
@@ -51,6 +69,9 @@ resources:
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: Brave
+    metadata:
+      winget:
+        securityContext: elevated
     properties:
       id: Brave.Brave
       source: winget
@@ -58,6 +79,9 @@ resources:
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: chezmoi
+    metadata:
+      winget:
+        securityContext: elevated
     properties:
       id: twpayne.chezmoi
       source: winget
@@ -65,6 +89,9 @@ resources:
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: Claude
+    metadata:
+      winget:
+        securityContext: elevated
     properties:
       id: Anthropic.Claude
       source: winget
@@ -72,6 +99,9 @@ resources:
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: Coreutils
+    metadata:
+      winget:
+        securityContext: elevated
     properties:
       id: Microsoft.Coreutils
       source: winget
@@ -79,6 +109,9 @@ resources:
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: DockerDesktop
+    metadata:
+      winget:
+        securityContext: elevated
     properties:
       id: Docker.DockerDesktop
       source: winget
@@ -86,6 +119,9 @@ resources:
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: Discord
+    metadata:
+      winget:
+        securityContext: elevated
     properties:
       id: Discord.Discord
       source: winget
@@ -93,6 +129,9 @@ resources:
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: DisneyPlus
+    metadata:
+      winget:
+        securityContext: elevated
     properties:
       id: 9NXQXXLFST89
       source: msstore
@@ -100,6 +139,9 @@ resources:
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: DolbyAccess
+    metadata:
+      winget:
+        securityContext: elevated
     properties:
       id: 9N0866FS04W8
       source: msstore
@@ -107,6 +149,9 @@ resources:
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: DotNetDesktopRuntime10
+    metadata:
+      winget:
+        securityContext: elevated
     properties:
       id: Microsoft.DotNet.DesktopRuntime.10
       source: winget
@@ -114,6 +159,9 @@ resources:
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: Firefox
+    metadata:
+      winget:
+        securityContext: elevated
     properties:
       id: Mozilla.Firefox
       source: winget
@@ -121,6 +169,9 @@ resources:
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: fzf
+    metadata:
+      winget:
+        securityContext: elevated
     properties:
       id: junegunn.fzf
       source: winget
@@ -128,6 +179,9 @@ resources:
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: Hulu
+    metadata:
+      winget:
+        securityContext: elevated
     properties:
       id: 9WZDNCRFJ3L1
       source: msstore
@@ -135,6 +189,9 @@ resources:
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: iCloud
+    metadata:
+      winget:
+        securityContext: elevated
     properties:
       id: 9PKTQ5699M62
       source: msstore
@@ -142,6 +199,9 @@ resources:
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: MEGASync
+    metadata:
+      winget:
+        securityContext: elevated
     properties:
       id: Mega.MEGASync
       source: winget
@@ -149,6 +209,9 @@ resources:
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: micro
+    metadata:
+      winget:
+        securityContext: elevated
     properties:
       id: zyedidia.micro
       source: winget
@@ -156,6 +219,9 @@ resources:
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: mise
+    metadata:
+      winget:
+        securityContext: elevated
     properties:
       id: jdx.mise
       source: winget
@@ -163,6 +229,9 @@ resources:
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: MullvadVPN
+    metadata:
+      winget:
+        securityContext: elevated
     properties:
       id: MullvadVPN.MullvadVPN
       source: winget
@@ -170,6 +239,9 @@ resources:
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: Netflix
+    metadata:
+      winget:
+        securityContext: elevated
     properties:
       id: 9WZDNCRFJ3TJ
       source: msstore
@@ -177,6 +249,9 @@ resources:
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: Obsidian
+    metadata:
+      winget:
+        securityContext: elevated
     properties:
       id: Obsidian.Obsidian
       source: winget
@@ -184,6 +259,9 @@ resources:
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: ParamountPlus
+    metadata:
+      winget:
+        securityContext: elevated
     properties:
       id: 9WZDNCRFJ0WK
       source: msstore
@@ -191,6 +269,9 @@ resources:
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: PowerToys
+    metadata:
+      winget:
+        securityContext: elevated
     properties:
       id: Microsoft.PowerToys
       source: winget
@@ -198,6 +279,9 @@ resources:
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: PowerShell
+    metadata:
+      winget:
+        securityContext: elevated
     properties:
       id: Microsoft.PowerShell
       source: winget
@@ -205,6 +289,9 @@ resources:
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: PrimeVideo
+    metadata:
+      winget:
+        securityContext: elevated
     properties:
       id: 9P6RC76MSMMJ
       source: msstore
@@ -212,6 +299,9 @@ resources:
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: Rufus
+    metadata:
+      winget:
+        securityContext: elevated
     properties:
       id: Rufus.Rufus
       source: winget
@@ -219,6 +309,9 @@ resources:
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: Slack
+    metadata:
+      winget:
+        securityContext: elevated
     properties:
       id: SlackTechnologies.Slack
       source: winget
@@ -226,6 +319,9 @@ resources:
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: Speedtest
+    metadata:
+      winget:
+        securityContext: elevated
     properties:
       id: Ookla.Speedtest.Desktop
       source: winget
@@ -233,6 +329,9 @@ resources:
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: Starship
+    metadata:
+      winget:
+        securityContext: elevated
     properties:
       id: Starship.Starship
       source: winget
@@ -240,6 +339,9 @@ resources:
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: Tabby
+    metadata:
+      winget:
+        securityContext: elevated
     properties:
       id: Eugeny.Tabby
       source: winget
@@ -247,6 +349,9 @@ resources:
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: TickTick
+    metadata:
+      winget:
+        securityContext: elevated
     properties:
       id: Appest.TickTick
       source: winget
@@ -254,6 +359,9 @@ resources:
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: UniGetUI
+    metadata:
+      winget:
+        securityContext: elevated
     properties:
       id: Devolutions.UniGetUI
       source: winget
@@ -261,6 +369,9 @@ resources:
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: VLC
+    metadata:
+      winget:
+        securityContext: elevated
     properties:
       id: VideoLAN.VLC
       source: winget
@@ -268,6 +379,9 @@ resources:
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: VSCode
+    metadata:
+      winget:
+        securityContext: elevated
     properties:
       id: Microsoft.VisualStudioCode
       source: winget
@@ -275,6 +389,9 @@ resources:
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: WindowsApp
+    metadata:
+      winget:
+        securityContext: elevated
     properties:
       id: Microsoft.WindowsApp
       source: winget
@@ -282,6 +399,9 @@ resources:
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: WinRAR
+    metadata:
+      winget:
+        securityContext: elevated
     properties:
       id: RARLab.WinRAR
       source: winget
@@ -289,6 +409,9 @@ resources:
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: YubicoAuthenticator
+    metadata:
+      winget:
+        securityContext: elevated
     properties:
       id: Yubico.Authenticator
       source: winget
@@ -296,6 +419,9 @@ resources:
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: YubikeyManager
+    metadata:
+      winget:
+        securityContext: elevated
     properties:
       id: Yubico.YubikeyManager
       source: winget
