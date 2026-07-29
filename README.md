@@ -99,7 +99,7 @@ Currently managed:
 - [Windows](https://windows.com) 🪟
   - Config Files
     - [src/dot_wslconfig](src/dot_wslconfig)
-    - [src/dot_config/windows/modules.configuration.winget](src/dot_config/windows/modules.configuration.winget)
+    - [src/dot_config/windows/pwsh.configuration.winget](src/dot_config/windows/pwsh.configuration.winget)
     - [src/dot_config/windows/settings.configuration.winget](src/dot_config/windows/settings.configuration.winget)
     - [src/dot_config/windows/apps.configuration.winget](src/dot_config/windows/apps.configuration.winget)
     - [src/dot_config/windows/features.configuration.winget](src/dot_config/windows/features.configuration.winget)
