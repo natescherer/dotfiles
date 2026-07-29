@@ -1,0 +1,93 @@
+## WARNING: This file is chezmoi-managed and should not be manually edited!
+
+# yaml-language-server: $schema=https://aka.ms/configuration-dsc-schema/0.3
+$schema: https://raw.githubusercontent.com/PowerShell/DSC/main/schemas/2023/08/config/document.json
+metadata:
+  winget:
+    processor:
+      identifier: dscv3
+resources:
+  ### Fonts Start
+  - type: Microsoft.DSC.Transitional/WindowsPowerShellScript
+    name: InstallFonts
+    metadata:
+      winget:
+        securityContext: elevated
+      description: >-
+        Discovers fonts under .local/share/chezmoifonts at winget-configure execution time
+        (Get-ChildItem), not chezmoi template-render time. This file used to be a .tmpl that
+        globbed that directory while chezmoi rendered it, but fonts.configuration.winget and
+        the .chezmoiexternal.toml.tmpl downloads that populate that directory are both regular
+        chezmoi targets in the same alphabetical apply phase, and
+        ".config/windows/fonts.configuration.winget" sorts before
+        ".local/share/chezmoifonts/..." -- so on a fresh machine the template rendered before
+        the fonts were actually downloaded, globbed an empty directory, and produced an empty
+        (schema-invalid) resources list. Discovering fonts when this script actually runs
+        (always after downloads complete) sidesteps that ordering race entirely -- and means
+        this file no longer needs to be a template at all. The registry value name is read
+        from each font's own name table (family + style), matching what right-click "Install"
+        does, rather than derived from the filename.
+    properties:
+      getScript: |
+        $FontsDir = Join-Path $HOME '.local' 'share' 'chezmoifonts'
+        $Files = @()
+        if (Test-Path $FontsDir) {
+          $Files = @(Get-ChildItem -Path $FontsDir -Include '*.otf', '*.ttf' -File -Recurse -ErrorAction SilentlyContinue)
+        }
+        Add-Type -AssemblyName PresentationCore
+        $InstalledCount = 0
+        foreach ($File in $Files) {
+          $TypeLabel = if ($File.Extension -eq '.ttf') { 'TrueType' } else { 'OpenType' }
+          $Glyph = New-Object System.Windows.Media.GlyphTypeface($File.FullName)
+          $Family = $Glyph.Win32FamilyNames['en-US']
+          if (-not $Family) { $Family = ($Glyph.Win32FamilyNames.Values | Select-Object -First 1) }
+          $Face = $Glyph.Win32FaceNames['en-US']
+          if (-not $Face) { $Face = ($Glyph.Win32FaceNames.Values | Select-Object -First 1) }
+          $RegistryName = if ($Face -and $Face -ne 'Regular') { "$Family $Face ($TypeLabel)" } else { "$Family ($TypeLabel)" }
+          $FileOk = Test-Path (Join-Path $env:windir 'Fonts' $File.Name)
+          $RegValue = (Get-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Fonts' -Name $RegistryName -ErrorAction SilentlyContinue).$RegistryName
+          if ($FileOk -and ($RegValue -eq $File.Name)) { $InstalledCount++ }
+        }
+        return @{ FontsFound = $Files.Count; FontsInstalled = $InstalledCount }
+      testScript: |
+        $FontsDir = Join-Path $HOME '.local' 'share' 'chezmoifonts'
+        $Files = @()
+        if (Test-Path $FontsDir) {
+          $Files = @(Get-ChildItem -Path $FontsDir -Include '*.otf', '*.ttf' -File -Recurse -ErrorAction SilentlyContinue)
+        }
+        if ($Files.Count -eq 0) { return $true }
+        Add-Type -AssemblyName PresentationCore
+        foreach ($File in $Files) {
+          $TypeLabel = if ($File.Extension -eq '.ttf') { 'TrueType' } else { 'OpenType' }
+          $Glyph = New-Object System.Windows.Media.GlyphTypeface($File.FullName)
+          $Family = $Glyph.Win32FamilyNames['en-US']
+          if (-not $Family) { $Family = ($Glyph.Win32FamilyNames.Values | Select-Object -First 1) }
+          $Face = $Glyph.Win32FaceNames['en-US']
+          if (-not $Face) { $Face = ($Glyph.Win32FaceNames.Values | Select-Object -First 1) }
+          $RegistryName = if ($Face -and $Face -ne 'Regular') { "$Family $Face ($TypeLabel)" } else { "$Family ($TypeLabel)" }
+          $FileOk = Test-Path (Join-Path $env:windir 'Fonts' $File.Name)
+          $RegValue = (Get-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Fonts' -Name $RegistryName -ErrorAction SilentlyContinue).$RegistryName
+          if (-not ($FileOk -and ($RegValue -eq $File.Name))) { return $false }
+        }
+        return $true
+      setScript: |
+        $FontsDir = Join-Path $HOME '.local' 'share' 'chezmoifonts'
+        if (-not (Test-Path $FontsDir)) { return }
+        $Files = @(Get-ChildItem -Path $FontsDir -Include '*.otf', '*.ttf' -File -Recurse -ErrorAction SilentlyContinue)
+        Add-Type -AssemblyName PresentationCore
+        foreach ($File in $Files) {
+          $TypeLabel = if ($File.Extension -eq '.ttf') { 'TrueType' } else { 'OpenType' }
+          $Glyph = New-Object System.Windows.Media.GlyphTypeface($File.FullName)
+          $Family = $Glyph.Win32FamilyNames['en-US']
+          if (-not $Family) { $Family = ($Glyph.Win32FamilyNames.Values | Select-Object -First 1) }
+          $Face = $Glyph.Win32FaceNames['en-US']
+          if (-not $Face) { $Face = ($Glyph.Win32FaceNames.Values | Select-Object -First 1) }
+          $RegistryName = if ($Face -and $Face -ne 'Regular') { "$Family $Face ($TypeLabel)" } else { "$Family ($TypeLabel)" }
+          $FileOk = Test-Path (Join-Path $env:windir 'Fonts' $File.Name)
+          $RegValue = (Get-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Fonts' -Name $RegistryName -ErrorAction SilentlyContinue).$RegistryName
+          if ($FileOk -and ($RegValue -eq $File.Name)) { continue }
+          Write-Host "Installing font: $($File.Name) as '$RegistryName'..."
+          Copy-Item -Path $File.FullName -Destination (Join-Path $env:windir 'Fonts' $File.Name) -Force
+          New-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Fonts' -Name $RegistryName -Value $File.Name -PropertyType String -Force | Out-Null
+        }
+  ### Fonts End

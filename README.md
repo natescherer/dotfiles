@@ -104,7 +104,7 @@ Currently managed:
     - [src/dot_config/windows/apps.configuration.winget](src/dot_config/windows/apps.configuration.winget)
     - [src/dot_config/windows/features.configuration.winget](src/dot_config/windows/features.configuration.winget)
     - [src/dot_config/windows/wsl.configuration.winget](src/dot_config/windows/wsl.configuration.winget)
-    - [src/dot_config/windows/fonts.configuration.winget.tmpl](src/dot_config/windows/fonts.configuration.winget.tmpl)
+    - [src/dot_config/windows/fonts.configuration.winget](src/dot_config/windows/fonts.configuration.winget)
     - [src/.chezmoiscripts/windows/run_onchange_after_winget-configure.ps1.tmpl](src/.chezmoiscripts/windows/run_onchange_after_winget-configure.ps1.tmpl)
 - [Zsh](https://www.zsh.org/) 🐧 🍎
   - Config Files
