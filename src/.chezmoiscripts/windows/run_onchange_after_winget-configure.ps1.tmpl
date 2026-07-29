@@ -8,6 +8,21 @@
 ## wsl.configuration.winget hash: {{ joinPath .chezmoi.sourceDir "dot_config/windows/wsl.configuration.winget" | include | sha256sum }}
 ## fonts.configuration.winget hash: {{ joinPath .chezmoi.sourceDir "dot_config/windows/fonts.configuration.winget" | include | sha256sum }}
 
+# Windows PowerShell 5.1 defaults [Console]::OutputEncoding to the ANSI code page (1252 on
+# en-US), not UTF-8. winget writes UTF-8 (emoji like the elevation shield, spinner glyphs,
+# smart quotes), so once that output is piped through a PowerShell cmdlet -- which every winget
+# call below is, via Tee-Object/Add-Content for logging -- it gets decoded under the wrong
+# codepage and comes out as mojibake before we ever touch it. Match winget's actual encoding up
+# front. Safe no-op on pwsh 7 (already defaults to UTF-8) and on hosts that reject the
+# assignment (e.g. some CI agents with redirected stdout) -- not worth failing the script over.
+try {
+  $Utf8NoBom = [System.Text.UTF8Encoding]::new($false)
+  [Console]::OutputEncoding = $Utf8NoBom
+  $OutputEncoding = $Utf8NoBom
+} catch {
+  Write-Verbose "Could not force UTF-8 console encoding: $($_.Exception.Message)"
+}
+
 # modules must be applied before settings, since settings resources (e.g. Microsoft.Windows.Settings/*)
 # depend on the PowerShell modules that modules.configuration.winget installs.
 #
