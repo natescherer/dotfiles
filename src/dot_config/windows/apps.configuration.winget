@@ -233,15 +233,6 @@ resources:
       source: winget
       installMode: silent
   - type: Microsoft.WinGet/Package
-    name: ParamountPlus
-    metadata:
-      winget:
-        securityContext: elevated
-    properties:
-      id: 9WZDNCRFJ0WK
-      source: msstore
-      installMode: silent
-  - type: Microsoft.WinGet/Package
     name: PowerToys
     metadata:
       winget:
