@@ -8,6 +8,24 @@ metadata:
       identifier: dscv3
 resources:
   - type: Microsoft.DSC.Transitional/RunCommandOnSet
+    name: ExecutionPolicyWindowsPowerShell
+    properties:
+      executable: powershell
+      arguments:
+        - -NoProfile
+        - -NoLogo
+        - -Command
+        - "Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope CurrentUser -Force"
+  - type: Microsoft.DSC.Transitional/RunCommandOnSet
+    name: ExecutionPolicyPwsh
+    properties:
+      executable: pwsh
+      arguments:
+        - -NoProfile
+        - -NoLogo
+        - -Command
+        - "Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope CurrentUser -Force"
+  - type: Microsoft.DSC.Transitional/RunCommandOnSet
     name: PSResourceGetPreview
         # DSC Resource Microsoft.PowerShell.PSResourceGet/PSResourceList only exists starting in PSResourceGet 1.3.0-preview1, we need to make sure at least that version is installed here
     properties:
@@ -21,7 +39,6 @@ resources:
     name: WindowsDscModules
     dependsOn:
       - PSResourceGetPreview # This is valid even though there's a schema error, see https://github.com/microsoft/winget-cli/issues/5906
-    metadata:
     properties:
       repositoryName: PSGallery
       resources:
