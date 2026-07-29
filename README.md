@@ -144,23 +144,23 @@ eval "$(mise env -s zsh)"
 
 ### Windows
 
-Install the latest PowerShell using this command SPECIFICALLY, as the default
-MSIX install has sandboxing issues, see
-<https://github.com/PowerShell/PowerShell/issues/13866>
-
-```PowerShell
-winget install --id Microsoft.PowerShell --source winget --installer-type wix
-```
-
-NOTE: If you are running Windows 11 25H2 and get a certificate error, run the
-below in Admin Terminal to fix, then reopen a non-Admin Terminal and rerun the
-previous command.
+NOTE: If you are running Windows 11 25H2 and get a certificate error on any of
+the below steps, run the following in Admin Terminal to fix, then reopen a
+non-Admin Terminal and rerun the failed command.
 
 ```PowerShell
 winget settings --enable BypassCertificatePinningForMicrosoftStore
 winget upgrade Microsoft.AppInstaller --accept-source-agreements --accept-package-agreements
 winget settings --disable BypassCertificatePinningForMicrosoftStore
 winget source reset --force
+```
+
+Install the latest PowerShell using this command SPECIFICALLY, as the default
+MSIX install has sandboxing issues, see
+<https://github.com/PowerShell/PowerShell/issues/13866>
+
+```PowerShell
+winget install --id Microsoft.PowerShell --source winget --installer-type wix
 ```
 
 Once PowerShell is installed, reopen Windows Terminal and launch a PowerShell
