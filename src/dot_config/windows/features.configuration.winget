@@ -29,14 +29,14 @@ resources:
         this file.
     properties:
       getScript: |
-        $Features = . (Join-Path $HOME '.config' 'windows' 'optional-features-list.ps1')
+        $Features = . ([System.IO.Path]::Combine($HOME, '.config', 'windows', 'optional-features-list.ps1'))
         $State = @{}
         foreach ($Feature in $Features) {
           $State[$Feature] = (Get-WindowsOptionalFeature -Online -FeatureName $Feature -ErrorAction SilentlyContinue).State.ToString()
         }
         return $State
       testScript: |
-        $Features = . (Join-Path $HOME '.config' 'windows' 'optional-features-list.ps1')
+        $Features = . ([System.IO.Path]::Combine($HOME, '.config', 'windows', 'optional-features-list.ps1'))
         foreach ($Feature in $Features) {
           if ((Get-WindowsOptionalFeature -Online -FeatureName $Feature -ErrorAction SilentlyContinue).State -ne 'Enabled') {
             return $false
@@ -44,6 +44,6 @@ resources:
         }
         return $true
       setScript: |
-        $Features = . (Join-Path $HOME '.config' 'windows' 'optional-features-list.ps1')
+        $Features = . ([System.IO.Path]::Combine($HOME, '.config', 'windows', 'optional-features-list.ps1'))
         Write-Host "Enabling Windows optional features: $($Features -join ', ')..."
         Enable-WindowsOptionalFeature -Online -FeatureName $Features -All -NoRestart | Out-Null

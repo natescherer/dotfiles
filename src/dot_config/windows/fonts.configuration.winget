@@ -7,8 +7,7 @@ metadata:
     processor:
       identifier: dscv3
 resources:
-  ### Fonts Start
-  - type: Microsoft.DSC.Transitional/WindowsPowerShellScript
+  - type: Microsoft.DSC.Transitional/PowerShellScript
     name: InstallFonts
     metadata:
       winget:
@@ -26,7 +25,10 @@ resources:
         (always after downloads complete) sidesteps that ordering race entirely -- and means
         this file no longer needs to be a template at all. The registry value name is read
         from each font's own name table (family + style), matching what right-click "Install"
-        does, rather than derived from the filename.
+        does, rather than derived from the filename. Runs via PowerShellScript (pwsh), not
+        WindowsPowerShellScript -- unlike features.configuration.winget, nothing here (Add-Type
+        -AssemblyName PresentationCore/GlyphTypeface, registry cmdlets, Copy-Item) requires
+        Windows PowerShell 5.1; verified PresentationCore loads identically under both hosts.
     properties:
       getScript: |
         $FontsDir = Join-Path $HOME '.local' 'share' 'chezmoifonts'
@@ -90,4 +92,3 @@ resources:
           Copy-Item -Path $File.FullName -Destination (Join-Path $env:windir 'Fonts' $File.Name) -Force
           New-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Fonts' -Name $RegistryName -Value $File.Name -PropertyType String -Force | Out-Null
         }
-  ### Fonts End
