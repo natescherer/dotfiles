@@ -15,7 +15,6 @@ resources:
     properties:
       id: AgileBits.1Password
       source: winget
-      useLatest: true
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: 1PasswordCLI
@@ -25,7 +24,6 @@ resources:
     properties:
       id: AgileBits.1Password.CLI
       source: winget
-      useLatest: true
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: AdobeCreativeCloud
@@ -35,7 +33,6 @@ resources:
     properties:
       id: Adobe.CreativeCloud
       source: winget
-      useLatest: true
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: Airdroid
@@ -45,7 +42,6 @@ resources:
     properties:
       id: AirDroid.AirDroid
       source: winget
-      useLatest: true
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: AppleMusic
@@ -55,7 +51,6 @@ resources:
     properties:
       id: 9PFHDD62MXS1
       source: msstore
-      useLatest: true
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: AppleTV
@@ -65,7 +60,6 @@ resources:
     properties:
       id: 9NM4T8B9JQZ1
       source: msstore
-      useLatest: true
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: Brave
@@ -75,7 +69,6 @@ resources:
     properties:
       id: Brave.Brave
       source: winget
-      useLatest: true
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: chezmoi
@@ -85,7 +78,6 @@ resources:
     properties:
       id: twpayne.chezmoi
       source: winget
-      useLatest: true
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: Claude
@@ -95,7 +87,6 @@ resources:
     properties:
       id: Anthropic.Claude
       source: winget
-      useLatest: true
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: Coreutils
@@ -105,7 +96,6 @@ resources:
     properties:
       id: Microsoft.Coreutils
       source: winget
-      useLatest: true
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: DockerDesktop
@@ -115,7 +105,6 @@ resources:
     properties:
       id: Docker.DockerDesktop
       source: winget
-      useLatest: true
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: Discord
@@ -125,7 +114,6 @@ resources:
     properties:
       id: Discord.Discord
       source: winget
-      # We are intentionally not using useLatest here, see https://github.com/microsoft/winget-cli/issues/4257
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: DisneyPlus
@@ -135,7 +123,6 @@ resources:
     properties:
       id: 9NXQXXLFST89
       source: msstore
-      useLatest: true
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: DolbyAccess
@@ -145,7 +132,6 @@ resources:
     properties:
       id: 9N0866FS04W8
       source: msstore
-      useLatest: true
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: DotNetDesktopRuntime10
@@ -155,7 +141,6 @@ resources:
     properties:
       id: Microsoft.DotNet.DesktopRuntime.10
       source: winget
-      useLatest: true
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: Firefox
@@ -165,7 +150,6 @@ resources:
     properties:
       id: Mozilla.Firefox
       source: winget
-      useLatest: true
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: fzf
@@ -175,7 +159,6 @@ resources:
     properties:
       id: junegunn.fzf
       source: winget
-      useLatest: true
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: Hulu
@@ -185,7 +168,6 @@ resources:
     properties:
       id: 9WZDNCRFJ3L1
       source: msstore
-      useLatest: true
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: iCloud
@@ -195,7 +177,6 @@ resources:
     properties:
       id: 9PKTQ5699M62
       source: msstore
-      useLatest: true
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: MEGASync
@@ -205,7 +186,6 @@ resources:
     properties:
       id: Mega.MEGASync
       source: winget
-      useLatest: true
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: micro
@@ -215,7 +195,6 @@ resources:
     properties:
       id: zyedidia.micro
       source: winget
-      useLatest: true
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: mise
@@ -225,7 +204,6 @@ resources:
     properties:
       id: jdx.mise
       source: winget
-      useLatest: true
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: MullvadVPN
@@ -235,7 +213,6 @@ resources:
     properties:
       id: MullvadVPN.MullvadVPN
       source: winget
-      useLatest: true
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: Netflix
@@ -245,7 +222,6 @@ resources:
     properties:
       id: 9WZDNCRFJ3TJ
       source: msstore
-      useLatest: true
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: Obsidian
@@ -255,7 +231,6 @@ resources:
     properties:
       id: Obsidian.Obsidian
       source: winget
-      useLatest: true
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: ParamountPlus
@@ -265,7 +240,6 @@ resources:
     properties:
       id: 9WZDNCRFJ0WK
       source: msstore
-      useLatest: true
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: PowerToys
@@ -275,7 +249,6 @@ resources:
     properties:
       id: Microsoft.PowerToys
       source: winget
-      useLatest: true
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: PowerShell
@@ -285,7 +258,6 @@ resources:
     properties:
       id: Microsoft.PowerShell
       source: winget
-      useLatest: true
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: PrimeVideo
@@ -295,7 +267,6 @@ resources:
     properties:
       id: 9P6RC76MSMMJ
       source: msstore
-      useLatest: true
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: Rufus
@@ -305,7 +276,6 @@ resources:
     properties:
       id: Rufus.Rufus
       source: winget
-      useLatest: true
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: Slack
@@ -315,7 +285,6 @@ resources:
     properties:
       id: SlackTechnologies.Slack
       source: winget
-      useLatest: true
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: Speedtest
@@ -325,7 +294,6 @@ resources:
     properties:
       id: Ookla.Speedtest.Desktop
       source: winget
-      useLatest: true
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: Starship
@@ -335,7 +303,6 @@ resources:
     properties:
       id: Starship.Starship
       source: winget
-      useLatest: true
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: Tabby
@@ -345,7 +312,6 @@ resources:
     properties:
       id: Eugeny.Tabby
       source: winget
-      useLatest: true
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: TickTick
@@ -355,7 +321,6 @@ resources:
     properties:
       id: Appest.TickTick
       source: winget
-      useLatest: true
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: UniGetUI
@@ -365,7 +330,6 @@ resources:
     properties:
       id: Devolutions.UniGetUI
       source: winget
-      useLatest: true
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: VLC
@@ -375,7 +339,6 @@ resources:
     properties:
       id: VideoLAN.VLC
       source: winget
-      useLatest: true
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: VSCode
@@ -385,7 +348,6 @@ resources:
     properties:
       id: Microsoft.VisualStudioCode
       source: winget
-      useLatest: true
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: WindowsApp
@@ -395,7 +357,6 @@ resources:
     properties:
       id: Microsoft.WindowsApp
       source: winget
-      useLatest: true
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: WinRAR
@@ -405,7 +366,6 @@ resources:
     properties:
       id: RARLab.WinRAR
       source: winget
-      useLatest: true
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: YubicoAuthenticator
@@ -415,7 +375,6 @@ resources:
     properties:
       id: Yubico.Authenticator
       source: winget
-      useLatest: true
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: YubikeyManager
@@ -425,5 +384,4 @@ resources:
     properties:
       id: Yubico.YubikeyManager
       source: winget
-      useLatest: true
       installMode: silent
