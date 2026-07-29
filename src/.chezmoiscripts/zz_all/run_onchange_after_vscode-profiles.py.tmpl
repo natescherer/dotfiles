@@ -96,7 +96,7 @@ def list_extensions(profile_name):
 
 def install_extension(profile_name, extension_id):
     profile_args = () if profile_name == "Default" else ("--profile", profile_name)
-    print(f"Installing '{extension_id}' into VS Code profile '{profile_name}'...")
+    print(f"Installing '{extension_id}' into VS Code profile '{profile_name}'...\n")
     run_code(*profile_args, "--install-extension", extension_id)
 
 
@@ -113,7 +113,7 @@ def sync_extensions(profile_name, desired_extensions):
             f"{YELLOW_TERM_COLOR}Warning: VS Code profile '{profile_name}' has the following extensions "
             f"installed that aren't tracked by chezmoi. They have not been uninstalled, but you "
             f"should consider adding them to '.chezmoidata/vscode.toml': "
-            f"{', '.join(sorted(extra))}{RESET_TERM_STYLE}",
+            f"{', '.join(sorted(extra))}{RESET_TERM_STYLE}\n",
             file=sys.stderr,
         )
 
@@ -128,7 +128,7 @@ def provision_profile(profile_name):
     print(
         f"{CYAN_TERM_COLOR}VS Code profile '{profile_name}' needs to be provisioned before chezmoi can manage "
         f"it. After you press Enter, VS Code will open with this profile. Close it once it appears. "
-        f"This is a one-time process on this machine.{RESET_TERM_STYLE}"
+        f"This is a one-time process on this machine.{RESET_TERM_STYLE}\n"
     )
     input("Press Enter to continue... ")
     run_code("--profile", profile_name, "--wait")
@@ -203,7 +203,7 @@ def write_profile_settings(profile_name, profile_dir, settings_content):
             f"\n"
             f"Then either reconcile the differences manually, or run the following to have chezmoi\n"
             f"overwrite it automatically:\n"
-            f"    {CLOBBER_COMMAND}{RESET_TERM_STYLE}",
+            f"    {CLOBBER_COMMAND}{RESET_TERM_STYLE}\n",
             file=sys.stderr,
         )
 
@@ -214,7 +214,7 @@ def write_profile_settings(profile_name, profile_dir, settings_content):
     if not os.path.exists(hash_path):
         if CHEZMOI_VSCODE_CLOBBER:
             print(f"{CYAN_TERM_COLOR}VS Code profile '{profile_name}' had an untracked settings.json; "
-                  f"overwriting it since CHEZMOI_VSCODE_CLOBBER is set.{RESET_TERM_STYLE}")
+                  f"overwriting it since CHEZMOI_VSCODE_CLOBBER is set.{RESET_TERM_STYLE}\n")
             write_settings()
             return
         warn_drifted("has a settings.json that is not chezmoi-managed")
@@ -228,7 +228,7 @@ def write_profile_settings(profile_name, profile_dir, settings_content):
     if live_hash != last_written_hash:
         if CHEZMOI_VSCODE_CLOBBER:
             print(f"{CYAN_TERM_COLOR}VS Code profile '{profile_name}' had local changes to settings.json; "
-                  f"overwriting them since CHEZMOI_VSCODE_CLOBBER is set.{RESET_TERM_STYLE}")
+                  f"overwriting them since CHEZMOI_VSCODE_CLOBBER is set.{RESET_TERM_STYLE}\n")
             write_settings()
             return
         warn_drifted("has local changes to settings.json that aren't tracked in chezmoi; leaving it as-is")
@@ -243,7 +243,7 @@ def write_profile_settings(profile_name, profile_dir, settings_content):
 
 def main():
     if not CODE_AVAILABLE:
-        print(f"{YELLOW_TERM_COLOR}VS Code ('code' command) not found; skipping VS Code profile/extension sync.{RESET_TERM_STYLE}", file=sys.stderr)
+        print(f"{YELLOW_TERM_COLOR}VS Code ('code' command) not found; skipping VS Code profile/extension sync.{RESET_TERM_STYLE}\n", file=sys.stderr)
         return
 
     user_dir = vscode_user_dir()
@@ -264,7 +264,7 @@ def main():
             if location is None:
                 print(
                     f"{RED_TERM_COLOR}Error: VS Code profile '{name}' still isn't registered; skipping its "
-                    f"extension and settings sync this run. Re-run 'chezmoi apply' to try again.{RESET_TERM_STYLE}",
+                    f"extension and settings sync this run. Re-run 'chezmoi apply' to try again.{RESET_TERM_STYLE}\n",
                     file=sys.stderr,
                 )
                 continue

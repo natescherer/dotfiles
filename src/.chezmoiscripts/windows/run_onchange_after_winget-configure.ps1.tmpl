@@ -69,7 +69,7 @@ function Invoke-WithRetry {
     if ($LASTEXITCODE -eq 0 -or $Attempt -ge $MaxAttempts) {
       return
     }
-    Write-Host "$Name failed (exit code $LASTEXITCODE), retrying in ${Delay}s (attempt $Attempt/$MaxAttempts)..." -ForegroundColor DarkYellow
+    Write-Host "$Name failed (exit code $LASTEXITCODE), retrying in ${Delay}s (attempt $Attempt/$MaxAttempts)...`n" -ForegroundColor DarkYellow
     "[retry] ${Name}: attempt $Attempt failed with exit code $LASTEXITCODE, retrying in ${Delay}s" | Add-Content -Path $LogPath
     Start-Sleep -Seconds $Delay
     $Delay = $Delay * 2
@@ -111,7 +111,7 @@ if ($null -ne $PolicyValue -and [int]$PolicyValue -eq 0) {
 # winget versions. Not gated on exit code: winget's own docs note some builds return non-zero even
 # when the flag was already enabled, so a bad exit code here isn't trustworthy either way -- if
 # enabling it genuinely failed, the config-apply loop below will fail too and get logged there.
-Write-Host "Ensuring winget configure extended features are enabled..." -ForegroundColor Cyan
+Write-Host "Ensuring winget configure extended features are enabled...`n" -ForegroundColor Cyan
 "=== winget configure --enable ===" | Add-Content -Path $LogPath
 winget configure --enable 2>&1 |
   Tee-Object -FilePath $LogPath -Append
@@ -122,7 +122,7 @@ winget configure --enable 2>&1 |
 $VCRedistKey = 'HKLM:\SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\X64'
 $VCRedistInstalled = (Get-ItemProperty -Path $VCRedistKey -Name 'Installed' -ErrorAction SilentlyContinue).Installed -eq 1
 if (-not $VCRedistInstalled) {
-  Write-Host "Microsoft Visual C++ Redistributable 2015+ (x64) not found -- installing (winget configure can fail with an internal error without it)..." -ForegroundColor Yellow
+  Write-Host "Microsoft Visual C++ Redistributable 2015+ (x64) not found -- installing (winget configure can fail with an internal error without it)...`n" -ForegroundColor Yellow
   "=== Installing Microsoft.VCRedist.2015+.x64 ===" | Add-Content -Path $LogPath
   Invoke-WithRetry -Name 'Microsoft.VCRedist.2015+.x64 install' -ScriptBlock {
     winget install --id 'Microsoft.VCRedist.2015+.x64' --source winget --accept-package-agreements --accept-source-agreements --disable-interactivity 2>&1 |
@@ -161,14 +161,14 @@ if (Test-Path $AppsConfigPath) {
         Add-Content -Path $LogPath
     }
     if ($LASTEXITCODE -ne 0) {
-      Write-Host "Warning: pre-accepting $Id failed (exit code $LASTEXITCODE) -- its winget configure resource will likely fail too. See $LogPath" -ForegroundColor Yellow
+      Write-Host "Warning: pre-accepting $Id failed (exit code $LASTEXITCODE) -- its winget configure resource will likely fail too. See $LogPath`n" -ForegroundColor Yellow
     }
   }
 }
 
 foreach ($File in $ConfigFiles) {
   $Path = Join-Path $ConfigDir $File
-  Write-Host "Applying $File via 'winget configure'..." -ForegroundColor Cyan
+  Write-Host "Applying $File via 'winget configure'...`n" -ForegroundColor Cyan
   "=== $File ===" | Add-Content -Path $LogPath
   Invoke-WithRetry -Name $File -ScriptBlock {
     # winget configure has no flag to suppress its "You are responsible for understanding..."
@@ -184,7 +184,7 @@ foreach ($File in $ConfigFiles) {
   }
   "--- exit code: $LASTEXITCODE ---" | Add-Content -Path $LogPath
   if ($LASTEXITCODE -ne 0) {
-    Write-Host "Warning: $File exited with code $LASTEXITCODE after retries. This may be a benign warning (e.g. 'module not provided') or a real failure -- see $LogPath" -ForegroundColor Yellow
+    Write-Host "Warning: $File exited with code $LASTEXITCODE after retries. This may be a benign warning (e.g. 'module not provided') or a real failure -- see $LogPath`n" -ForegroundColor Yellow
   }
 }
 
