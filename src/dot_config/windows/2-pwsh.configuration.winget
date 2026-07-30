@@ -25,8 +25,15 @@ resources:
         - -NoLogo
         - -Command
         - "Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope CurrentUser -Force"
+  - type: Microsoft.PowerShell.PSResourceGet/Repository
+    name: TrustPSGallery
+    properties:
+      name: PSGallery
+      trusted: true
   - type: Microsoft.PowerShell.PSResourceGet/PSResourceList
     name: WindowsDscModules
+    dependsOn:
+      - TrustPSGallery # This is valid even though there's a schema error, see https://github.com/microsoft/winget-cli/issues/5906
     metadata:
       winget:
         description: >-
@@ -45,6 +52,8 @@ resources:
       repositoryName: PSGallery
       resources:
         - name: Microsoft.Windows.Settings
+          version: "*"
           preRelease: true
         - name: Microsoft.Windows.Developer
+          version: "*"
           preRelease: true
