@@ -1,6 +1,6 @@
 # All variables specified in this file are included automatically in PowerShell and Zsh via these files:
 # PowerShell: .chezmoitemplates/powershell/env.ps1.tmpl
-# Zsh: dot_config/zsh/dot_zsh_aliases.tmpl
+# Zsh: dot_zshenv.tmpl
 
 [[env_vars_core]]
 name = "XDG_CONFIG_HOME"
