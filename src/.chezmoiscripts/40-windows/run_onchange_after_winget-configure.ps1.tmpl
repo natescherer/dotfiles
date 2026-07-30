@@ -304,6 +304,28 @@ $RebootPending = (Test-Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Com
   -or ($null -ne (Get-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager' -Name PendingFileRenameOperations -ErrorAction SilentlyContinue))
 if ($RebootPending) {
   Write-Host "A reboot is pending. Reboot and rerun 'chezmoi apply' again to finish applying the configuration.`n" -ForegroundColor Yellow
+
+  # Without this, "rerun chezmoi apply" above wouldn't actually do anything: this script always
+  # exits 0 (see below), so chezmoi would consider it already successfully applied and, per its
+  # run_onchange_ semantics, wouldn't even re-invoke it on a bare rerun with no other file changes
+  # -- confirmed empirically. Two things are needed to make the rerun genuinely effective:
+  #
+  # 1. Remove the applied-hash sidecar for the specific files whose resources can be left
+  #    incomplete by a pending reboot, so the main loop above doesn't skip them next time even
+  #    though their content hasn't changed. Only 6-wsl.configuration.winget's InstallUbuntu
+  #    resource is confirmed to actually fail its Set operation until after reboot (it depends on
+  #    Virtual Machine Platform, enabled moments earlier in the same run, actually being active);
+  #    5-features.configuration.winget's Enable-WindowsOptionalFeature call reports success
+  #    immediately regardless of reboot state, so retrying it doesn't change anything -- included
+  #    here anyway since it's cheap and idempotent, in case that ever stops being true.
+  foreach ($RebootAffectedFile in @("5-features.configuration.winget", "6-wsl.configuration.winget")) {
+    Remove-Item -Path (Join-Path $ConfigDir "$RebootAffectedFile.chezmoi-hash") -Force -ErrorAction SilentlyContinue
+  }
+
+  # 2. Exit non-zero so chezmoi retries this whole script on the next apply even if nothing else
+  #    changed -- not one of winget's own unreliable exit codes, but our own deterministic
+  #    registry-based reboot check, so it's safe to act on directly here.
+  exit 1
 }
 
 # winget configure returns a non-zero exit code even on a fully successful apply (e.g. for
