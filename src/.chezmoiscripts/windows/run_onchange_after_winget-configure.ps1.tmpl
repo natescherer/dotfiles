@@ -1,13 +1,14 @@
 # This script applies the WinGet Configuration files that declaratively configure this Windows machine.
 
 # The hashes below ensure this script reruns whenever any of the source files change.
-## pwsh.configuration.winget hash: {{ joinPath .chezmoi.sourceDir "dot_config/windows/pwsh.configuration.winget" | include | sha256sum }}
-## settings.configuration.winget hash: {{ joinPath .chezmoi.sourceDir "dot_config/windows/settings.configuration.winget" | include | sha256sum }}
-## apps.configuration.winget hash: {{ joinPath .chezmoi.sourceDir "dot_config/windows/apps.configuration.winget" | include | sha256sum }}
-## features.configuration.winget hash: {{ joinPath .chezmoi.sourceDir "dot_config/windows/features.configuration.winget" | include | sha256sum }}
+## 1-init.configuration.winget hash: {{ joinPath .chezmoi.sourceDir "dot_config/windows/1-init.configuration.winget" | include | sha256sum }}
+## 2-pwsh.configuration.winget hash: {{ joinPath .chezmoi.sourceDir "dot_config/windows/2-pwsh.configuration.winget" | include | sha256sum }}
+## 3-settings.configuration.winget hash: {{ joinPath .chezmoi.sourceDir "dot_config/windows/3-settings.configuration.winget" | include | sha256sum }}
+## 4-apps.configuration.winget hash: {{ joinPath .chezmoi.sourceDir "dot_config/windows/4-apps.configuration.winget" | include | sha256sum }}
+## 5-features.configuration.winget hash: {{ joinPath .chezmoi.sourceDir "dot_config/windows/5-features.configuration.winget" | include | sha256sum }}
 ## optional-features-list.ps1 hash: {{ joinPath .chezmoi.sourceDir "dot_config/windows/optional-features-list.ps1" | include | sha256sum }}
-## wsl.configuration.winget hash: {{ joinPath .chezmoi.sourceDir "dot_config/windows/wsl.configuration.winget" | include | sha256sum }}
-## fonts.configuration.winget hash: {{ joinPath .chezmoi.sourceDir "dot_config/windows/fonts.configuration.winget" | include | sha256sum }}
+## 6-wsl.configuration.winget hash: {{ joinPath .chezmoi.sourceDir "dot_config/windows/6-wsl.configuration.winget" | include | sha256sum }}
+## 7-fonts.configuration.winget hash: {{ joinPath .chezmoi.sourceDir "dot_config/windows/7-fonts.configuration.winget" | include | sha256sum }}
 
 # Windows PowerShell 5.1 defaults [Console]::OutputEncoding to the ANSI code page (1252 on
 # en-US), not UTF-8. winget writes UTF-8 (emoji like the elevation shield, spinner glyphs,
@@ -24,22 +25,28 @@ try {
   Write-Verbose "Could not force UTF-8 console encoding: $($_.Exception.Message)"
 }
 
-# pwsh must be applied before settings, since settings resources (e.g. Microsoft.Windows.Settings/*)
-# depend on the PowerShell modules that pwsh.configuration.winget installs.
+# Files are named with a leading N- prefix indicating the order they must be applied in, and
+# $ConfigFiles below applies them in that same order:
+# - 1-init must run before 2-pwsh, since it installs the PSResourceGet preview version that
+#   2-pwsh's WindowsDscModules resource requires (see 1-init.configuration.winget's own
+#   description for why this has to be a separate file/invocation, not an in-file bootstrap).
+# - 2-pwsh must run before 3-settings, since settings resources (e.g.
+#   Microsoft.Windows.Settings/*) depend on the PowerShell modules 2-pwsh installs.
 #
-# Note on update cadence: apps.configuration.winget deliberately has no `useLatest: true` anywhere --
-# each package resource only asserts "is this installed at all," not "is it current." This file is a
-# one-time provisioning baseline, not a continuous update mechanism, and this script only reruns when
-# one of these files' content changes (chezmoi's onchange semantics) anyway. Ongoing app updates are
-# UniGetUI's job.
+# Note on update cadence: 4-apps.configuration.winget deliberately has no `useLatest: true`
+# anywhere -- each package resource only asserts "is this installed at all," not "is it current."
+# This file is a one-time provisioning baseline, not a continuous update mechanism, and this
+# script only reruns when one of these files' content changes (chezmoi's onchange semantics)
+# anyway. Ongoing app updates are UniGetUI's job.
 $ConfigDir = Join-Path $HOME ".config" "windows"
 $ConfigFiles = @(
-  "pwsh.configuration.winget",
-  "settings.configuration.winget",
-  "apps.configuration.winget",
-  "features.configuration.winget",
-  "wsl.configuration.winget",
-  "fonts.configuration.winget"
+  "1-init.configuration.winget",
+  "2-pwsh.configuration.winget",
+  "3-settings.configuration.winget",
+  "4-apps.configuration.winget",
+  "5-features.configuration.winget",
+  "6-wsl.configuration.winget",
+  "7-fonts.configuration.winget"
 )
 
 # winget configure's exit code isn't a reliable success signal (see below), and this script runs
@@ -136,7 +143,7 @@ if (-not $VCRedistInstalled) {
 # Bug https://github.com/microsoft/winget-cli/issues/6091 currently prevents winget configure
 # from installing Microsoft Store apps for the first time. This is a dirty workaround until
 # that bug is fixed that pre-installs every Store app and accepts the agreement
-$AppsConfigPath = Join-Path $ConfigDir "apps.configuration.winget"
+$AppsConfigPath = Join-Path $ConfigDir "4-apps.configuration.winget"
 if (Test-Path $AppsConfigPath) {
   $MsstoreIds = [System.Collections.Generic.List[string]]::new()
   $PendingId = $null
@@ -149,8 +156,8 @@ if (Test-Path $AppsConfigPath) {
     }
   }
   foreach ($Id in $MsstoreIds) {
-    Write-Host "Pre-accepting Store license agreement for $Id..." -ForegroundColor Cyan
-    "=== winget install $Id (msstore agreement pre-accept) ===" | Add-Content -Path $LogPath
+    Write-Host "Pre-installing Store app $Id...`n" -ForegroundColor Cyan
+    "=== winget install $Id (msstore pre-install) ===" | Add-Content -Path $LogPath
     Invoke-WithRetry -Name "msstore agreement accept: $Id" -ScriptBlock {
       # Log-only, not Tee-Object'd to console: winget has no flag to suppress its own per-package
       # "Found X / Agreements / License terms" narration (--disable-interactivity only suppresses
@@ -175,7 +182,7 @@ foreach ($File in $ConfigFiles) {
     # legal disclaimer -- --accept-configuration-agreements only avoids the interactive prompt,
     # per winget's own docs, and it prints unconditionally otherwise. Filtered out of the console
     # specifically (still written to the log in full via Add-Content below) since it's identical
-    # boilerplate on every single one of the 6 files here.
+    # boilerplate on every single one of the 7 files here.
     winget configure -f $Path --accept-configuration-agreements --disable-interactivity --suppress-initial-details 2>&1 |
       ForEach-Object {
         Add-Content -Path $LogPath -Value $_
@@ -188,13 +195,13 @@ foreach ($File in $ConfigFiles) {
   }
 }
 
-# features.configuration.winget enables Windows optional features (e.g. Hyper-V, WSL) that typically
+# 5-features.configuration.winget enables Windows optional features (e.g. Hyper-V, WSL) that typically
 # need a reboot before they take effect, but winget configure gives no indication of this on its own.
 $RebootPending = (Test-Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending') `
   -or (Test-Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\RebootRequired') `
   -or ($null -ne (Get-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager' -Name PendingFileRenameOperations -ErrorAction SilentlyContinue))
 if ($RebootPending) {
-  Write-Host "A reboot is pending. Reboot and rerun 'chezmoi apply' again to finish applying the configuration." -ForegroundColor Yellow
+  Write-Host "A reboot is pending. Reboot and rerun 'chezmoi apply' again to finish applying the configuration.`n" -ForegroundColor Yellow
 }
 
 # winget configure returns a non-zero exit code even on a fully successful apply (e.g. for

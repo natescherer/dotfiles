@@ -15,10 +15,10 @@ resources:
       description: >-
         Discovers fonts under .local/share/chezmoifonts at winget-configure execution time
         (Get-ChildItem), not chezmoi template-render time. This file used to be a .tmpl that
-        globbed that directory while chezmoi rendered it, but fonts.configuration.winget and
-        the .chezmoiexternal.toml.tmpl downloads that populate that directory are both regular
+        globbed that directory while chezmoi rendered it, but this file and the
+        .chezmoiexternal.toml.tmpl downloads that populate that directory are both regular
         chezmoi targets in the same alphabetical apply phase, and
-        ".config/windows/fonts.configuration.winget" sorts before
+        ".config/windows/7-fonts.configuration.winget" sorts before
         ".local/share/chezmoifonts/..." -- so on a fresh machine the template rendered before
         the fonts were actually downloaded, globbed an empty directory, and produced an empty
         (schema-invalid) resources list. Discovering fonts when this script actually runs
@@ -26,7 +26,7 @@ resources:
         this file no longer needs to be a template at all. The registry value name is read
         from each font's own name table (family + style), matching what right-click "Install"
         does, rather than derived from the filename. Runs via PowerShellScript (pwsh), not
-        WindowsPowerShellScript -- unlike features.configuration.winget, nothing here (Add-Type
+        WindowsPowerShellScript -- unlike 5-features.configuration.winget, nothing here (Add-Type
         -AssemblyName PresentationCore/GlyphTypeface, registry cmdlets, Copy-Item) requires
         Windows PowerShell 5.1; verified PresentationCore loads identically under both hosts.
     properties:

@@ -25,20 +25,18 @@ resources:
         - -NoLogo
         - -Command
         - "Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope CurrentUser -Force"
-  - type: Microsoft.DSC.Transitional/RunCommandOnSet
-    name: PSResourceGetPreview
-        # DSC Resource Microsoft.PowerShell.PSResourceGet/PSResourceList only exists starting in PSResourceGet 1.3.0-preview1, we need to make sure at least that version is installed here
-    properties:
-      executable: pwsh
-      arguments:
-        - -NoProfile
-        - -NoLogo
-        - -Command
-        - "if (-not (Get-Module -ListAvailable -Name Microsoft.PowerShell.PSResourceGet | Where-Object { $_.Version -ge [version]'1.3.0' })) { Install-PSResource -Name Microsoft.PowerShell.PSResourceGet -Prerelease -TrustRepository }"
   - type: Microsoft.PowerShell.PSResourceGet/PSResourceList
     name: WindowsDscModules
-    dependsOn:
-      - PSResourceGetPreview # This is valid even though there's a schema error, see https://github.com/microsoft/winget-cli/issues/5906
+    metadata:
+      winget:
+        description: >-
+          Requires PSResourceGet 1.3.0-preview1+ to already be installed before winget configure
+          applies this file -- see 1-init.configuration.winget, which installs it as its own
+          separate 'winget configure' invocation beforehand. This can't be bootstrapped by an
+          earlier resource in this same file: winget's dscv3 processor resolves every declared
+          resource type up front, before executing any resource's Set, so an in-file bootstrap
+          resource would already be too late for this resource's own resolution to succeed
+          (confirmed via a real failure on a fresh machine).
     properties:
       repositoryName: PSGallery
       resources:
