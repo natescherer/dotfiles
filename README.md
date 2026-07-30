@@ -20,7 +20,7 @@ Currently managed:
     - [src/.chezmoidata/env_vars.toml](src/.chezmoidata/env_vars.toml)
 - [Clocker](https://abhishekbanthia.com/clocker/) 🍎
   - Notes
-    - Configuration is imported via script [src/.chezmoiscripts/macos/run_onchange_defaults-importer.sh.tmpl](src/.chezmoiscripts/macos/run_onchange_defaults-importer.sh.tmpl)
+    - Configuration is imported via script [src/.chezmoiscripts/30-macos/run_onchange_defaults-importer.sh.tmpl](src/.chezmoiscripts/30-macos/run_onchange_defaults-importer.sh.tmpl)
   - Config Files
     - [src/.scriptdata/macos_defaults/com.abhishek.Clocker.plist](src/.scriptdata/macos_defaults/com.abhishek.Clocker.plist)
       - Note this is a non-editable binary file, made via `defaults export com.abhishek.Clocker com.abhishek.Clocker.plist`
@@ -82,7 +82,7 @@ Currently managed:
     - [src/dot_config/starship/config.toml.tmpl](src/dot_config/starship/config.toml.tmpl)
 - [Stats](https://github.com/exelban/stats) 🍎
   - Notes
-    - Configuration is imported via script [src/.chezmoiscripts/macos/run_onchange_defaults-importer.sh.tmpl](src/.chezmoiscripts/macos/run_onchange_defaults-importer.sh.tmpl)
+    - Configuration is imported via script [src/.chezmoiscripts/30-macos/run_onchange_defaults-importer.sh.tmpl](src/.chezmoiscripts/30-macos/run_onchange_defaults-importer.sh.tmpl)
   - Config Files
     - [src/.scriptdata/macos_defaults/eu.exelban.Stats.plist](src/.scriptdata/macos_defaults/eu.exelban.Stats.plist)
       - Note this is a non-editable binary file, made via `defaults export eu.exelban.Stats eu.exelban.Stats.plist`
@@ -94,7 +94,7 @@ Currently managed:
       - Defines data used to provision profiles
     - [src/.chezmoitemplates/vscode](src/.chezmoitemplates/vscode)
       - Each file in this directory defines the settings for a profile
-    - [src/.chezmoiscripts/zz_all/run_onchange_after_vscode-profiles.py.tmpl](src/.chezmoiscripts/zz_all/run_onchange_after_vscode-profiles.py.tmpl)
+    - [src/.chezmoiscripts/99-all_late/run_onchange_after_vscode-profiles.py.tmpl](src/.chezmoiscripts/99-all_late/run_onchange_after_vscode-profiles.py.tmpl)
       - Performs profile provisioning and updating
 - [Windows](https://windows.com) 🪟
   - Config Files
@@ -107,7 +107,7 @@ Currently managed:
     - [src/dot_config/windows/optional-features-list.ps1](src/dot_config/windows/optional-features-list.ps1)
     - [src/dot_config/windows/6-wsl.configuration.winget](src/dot_config/windows/6-wsl.configuration.winget)
     - [src/dot_config/windows/7-fonts.configuration.winget](src/dot_config/windows/7-fonts.configuration.winget)
-    - [src/.chezmoiscripts/windows/run_onchange_after_winget-configure.ps1.tmpl](src/.chezmoiscripts/windows/run_onchange_after_winget-configure.ps1.tmpl)
+    - [src/.chezmoiscripts/40-windows/run_onchange_after_winget-configure.ps1.tmpl](src/.chezmoiscripts/40-windows/run_onchange_after_winget-configure.ps1.tmpl)
 - [Zsh](https://www.zsh.org/) 🐧 🍎
   - Config Files
     - [src/dot_config/zsh/dot_zsh_aliases.tmpl](src/dot_config/zsh/dot_zsh_aliases.tmpl)
