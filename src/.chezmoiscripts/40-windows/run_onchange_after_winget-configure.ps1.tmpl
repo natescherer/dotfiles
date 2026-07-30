@@ -34,6 +34,18 @@ try {
 # This file is a one-time provisioning baseline, not a continuous update mechanism, and this
 # script only reruns when one of these files' content changes (chezmoi's onchange semantics)
 # anyway. Ongoing app updates are UniGetUI's job.
+#
+# This whole script reruns whenever ANY ONE of these files changes (chezmoi's onchange semantics
+# key off the script's own rendered content, which embeds every file's hash above) -- but winget
+# configure has real per-invocation overhead, so re-applying all 6 files just because one changed
+# would be wasteful. The main loop below skips files whose content hasn't changed since their own
+# last successful-enough apply, tracked via a "<file>.chezmoi-hash" sidecar written next to each
+# deployed file (see Test-ConfigFileChanged/Set-ConfigFileAppliedHash below) -- so editing just
+# 7-fonts.configuration.winget, for example, only reapplies that one file. Editing this script's
+# own body (e.g. to change this logic) changes its rendered content too, which forces one
+# guaranteed full run on every machine -- exactly the run that seeds every sidecar for the first
+# time, so fresh and long-lived machines behave identically on that first run, then diverge to
+# incremental thereafter.
 $ConfigDir = Join-Path $HOME ".config" "windows"
 $ConfigFiles = @(
   "2-pwsh.configuration.winget",
@@ -75,6 +87,34 @@ function Invoke-WithRetry {
     "[retry] ${Name}: attempt $Attempt failed with exit code $LASTEXITCODE, retrying in ${Delay}s" | Add-Content -Path $LogPath
     Start-Sleep -Seconds $Delay
     $Delay = $Delay * 2
+  }
+}
+
+# Per-file change tracking: a sidecar "<file>.chezmoi-hash" written next to each deployed .winget
+# file records the hash winget configure was last run against, so the main loop below can skip
+# files that haven't changed since their last successful-enough apply -- see that loop for why
+# this matters (this script reruns in full whenever ANY tracked file changes, so without this,
+# editing just one file still reapplies all of them). Same sidecar-hash convention already used by
+# run_onchange_after_vscode-profiles.py.tmpl for VS Code settings.json drift detection.
+function Get-ConfigFileHash {
+  param([string] $Path)
+  if (-not (Test-Path $Path)) { return $null }
+  return (Get-FileHash -Path $Path -Algorithm SHA256).Hash
+}
+
+function Test-ConfigFileChanged {
+  param([string] $Path)
+  $HashPath = "$Path.chezmoi-hash"
+  if (-not (Test-Path $HashPath)) { return $true }
+  $Last = (Get-Content -Path $HashPath -Raw).Trim()
+  return (Get-ConfigFileHash -Path $Path) -ne $Last
+}
+
+function Set-ConfigFileAppliedHash {
+  param([string] $Path)
+  $Hash = Get-ConfigFileHash -Path $Path
+  if ($null -ne $Hash) {
+    Set-Content -Path "$Path.chezmoi-hash" -Value $Hash -NoNewline
   }
 }
 
@@ -180,46 +220,57 @@ if (-not $PSResourceGetOk) {
 # that bug is fixed that pre-installs every Store app and accepts the agreement
 $AppsConfigPath = Join-Path $ConfigDir "4-apps.configuration.winget"
 if (Test-Path $AppsConfigPath) {
-  $MsstoreIds = [System.Collections.Generic.List[string]]::new()
-  $PendingId = $null
-  foreach ($Line in Get-Content -Path $AppsConfigPath) {
-    if ($Line -match '^\s*id:\s*(\S+)\s*$') {
-      $PendingId = $Matches[1]
-    } elseif ($Line -match '^\s*source:\s*msstore\s*$' -and $PendingId) {
-      $MsstoreIds.Add($PendingId)
-      $PendingId = $null
+  # This whole block only matters when 4-apps.configuration.winget itself changed -- skip it
+  # entirely otherwise, same reasoning as the per-file skip check in the main loop below.
+  if (-not (Test-ConfigFileChanged -Path $AppsConfigPath)) {
+    "=== 4-apps.configuration.winget unchanged, skipping msstore pre-install pass ===" | Add-Content -Path $LogPath
+  } else {
+    $MsstoreIds = [System.Collections.Generic.List[string]]::new()
+    $PendingId = $null
+    foreach ($Line in Get-Content -Path $AppsConfigPath) {
+      if ($Line -match '^\s*id:\s*(\S+)\s*$') {
+        $PendingId = $Matches[1]
+      } elseif ($Line -match '^\s*source:\s*msstore\s*$' -and $PendingId) {
+        $MsstoreIds.Add($PendingId)
+        $PendingId = $null
+      }
     }
-  }
-  foreach ($Id in $MsstoreIds) {
-    # Some Store apps come pre-provisioned on Windows out of the box, and on a rerun every one of
-    # these is already installed from the previous apply -- winget install then fails with
-    # 0x8A15002B (APPINSTALLER_CLI_ERROR_UPDATE_NOT_APPLICABLE, "no applicable update found") since
-    # it's effectively an upgrade check against an already-current package, not a real failure.
-    # Checking install state first and skipping silently avoids 3 retries per already-installed app.
-    winget list --id $Id -e --accept-source-agreements 2>&1 | Add-Content -Path $LogPath
-    if ($LASTEXITCODE -eq 0) {
-      "=== $Id already installed, skipping pre-install ===" | Add-Content -Path $LogPath
-      continue
-    }
-    Write-Host "Pre-installing Store app $Id...`n" -ForegroundColor Cyan
-    "=== winget install $Id (msstore pre-install) ===" | Add-Content -Path $LogPath
-    Invoke-WithRetry -Name "msstore agreement accept: $Id" -ScriptBlock {
-      # Log-only, not Tee-Object'd to console: winget has no flag to suppress its own per-package
-      # "Found X / Agreements / License terms" narration (--disable-interactivity only suppresses
-      # prompts), and with 9 msstore apps that's a wall of text with little value on-screen given
-      # the Write-Host line above already reports which app is being processed, and the warning
-      # below already surfaces failures.
-      winget install --id $Id --source msstore --accept-package-agreements --accept-source-agreements --disable-interactivity 2>&1 |
-        Add-Content -Path $LogPath
-    }
-    if ($LASTEXITCODE -ne 0) {
-      Write-Host "Warning: pre-accepting $Id failed (exit code $LASTEXITCODE) -- its winget configure resource will likely fail too. See $LogPath`n" -ForegroundColor Yellow
+    foreach ($Id in $MsstoreIds) {
+      # Some Store apps come pre-provisioned on Windows out of the box, and on a rerun every one of
+      # these is already installed from the previous apply -- winget install then fails with
+      # 0x8A15002B (APPINSTALLER_CLI_ERROR_UPDATE_NOT_APPLICABLE, "no applicable update found") since
+      # it's effectively an upgrade check against an already-current package, not a real failure.
+      # Checking install state first and skipping silently avoids 3 retries per already-installed app.
+      winget list --id $Id -e --accept-source-agreements 2>&1 | Add-Content -Path $LogPath
+      if ($LASTEXITCODE -eq 0) {
+        "=== $Id already installed, skipping pre-install ===" | Add-Content -Path $LogPath
+        continue
+      }
+      Write-Host "Pre-installing Store app $Id...`n" -ForegroundColor Cyan
+      "=== winget install $Id (msstore pre-install) ===" | Add-Content -Path $LogPath
+      Invoke-WithRetry -Name "msstore agreement accept: $Id" -ScriptBlock {
+        # Log-only, not Tee-Object'd to console: winget has no flag to suppress its own per-package
+        # "Found X / Agreements / License terms" narration (--disable-interactivity only suppresses
+        # prompts), and with 9 msstore apps that's a wall of text with little value on-screen given
+        # the Write-Host line above already reports which app is being processed, and the warning
+        # below already surfaces failures.
+        winget install --id $Id --source msstore --accept-package-agreements --accept-source-agreements --disable-interactivity 2>&1 |
+          Add-Content -Path $LogPath
+      }
+      if ($LASTEXITCODE -ne 0) {
+        Write-Host "Warning: pre-accepting $Id failed (exit code $LASTEXITCODE) -- its winget configure resource will likely fail too. See $LogPath`n" -ForegroundColor Yellow
+      }
     }
   }
 }
 
 foreach ($File in $ConfigFiles) {
   $Path = Join-Path $ConfigDir $File
+  if (-not (Test-ConfigFileChanged -Path $Path)) {
+    Write-Host "Skipping $File -- unchanged since last successful apply.`n" -ForegroundColor DarkGray
+    "=== ${File}: unchanged, skipping ===" | Add-Content -Path $LogPath
+    continue
+  }
   Write-Host "Applying $File via 'winget configure'...`n" -ForegroundColor Cyan
   "=== $File ===" | Add-Content -Path $LogPath
   Invoke-WithRetry -Name $File -ScriptBlock {
@@ -238,6 +289,12 @@ foreach ($File in $ConfigFiles) {
   if ($LASTEXITCODE -ne 0) {
     Write-Host "Warning: $File exited with code $LASTEXITCODE after retries. This may be a benign warning (e.g. 'module not provided') or a real failure -- see $LogPath`n" -ForegroundColor Yellow
   }
+  # Updated regardless of exit code, matching the warning above: winget configure's exit code isn't
+  # a reliable success signal (see the comment at the bottom of this script), so gating this on a
+  # clean exit would mean any file that routinely emits a benign non-zero warning never gets its
+  # hash recorded -- permanently defeating the skip check above on every future run.
+  # Invoke-WithRetry already spent 3 attempts with backoff on this before we get here.
+  Set-ConfigFileAppliedHash -Path $Path
 }
 
 # 5-features.configuration.winget enables Windows optional features (e.g. Hyper-V, WSL) that typically
