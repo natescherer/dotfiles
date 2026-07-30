@@ -156,6 +156,16 @@ if (Test-Path $AppsConfigPath) {
     }
   }
   foreach ($Id in $MsstoreIds) {
+    # Some Store apps come pre-provisioned on Windows out of the box, and on a rerun every one of
+    # these is already installed from the previous apply -- winget install then fails with
+    # 0x8A15002B (APPINSTALLER_CLI_ERROR_UPDATE_NOT_APPLICABLE, "no applicable update found") since
+    # it's effectively an upgrade check against an already-current package, not a real failure.
+    # Checking install state first and skipping silently avoids 3 retries per already-installed app.
+    winget list --id $Id -e --accept-source-agreements 2>&1 | Add-Content -Path $LogPath
+    if ($LASTEXITCODE -eq 0) {
+      "=== $Id already installed, skipping pre-install ===" | Add-Content -Path $LogPath
+      continue
+    }
     Write-Host "Pre-installing Store app $Id...`n" -ForegroundColor Cyan
     "=== winget install $Id (msstore pre-install) ===" | Add-Content -Path $LogPath
     Invoke-WithRetry -Name "msstore agreement accept: $Id" -ScriptBlock {
