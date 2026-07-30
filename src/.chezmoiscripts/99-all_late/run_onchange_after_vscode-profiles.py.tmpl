@@ -16,6 +16,7 @@ import hashlib
 import json
 import os
 import platform
+import shutil
 import subprocess
 import sys
 
@@ -49,11 +50,27 @@ triggering the run_onchange_. */}}
 {{- end }}
 PROFILES = {{ $profiles | toJson }}
 
-# The below is set via chezmoi templating and serves as both a check to make sure VS Code is installed before
-# doing anything, and to ensure the script will change (triggering it to run) when VS Code is installed.
-CODE_AVAILABLE = {{ if lookPath "code" }}True{{ else }}False{{ end }}
-
 IS_WINDOWS = platform.system() == "Windows"
+
+if IS_WINDOWS:
+    # winget/MSI installs earlier in this same apply run write straight to the registry, but this
+    # process's inherited os.environ["PATH"] was captured before those writes happened (env var
+    # changes never propagate from a child process backward into an already-running parent).
+    # Rebuilding PATH from the registry (Machine + User, same precedence Windows itself uses)
+    # picks up anything installed this run -- see main()'s shutil.which("code") check below.
+    import winreg
+
+    def _registry_path(hive, subkey):
+        try:
+            with winreg.OpenKey(hive, subkey) as key:
+                value, _ = winreg.QueryValueEx(key, "Path")
+                return value
+        except FileNotFoundError:
+            return ""
+
+    _machine_path = _registry_path(winreg.HKEY_LOCAL_MACHINE, r"SYSTEM\CurrentControlSet\Control\Session Manager\Environment")
+    _user_path = _registry_path(winreg.HKEY_CURRENT_USER, "Environment")
+    os.environ["PATH"] = _machine_path + os.pathsep + _user_path
 
 # Normally, a profile's settings.json that has drifted from what chezmoi last wrote is left alone
 # (see write_profile_settings) so local customizations never get silently clobbered. Setting this
@@ -243,9 +260,17 @@ def write_profile_settings(profile_name, profile_dir, settings_content):
 
 
 def main():
-    if not CODE_AVAILABLE:
+    if shutil.which("code") is None:
+        # Exiting non-zero (not just returning) is deliberate: chezmoi only records a
+        # run_onchange_ script as applied when it exits 0, so a non-zero exit here means chezmoi
+        # retries this script on every future `chezmoi apply` -- even with this file's content
+        # otherwise unchanged -- until VS Code is actually on PATH. That's a more reliable "run
+        # once VS Code becomes available" trigger than a chezmoi-template-time lookPath check
+        # would be, since chezmoi's own process can't see a PATH change from a script it spawned
+        # earlier in this same apply run (confirmed empirically: a template-time check here
+        # would wrongly skip the sync on the very run that just installed VS Code).
         print(f"{YELLOW_TERM_COLOR}VS Code ('code' command) not found; skipping VS Code profile/extension sync.{RESET_TERM_STYLE}\n", file=sys.stderr)
-        return
+        sys.exit(1)
 
     user_dir = vscode_user_dir()
 
