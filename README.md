@@ -99,7 +99,6 @@ Currently managed:
 - [Windows](https://windows.com) 🪟
   - Config Files
     - [src/dot_wslconfig](src/dot_wslconfig)
-    - [src/dot_config/windows/1-init.configuration.winget](src/dot_config/windows/1-init.configuration.winget)
     - [src/dot_config/windows/2-pwsh.configuration.winget](src/dot_config/windows/2-pwsh.configuration.winget)
     - [src/dot_config/windows/3-settings.configuration.winget](src/dot_config/windows/3-settings.configuration.winget)
     - [src/dot_config/windows/4-apps.configuration.winget](src/dot_config/windows/4-apps.configuration.winget)
