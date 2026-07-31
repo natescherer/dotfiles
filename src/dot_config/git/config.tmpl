@@ -13,7 +13,7 @@
 {{- if or (eq .chezmoi.os "darwin") (eq .chezmoi.os "linux") }}
 [credential]
 {{- if eq .chezmoi.os "linux" }}
-    credentialStore = {{ if eq .isServer true }}cache{{ else }}secretservice{{ end }}
+    credentialStore = secretservice
 {{- end }}
     helper = {{ lookPath "git-credential-manager" }}
 {{- end }}

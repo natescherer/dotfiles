@@ -26,7 +26,7 @@ export {{ .name }}="{{ joinPath $.chezmoi.homeDir (get . "home_subpath_part1") (
 {{- if and (eq .chezmoi.os "darwin") (eq .macOSAdminRights false) }}
 export HOMEBREW_CASK_OPTS="--appdir=~/Applications" # Homebrew:Set cask installs to use per-user directory
 {{- end }}
-{{- if and (eq .isPersonal true) (eq .isServer false) }}
+{{- if eq .isPersonal true }}
 {{- if eq .chezmoi.os "darwin" }}
 export SSH_AUTH_SOCK={{ .chezmoi.homeDir }}/Library/Group\ Containers/2BUA8C4S2C.com.1password/t/agent.sock # SSH: Set 1Password as auth socket
 {{- else if eq .chezmoi.os "linux" }}

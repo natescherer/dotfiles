@@ -73,19 +73,6 @@ Library/**
 .config/zsh/**
 {{- end }}
 
-{{- if eq .isServer true }}
-# Ignore on servers
-## Git
-.config/git/
-.config/git/**
-## NPM
-.config/npm/
-.config/npm/**
-## Sheldon
-.config/sheldon/
-.config/sheldon/**
-{{- end }}
-
 {{- if eq .isPersonal false }}
 # Personal Configuration
 .config/1Password
