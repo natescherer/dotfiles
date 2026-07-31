@@ -1,7 +1,5 @@
 # Reports which Microsoft.WinGet/Package resources in a *.configuration.winget file actually
-# require elevation to install, based on the real upstream winget-pkgs manifest -- not on the
-# securityContext already declared in the file (every entry in apps.configuration.winget currently
-# says `elevated`, so that field alone can't tell you which packages truly need it).
+# require elevation to install, based on the real upstream winget-pkgs manifest
 #
 # For each winget-sourced package this looks up the installed source's latest version (`winget
 # show`, local/offline) and fetches that version's installer manifest directly from
@@ -10,11 +8,10 @@
 # guessing from installer type, since those are the fields winget itself uses to decide.
 #
 # Usage:
-#   ./helpers/Get-WingetElevationReport.ps1
-#   ./helpers/Get-WingetElevationReport.ps1 -Path path/to/other.configuration.winget
+#   ./helpers/Get-WingetElevationReport.ps1 -Path path/to/configuration.winget
 
 param(
-  [string]$Path = (Join-Path $PSScriptRoot "../src/AppData/Local/winget-configuration-chezmoi/apps.configuration.winget")
+  [string]$Path
 )
 
 $ResolvedPath = Resolve-Path -Path $Path -ErrorAction Stop
