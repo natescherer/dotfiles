@@ -51,6 +51,9 @@
     "git.replaceTagsWhenPull": true,
     "git.terminalGitEditor": true,
     "git.useCommitInputAsStashMessage": true,
+    "json.schemaDownload.trustedDomains": {
+        "https://aka.ms": true
+    },
     "merge-conflict.autoNavigateNextConflict.enabled": true,
     "mise.checkForNewMiseVersion": false,
     "mise.updateOpenTerminalsEnvAutomatically": true,
