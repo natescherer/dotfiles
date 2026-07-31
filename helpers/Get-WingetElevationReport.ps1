@@ -1,3 +1,5 @@
+#Requires -Version 7.0
+
 # Reports which Microsoft.WinGet/Package resources in a *.configuration.winget file actually
 # require elevation to install, based on the real upstream winget-pkgs manifest
 #
@@ -31,7 +33,7 @@ function Get-WingetPackageResources {
         Name            = $Current.Name
         Id              = $Current.Id
         Source          = $Current.Source
-        SecurityContext = $(if ($Current.SecurityContext) { $Current.SecurityContext } else { 'default' })
+        SecurityContext = $($Current.SecurityContext ? $Current.SecurityContext : 'default')
       })
     }
   }
@@ -74,7 +76,7 @@ function Get-WingetManifestElevation {
   $Url = "https://raw.githubusercontent.com/microsoft/winget-pkgs/master/manifests/$FirstLetter/$IdPath/$Version/$Id.installer.yaml"
 
   try {
-    $Content = (Invoke-WebRequest -Uri $Url -UseBasicParsing -ErrorAction Stop).Content
+    $Content = (Invoke-WebRequest -Uri $Url -ErrorAction Stop).Content
   } catch {
     return [PSCustomObject]@{ Category = 'Unknown'; Detail = "manifest fetch failed: $($_.Exception.Message)" }
   }
@@ -87,7 +89,7 @@ function Get-WingetManifestElevation {
   }
   $ScopeList = @($Scopes) -join ', '
   $ElevList = @($ElevationRequirements) -join ', '
-  $Detail = "Scope: $(if ($ScopeList) { $ScopeList } else { '(none)' }); ElevationRequirement: $(if ($ElevList) { $ElevList } else { '(none)' })"
+  $Detail = "Scope: $($ScopeList ? $ScopeList : '(none)'); ElevationRequirement: $($ElevList ? $ElevList : '(none)')"
 
   # Priority mirrors what actually determines whether winget must launch elevated: an explicit
   # elevationRequired always wins; elevatesSelf means the installer prompts its own UAC so winget

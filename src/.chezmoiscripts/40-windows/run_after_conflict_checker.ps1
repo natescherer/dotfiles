@@ -1,3 +1,5 @@
+#Requires -Version 7.0
+
 $BadPaths = @(
     "$PSHOME\Profile.ps1",
     "$PSHOME\Microsoft.PowerShell_profile.ps1",
