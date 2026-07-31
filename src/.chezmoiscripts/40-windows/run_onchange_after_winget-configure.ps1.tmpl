@@ -20,7 +20,7 @@
 
 # chezmoi apply runs many scripts back to back with no indication which is running -- announce
 # this one, since it can take a while.
-Write-Host "Applying Windows configuration via winget configure...`n" -ForegroundColor Cyan
+Write-Host "Applying Windows configuration via winget configure...`n" -ForegroundColor Green
 
 #region Paths and logging
 
@@ -70,7 +70,7 @@ function Invoke-WithRetry {
       $global:LASTEXITCODE = 1
     }
     if ($LASTEXITCODE -eq 0 -or $Attempt -ge $MaxAttempts) { return }
-    Write-Host "$Name failed (exit code $LASTEXITCODE), retrying in ${Delay}s (attempt $Attempt/$MaxAttempts)...`n" -ForegroundColor DarkYellow
+    Write-Host "`n$Name failed (exit code $LASTEXITCODE), retrying in ${Delay}s (attempt $Attempt/$MaxAttempts)..." -ForegroundColor DarkYellow
     Write-Log "[retry] ${Name}: attempt $Attempt failed with exit code $LASTEXITCODE, retrying in ${Delay}s"
     Start-Sleep -Seconds $Delay
     $Delay *= 2
@@ -141,9 +141,9 @@ function Stop-ForPendingReboot {
     [Parameter(Mandatory)] [string] $LogMessage
   )
   if (Register-ChezmoiApplyOnNextLogon) {
-    Write-Host "$Reason Reboot -- 'chezmoi apply' will rerun automatically at next logon to finish applying the configuration.`n" -ForegroundColor Yellow
+    Write-Host "`n$Reason Reboot -- 'chezmoi apply' will rerun automatically at next logon to finish applying the configuration." -ForegroundColor Yellow
   } else {
-    Write-Host "$Reason Reboot, then rerun 'chezmoi apply' to finish applying the configuration.`n" -ForegroundColor Yellow
+    Write-Host "`n$Reason Reboot, then rerun 'chezmoi apply' to finish applying the configuration." -ForegroundColor Yellow
   }
   Write-Log $LogMessage
   exit 1
@@ -224,7 +224,7 @@ if ($null -ne $PolicyValue -and [int]$PolicyValue -eq 0) {
 # `--enable`/`--disable` must be passed alone -- newer winget rejects it combined with any other
 # argument (including --verbose-logs) with "Option '--enable' and '--disable' cannot be used with
 # other arguments."
-Write-Host "Ensuring winget configure extended features are enabled...`n" -ForegroundColor Cyan
+Write-Host "`nEnsuring winget configure extended features are enabled..." -ForegroundColor Green
 Write-Log "=== winget configure --enable ==="
 winget configure --enable
 
@@ -232,7 +232,7 @@ winget configure --enable
 # with an opaque internal error without it -- self-heal by installing it directly.
 $VCRedistKey = 'HKLM:\SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\X64'
 if ((Get-ItemProperty -Path $VCRedistKey -Name 'Installed' -ErrorAction SilentlyContinue).Installed -ne 1) {
-  Write-Host "Microsoft Visual C++ Redistributable 2015+ (x64) not found -- installing (winget configure can fail with an internal error without it)...`n" -ForegroundColor Yellow
+  Write-Host "Microsoft Visual C++ Redistributable 2015+ (x64) not found -- installing (winget configure can fail with an internal error without it)..." -ForegroundColor Yellow
   Write-Log "=== Installing Microsoft.VCRedist.2015+.x64 ==="
   Invoke-WithRetry -Name 'Microsoft.VCRedist.2015+.x64 install' -ScriptBlock {
     winget install --id 'Microsoft.VCRedist.2015+.x64' --source winget --accept-package-agreements --accept-source-agreements --disable-interactivity --verbose-logs
@@ -245,7 +245,7 @@ if ((Get-ItemProperty -Path $VCRedistKey -Name 'Installed' -ErrorAction Silently
 
 # The Microsoft.PowerShell.PSResourceGet/PSResourceList resource needs PSResourceGet 1.3.0-preview1+.
 if (-not (Get-SufficientPSResourceGet)) {
-  Write-Host "Installing PSResourceGet 1.3.0+...`n" -ForegroundColor Cyan
+  Write-Host "Installing PSResourceGet 1.3.0+..." -ForegroundColor Cyan
   Write-Log "=== Installing Microsoft.PowerShell.PSResourceGet (prerelease) ==="
   try {
     Install-PSResource -Name Microsoft.PowerShell.PSResourceGet -Prerelease -TrustRepository -Scope CurrentUser -ErrorAction Stop *>&1 | Write-Log
@@ -254,7 +254,7 @@ if (-not (Get-SufficientPSResourceGet)) {
   }
   $PSResourceGetInstalled = Get-SufficientPSResourceGet
   if (-not $PSResourceGetInstalled) {
-    Write-Host "Warning: failed to install PSResourceGet 1.3.0+ . See $LogPath`n" -ForegroundColor Yellow
+    Write-Host "Warning: failed to install PSResourceGet 1.3.0+ . See $LogPath" -ForegroundColor Yellow
   } else {
     Write-Log "=== PSResourceGet install verified: $($PSResourceGetInstalled.Version) $($PSResourceGetInstalled.Prerelease) ==="
     # winget configure runs through WindowsPackageManagerServer, a COM server that stays resident
@@ -297,7 +297,7 @@ if (-not $DscZipExe) {
   if (-not $DscZipAsset) {
     throw "Could not find an x86_64-pc-windows-msvc.zip asset in the latest DSC release ($($DscLatestRelease.tag_name)) -- release layout may have changed. See $LogPath."
   }
-  Write-Host "Downloading DSC $($DscLatestRelease.tag_name) ZIP package...`n" -ForegroundColor Cyan
+  Write-Host "Downloading DSC $($DscLatestRelease.tag_name) ZIP package..." -ForegroundColor Cyan
   Write-Log "=== Downloading DSC $($DscLatestRelease.tag_name) ZIP package ==="
   $DscZipDownloadPath = Join-Path $env:TEMP "dsc-$($DscLatestRelease.tag_name.TrimStart('v')).zip"
   Invoke-WithRetry -Name 'DSC ZIP download' -ScriptBlock {
@@ -324,7 +324,7 @@ if (-not $DscZipExe) {
 # time -- or after whatever store backs admin settings gets reset.
 $AdminSettings = (winget settings export 2>$null | ConvertFrom-Json).adminSettings
 if (-not $AdminSettings.ConfigurationProcessorPath) {
-  Write-Host "Enabling winget's ConfigurationProcessorPath admin setting (requires elevation -- expect a UAC prompt)...`n" -ForegroundColor Cyan
+  Write-Host "`nEnabling winget's ConfigurationProcessorPath admin setting (requires elevation -- expect a UAC prompt)..." -ForegroundColor Green
   Write-Log "=== Enabling ConfigurationProcessorPath admin setting (elevated) ==="
   $Proc = Start-Process -FilePath 'winget' -ArgumentList 'settings', '--enable', 'ConfigurationProcessorPath' -Verb RunAs -Wait -PassThru
   if ($Proc.ExitCode -ne 0) {
@@ -354,7 +354,7 @@ foreach ($Id in $MsstoreIds) {
     Write-Log "=== $Id already installed, skipping pre-install ==="
     continue
   }
-  Write-Host "Pre-installing Store app $Id...`n" -ForegroundColor Cyan
+  Write-Host "Pre-installing Store app $Id..." -ForegroundColor Cyan
   Write-Log "=== winget install $Id (msstore pre-install) ==="
   Invoke-WithRetry -Name "msstore pre-install: $Id" -ScriptBlock {
     # Log-only: winget can't suppress its per-package "Found X / Agreements" narration, and with
@@ -362,7 +362,7 @@ foreach ($Id in $MsstoreIds) {
     winget install --id $Id --source msstore --accept-package-agreements --accept-source-agreements --disable-interactivity 2>&1 | Write-Log
   }
   if ($LASTEXITCODE -ne 0) {
-    Write-Host "Warning: pre-installing $Id failed (exit code $LASTEXITCODE) -- its winget configure resource will likely fail too. See $LogPath`n" -ForegroundColor Yellow
+    Write-Host "Warning: pre-installing $Id failed (exit code $LASTEXITCODE) -- its winget configure resource will likely fail too. See $LogPath" -ForegroundColor Yellow
   }
 }
 
@@ -373,12 +373,12 @@ foreach ($Id in $MsstoreIds) {
 foreach ($File in $ConfigFiles) {
   $Path = Join-Path $ConfigDir $File
   if (-not (Test-ConfigFileChanged -Path $Path)) {
-    Write-Host "Skipping $File -- unchanged since last successful apply.`n" -ForegroundColor DarkGray
+    Write-Host "`nSkipping $File -- unchanged since last successful apply." -ForegroundColor DarkGray
     Write-Log "=== ${File}: unchanged, skipping ==="
     continue
   }
 
-  Write-Host "Applying $File via 'winget configure'...`n" -ForegroundColor Cyan
+  Write-Host "`mApplying $File via 'winget configure'..." -ForegroundColor Cyan
   Write-Log "=== $File ==="
   Invoke-WithRetry -Name $File -ScriptBlock {
     # If https://github.com/microsoft/winget-cli/issues/6419) is ever implemented, we'll want to add its flag here
@@ -388,7 +388,7 @@ foreach ($File in $ConfigFiles) {
   Write-Log "--- exit code: $LASTEXITCODE ---"
   if ($LASTEXITCODE -ne 0) {
     Write-Log "=== winget's own diagnostic logs for this failure: $WingetLogDir ==="
-    Write-Host "Warning: $File exited with code $LASTEXITCODE after retries. This may be a benign warning (e.g. 'module not provided') or a real failure -- see $LogPath`n" -ForegroundColor Yellow
+    Write-Host "Warning: $File exited with code $LASTEXITCODE after retries. This may be a benign warning (e.g. 'module not provided') or a real failure -- see $LogPath" -ForegroundColor Yellow
   }
 
   # A file's resources (e.g. enabling a feature, WSL setup) can leave a reboot pending that
@@ -408,7 +408,7 @@ foreach ($File in $ConfigFiles) {
 
 #endregion
 
-Write-Host "Windows configuration applied -- no reboot needed.`n" -ForegroundColor Green
+Write-Host "`nWindows configuration applied -- no reboot needed." -ForegroundColor Green
 
 # winget's exit code isn't reliable even on success (e.g. benign "module not provided" warnings)
 # -- real failures are already visible above and logged to $LogPath.
