@@ -5,7 +5,7 @@
     "**/src/.chezmoitemplates/vscode/**/*.json": "jsonc",
     "*.json.tmpl": "jsonc",
     "*.sh.tmpl": "shellscript",
-    "*.ps1.tmpl": "powershell",
+    "*.ps1.tmpl": "go-template",
     "*.toml.tmpl": "toml",
     "*.winget.tmpl": "yaml",
     "*.yaml.tmpl": "go-template",
@@ -30,5 +30,8 @@
     "**/.forgejo/workflows/*.yaml",
     "azure-pipelines.yml",
     "azure-pipelines.yaml"
-  ]
+  ],
+  "json.schemaDownload.trustedDomains": {
+    "https://aka.ms": true
+  }
 }
