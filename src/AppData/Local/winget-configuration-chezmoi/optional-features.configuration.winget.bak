@@ -1,0 +1,49 @@
+## WARNING: This file is chezmoi-managed and should not be manually edited!
+
+# yaml-language-server: $schema=https://aka.ms/configuration-dsc-schema/0.3
+$schema: https://raw.githubusercontent.com/PowerShell/DSC/main/schemas/2023/08/config/document.json
+metadata:
+  winget:
+    processor:
+      identifier: dscv3
+resources:
+  - type: Microsoft.DSC.Transitional/WindowsPowerShellScript
+    name: WindowsOptionalFeatures
+    metadata:
+      winget:
+        securityContext: elevated
+      description: >-
+        Uses Enable-WindowsOptionalFeature/Get-WindowsOptionalFeature directly instead of the
+        native Microsoft.Windows/OptionalFeatureList resource, which fails outright with "This
+        resource currently is not supported when installed via Appx" -- confirmed via real test
+        (identical failure with both msix- and wix-installed PowerShell 7, ruling out our own
+        PowerShell install as the cause) to be about winget's bundled DSC engine itself being
+        Appx-packaged, not about anything in our own package choices. Per DSC v3.2.0's own
+        release notes, OptionalFeatureList "requires using the ZIP package of DSC for now" and
+        doesn't work through the Appx-packaged DSC engine that winget configure uses (previously
+        a silent failure; v3.2.0 made it an explicit error instead). Calling the built-in
+        PowerShell DISM cmdlets directly sidesteps dism_dsc entirely. The feature list is defined
+        once in optional-features-list.ps1 and dot-sourced below, rather than repeated as a
+        literal PowerShell array in each of get/test/set -- those run as three independent
+        script invocations with no shared state, so it can't just be a variable defined once in
+        this file.
+    properties:
+      getScript: |
+        $Features = . ([System.IO.Path]::Combine($HOME, '.config', 'windows', 'optional-features-list.ps1'))
+        $State = @{}
+        foreach ($Feature in $Features) {
+          $State[$Feature] = (Get-WindowsOptionalFeature -Online -FeatureName $Feature -ErrorAction SilentlyContinue).State.ToString()
+        }
+        return $State
+      testScript: |
+        $Features = . ([System.IO.Path]::Combine($HOME, '.config', 'windows', 'optional-features-list.ps1'))
+        foreach ($Feature in $Features) {
+          if ((Get-WindowsOptionalFeature -Online -FeatureName $Feature -ErrorAction SilentlyContinue).State -ne 'Enabled') {
+            return $false
+          }
+        }
+        return $true
+      setScript: |
+        $Features = . ([System.IO.Path]::Combine($HOME, '.config', 'windows', 'optional-features-list.ps1'))
+        Write-Host "Enabling Windows optional features: $($Features -join ', ')..."
+        Enable-WindowsOptionalFeature -Online -FeatureName $Features -All -NoRestart | Out-Null
