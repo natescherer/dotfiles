@@ -9,6 +9,7 @@
     "*.toml.tmpl": "toml",
     "*.winget.tmpl": "yaml",
     "*.yaml.tmpl": "yaml",
+    "dot_wslconfig": "ini",
     "dot_zshenv.tmpl": "shellscript",
     "dot_zsh_aliases.tmpl": "shellscript",
     "dot_zshrc.tmpl": "shellscript",
