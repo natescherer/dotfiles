@@ -25,9 +25,6 @@ dot_wslconfig
 
 {{- if eq .chezmoi.os "darwin" }}
 # Ignore on macOS
-## Linux Tabby
-.config/tabby/
-.config/tabby/**
 ## Linux scripts
 .chezmoiscripts/10-linux/**
 ## Windows folders/files
@@ -51,9 +48,6 @@ dot_wslconfig
 ## Linux/macOS 1Password
 .config/1Password
 .config/1Password/**
-## Linux Tabby
-.config/tabby/
-.config/tabby/**
 ## Linux/macOS PowerShell
 .config/powershell/
 .config/powershell/**
@@ -81,11 +75,6 @@ Library/**
 
 {{- if eq .isServer true }}
 # Ignore on servers
-## Tabby
-.config/tabby/
-.config/tabby/**
-AppData/Roaming/tabby/
-AppData/Roaming/tabby/**
 ## Git
 .config/git/
 .config/git/**

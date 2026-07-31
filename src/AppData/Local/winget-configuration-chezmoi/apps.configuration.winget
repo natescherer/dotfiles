@@ -236,15 +236,6 @@ resources:
       source: winget
       installMode: silent
   - type: Microsoft.WinGet/Package
-    name: Tabby
-    metadata:
-      winget:
-        securityContext: elevated
-    properties:
-      id: Eugeny.Tabby
-      source: winget
-      installMode: silent
-  - type: Microsoft.WinGet/Package
     name: TickTick
     metadata:
       winget:
