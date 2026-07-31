@@ -198,6 +198,73 @@ if (-not $PSResourceGetOk) {
   }
 }
 
+# Workaround for https://github.com/PowerShell/DSC/issues/1653: Microsoft.Windows/OptionalFeatureList
+# (used by optional-features.configuration.winget) errors outright -- "This resource currently is not
+# supported when installed via Appx" -- under the Appx-packaged dsc.exe that winget configure uses by
+# default. Per DSC v3.2.0's release notes this resource "requires using the ZIP package of DSC for
+# now". Downloading that ZIP release once and pointing every `winget configure` call at it via
+# --processor-path sidesteps the limitation for all files, not just the one that needs it -- there's
+# no per-resource processor override. Pinned (not "latest") and hash-verified: unlike PSResourceGet/
+# VCRedist above, this downloads a raw release asset directly rather than through winget/PSGallery, so
+# there's no package-manager-level integrity check to lean on. Remove this whole block (and the
+# --processor-path argument in the main loop below) once the linked issue is fixed upstream.
+$DscZipVersion = '3.2.3'
+$DscZipSha256 = 'E1E48218014C166BBBE0EE6364D1E9C2AB20AB5515CEDA4EABD529A4BFD49881'
+$DscZipDir = Join-Path $ConfigDir "dsc-zip\$DscZipVersion"
+$DscZipExe = if (Test-Path $DscZipDir) {
+  (Get-ChildItem -Path $DscZipDir -Filter 'dsc.exe' -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1).FullName
+}
+
+if (-not $DscZipExe) {
+  Write-Host "Downloading DSC v$DscZipVersion ZIP package (needed for Microsoft.Windows/OptionalFeatureList -- see PowerShell/DSC#1653)...`n" -ForegroundColor Cyan
+  "=== Downloading DSC v$DscZipVersion ZIP package ===" | Add-Content -Path $LogPath
+  $DscZipUrl = "https://github.com/PowerShell/DSC/releases/download/v$DscZipVersion/DSC-$DscZipVersion-x86_64-pc-windows-msvc.zip"
+  $DscZipDownloadPath = Join-Path $env:TEMP "dsc-$DscZipVersion.zip"
+  Invoke-WithRetry -Name 'DSC ZIP download' -ScriptBlock {
+    try {
+      Invoke-WebRequest -Uri $DscZipUrl -OutFile $DscZipDownloadPath -UseBasicParsing -ErrorAction Stop
+      $global:LASTEXITCODE = 0
+    } catch {
+      "DSC ZIP download failed: $($_.Exception.Message)" | Add-Content -Path $LogPath
+      $global:LASTEXITCODE = 1
+    }
+  }
+  if ($LASTEXITCODE -ne 0) {
+    throw "Failed to download DSC v$DscZipVersion ZIP package after retries -- Microsoft.Windows/OptionalFeatureList resources will fail. See $LogPath and rerun."
+  }
+
+  $ActualHash = (Get-FileHash -Path $DscZipDownloadPath -Algorithm SHA256).Hash
+  if ($ActualHash -ne $DscZipSha256) {
+    Remove-Item -Path $DscZipDownloadPath -Force -ErrorAction SilentlyContinue
+    throw "DSC v$DscZipVersion ZIP package hash mismatch (expected $DscZipSha256, got $ActualHash) -- refusing to use a possibly-tampered download. See $LogPath."
+  }
+
+  New-Item -ItemType Directory -Path $DscZipDir -Force | Out-Null
+  Expand-Archive -Path $DscZipDownloadPath -DestinationPath $DscZipDir -Force
+  Remove-Item -Path $DscZipDownloadPath -Force -ErrorAction SilentlyContinue
+  $DscZipExe = (Get-ChildItem -Path $DscZipDir -Filter 'dsc.exe' -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1).FullName
+  if (-not $DscZipExe) {
+    throw "dsc.exe not found after extracting the DSC v$DscZipVersion ZIP package -- release layout may have changed. See $LogPath."
+  }
+  "=== DSC v$DscZipVersion ZIP package extracted to $DscZipExe ===" | Add-Content -Path $LogPath
+}
+
+# winget refuses --processor-path without this admin setting enabled first ("This feature needs to
+# be enabled by administrators"). `winget settings export` gives a reliable unelevated read of its
+# current state; enabling it needs its own elevated process (a plain `winget settings --enable` from
+# this unelevated script fails the same way), so this only prompts UAC the first time -- or after
+# whatever store backs admin settings gets reset.
+$AdminSettings = (winget settings export 2>$null | ConvertFrom-Json).adminSettings
+if (-not $AdminSettings.ConfigurationProcessorPath) {
+  Write-Host "Enabling winget's ConfigurationProcessorPath admin setting (requires elevation -- expect a UAC prompt)...`n" -ForegroundColor Cyan
+  "=== Enabling ConfigurationProcessorPath admin setting (elevated) ===" | Add-Content -Path $LogPath
+  $Proc = Start-Process -FilePath 'winget' -ArgumentList 'settings', '--enable', 'ConfigurationProcessorPath' -Verb RunAs -Wait -PassThru
+  if ($Proc.ExitCode -ne 0) {
+    throw "Failed to enable ConfigurationProcessorPath admin setting (exit code $($Proc.ExitCode)) -- Microsoft.Windows/OptionalFeatureList resources will fail. Enable it manually by running 'winget settings --enable ConfigurationProcessorPath' as administrator, then rerun."
+  }
+  "=== ConfigurationProcessorPath admin setting enabled ===" | Add-Content -Path $LogPath
+}
+
 # Workaround for https://github.com/microsoft/winget-cli/issues/6091, which prevents winget
 # configure from installing Store apps for the first time: pre-install them here instead.
 $AppsConfigPath = Join-Path $ConfigDir "apps.configuration.winget"
@@ -253,9 +320,11 @@ foreach ($File in $ConfigFiles) {
     # winget prints its legal disclaimer unconditionally regardless of
     # --accept-configuration-agreements -- filtered from the console (still logged in full) since
     # it's identical on every file.
-    winget configure -f $Path --accept-configuration-agreements --disable-interactivity --suppress-initial-details 2>&1 |
+    winget configure -f $Path --processor-path $DscZipExe --accept-configuration-agreements --disable-interactivity --suppress-initial-details 2>&1 |
       ForEach-Object {
         Add-Content -Path $LogPath -Value $_
+        # The below filters our extraneous input, and can be removed if
+        # https://github.com/microsoft/winget-cli/issues/6419 is implemented
         if ($_ -notmatch '^You are responsible for understanding') { $_ }
       }
   }
