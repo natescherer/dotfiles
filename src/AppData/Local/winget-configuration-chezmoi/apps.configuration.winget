@@ -111,6 +111,9 @@ resources:
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: DotNetDesktopRuntime10
+    metadata:
+      winget:
+        securityContext: elevated
     properties:
       id: Microsoft.DotNet.DesktopRuntime.10
       source: winget
