@@ -221,9 +221,12 @@ if ($null -ne $PolicyValue -and [int]$PolicyValue -eq 0) {
 # `--enable` is idempotent, so run it unconditionally rather than probe for the flag's state --
 # there's no reliable cross-version check for it. Exit code isn't gated on: some winget builds
 # return non-zero even when already enabled, and a real failure here surfaces in the apply loop.
+# `--enable`/`--disable` must be passed alone -- newer winget rejects it combined with any other
+# argument (including --verbose-logs) with "Option '--enable' and '--disable' cannot be used with
+# other arguments."
 Write-Host "Ensuring winget configure extended features are enabled...`n" -ForegroundColor Cyan
 Write-Log "=== winget configure --enable ==="
-winget configure --enable --verbose-logs
+winget configure --enable
 
 # winget configure needs the VC++ 2015+ x64 redistributable when run non-elevated, and fails
 # with an opaque internal error without it -- self-heal by installing it directly.
