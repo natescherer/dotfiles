@@ -54,7 +54,7 @@ Currently managed:
     - [src/dot_config/micro/settings.json](src/dot_config/micro/settings.json)
 - [mise](https://mise.jdx.dev) 🐧 🍎 🪟
   - Config Files
-    - [src/dot_config/mise/config.toml.tmpl](src/dot_config/mise/config.toml.tmpl)
+    - [src/dot_config/mise/config.toml](src/dot_config/mise/config.toml)
 - [npm](https://www.npmjs.com/) 🐧 🍎 🪟
   - Config Files
     - [src/.chezmoidata/env_vars.toml](src/.chezmoidata/env_vars.toml)

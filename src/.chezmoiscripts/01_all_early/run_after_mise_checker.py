@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Checks whether any tools declared in mise's config (src/dot_config/mise/config.toml.tmpl,
+# Checks whether any tools declared in mise's config (src/dot_config/mise/config.toml,
 # applied by chezmoi before any run_after_ script executes) are missing, and runs `mise install`
 # to install them if so. Checking first via `mise ls --missing` keeps the common no-op case quiet
 # and fast instead of invoking a full `mise install` on every apply.
