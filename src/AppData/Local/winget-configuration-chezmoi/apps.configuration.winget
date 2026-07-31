@@ -179,15 +179,6 @@ resources:
       source: msstore
       installMode: silent
   - type: Microsoft.WinGet/Package
-    name: MEGASync
-    metadata:
-      winget:
-        securityContext: elevated
-    properties:
-      id: Mega.MEGASync
-      source: winget
-      installMode: silent
-  - type: Microsoft.WinGet/Package
     name: micro
     metadata:
       winget:
@@ -258,6 +249,15 @@ resources:
     properties:
       id: 9P6RC76MSMMJ
       source: msstore
+      installMode: silent
+  - type: Microsoft.WinGet/Package
+    name: ProtonDrive
+    metadata:
+      winget:
+        securityContext: elevated
+    properties:
+      id: Proton.ProtonDrive
+      source: winget
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: Rufus
