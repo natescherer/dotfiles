@@ -108,6 +108,36 @@ function Test-RebootPending {
     -or ($null -ne (Get-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager' -Name PendingFileRenameOperations -ErrorAction SilentlyContinue))
 }
 
+# Queues `chezmoi apply` to rerun automatically at next logon when a reboot is pending, so applying
+# the rest of the configuration doesn't wait on remembering to rerun it by hand. HKCU RunOnce (not
+# a Scheduled Task) because it needs no elevation -- this script already runs unelevated -- and
+# Windows deletes the value itself once it fires, so there's nothing to clean up on success. Fires
+# at the next *interactive logon of this user*, which matches how this script itself is invoked.
+function Register-ChezmoiApplyOnNextLogon {
+  $RunOnceKey = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\RunOnce'
+  $ChezmoiExe = (Get-Command chezmoi -ErrorAction SilentlyContinue).Source
+  if (-not $ChezmoiExe) {
+    "=== could not resolve chezmoi.exe on PATH -- skipping RunOnce registration ===" | Add-Content -Path $LogPath
+    return $false
+  }
+  # -NoExit keeps the window open after `chezmoi apply` finishes -- RunOnce launches with no
+  # parent terminal, so a closing window would hide the result (including a repeat reboot prompt).
+  # Windows Terminal + PowerShell (pwsh, not Windows PowerShell) to match this machine's normal
+  # shell (see pwsh.configuration.winget); falls back to plain powershell.exe -- guaranteed present
+  # even before this script's first successful run -- if either isn't on PATH yet, e.g. a reboot
+  # pending before winget configure has had a chance to install them.
+  $WtExe = (Get-Command wt -ErrorAction SilentlyContinue).Source
+  $PwshExe = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
+  $Command = if ($WtExe -and $PwshExe) {
+    "`"$WtExe`" -- `"$PwshExe`" -NoExit -Command `"& '$ChezmoiExe' apply`""
+  } else {
+    "powershell.exe -NoExit -Command `"& '$ChezmoiExe' apply`""
+  }
+  Set-ItemProperty -Path $RunOnceKey -Name 'ChezmoiApply' -Value $Command
+  "=== registered RunOnce 'ChezmoiApply' to rerun 'chezmoi apply' at next logon ===" | Add-Content -Path $LogPath
+  return $true
+}
+
 # System-state snapshot for the log, useful for troubleshooting weeks later.
 try {
   $Os = Get-CimInstance -ClassName Win32_OperatingSystem -ErrorAction Stop
@@ -126,7 +156,11 @@ try {
 # config unreliable -- bail out now. Non-zero exit makes chezmoi retry on the next apply even if
 # nothing else changed (see the per-file check below for why that matters).
 if (Test-RebootPending) {
-  Write-Host "A reboot is already pending. Reboot, then rerun 'chezmoi apply' to apply the configuration.`n" -ForegroundColor Yellow
+  if (Register-ChezmoiApplyOnNextLogon) {
+    Write-Host "A reboot is already pending. Reboot -- 'chezmoi apply' will rerun automatically at next logon.`n" -ForegroundColor Yellow
+  } else {
+    Write-Host "A reboot is already pending. Reboot, then rerun 'chezmoi apply' to apply the configuration.`n" -ForegroundColor Yellow
+  }
   "=== reboot already pending before any configuration was applied -- exiting ===" | Add-Content -Path $LogPath
   exit 1
 }
@@ -339,7 +373,11 @@ foreach ($File in $ConfigFiles) {
   # yet, so its hash (and every later file's, never reached this run) stays unrecorded -- the skip
   # check re-picks them up once chezmoi retries.
   if (Test-RebootPending) {
-    Write-Host "A reboot is pending after applying $File. Reboot, then rerun 'chezmoi apply' again to finish applying the configuration.`n" -ForegroundColor Yellow
+    if (Register-ChezmoiApplyOnNextLogon) {
+      Write-Host "A reboot is pending after applying $File. Reboot -- 'chezmoi apply' will rerun automatically at next logon to finish applying the configuration.`n" -ForegroundColor Yellow
+    } else {
+      Write-Host "A reboot is pending after applying $File. Reboot, then rerun 'chezmoi apply' again to finish applying the configuration.`n" -ForegroundColor Yellow
+    }
     "=== reboot pending after ${File}: not recording applied-hash, exiting ===" | Add-Content -Path $LogPath
     # Non-zero exit (not winget's own unreliable code) makes chezmoi retry this script even if
     # nothing else changed -- this script always exits 0 otherwise (see bottom), which would
