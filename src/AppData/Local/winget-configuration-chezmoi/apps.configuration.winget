@@ -18,9 +18,6 @@ resources:
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: 1PasswordCLI
-    metadata:
-      winget:
-        securityContext: elevated
     properties:
       id: AgileBits.1Password.CLI
       source: winget
@@ -45,18 +42,12 @@ resources:
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: AppleMusic
-    metadata:
-      winget:
-        securityContext: elevated
     properties:
       id: 9PFHDD62MXS1
       source: msstore
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: AppleTV
-    metadata:
-      winget:
-        securityContext: elevated
     properties:
       id: 9NM4T8B9JQZ1
       source: msstore
@@ -72,18 +63,12 @@ resources:
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: chezmoi
-    metadata:
-      winget:
-        securityContext: elevated
     properties:
       id: twpayne.chezmoi
       source: winget
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: Claude
-    metadata:
-      winget:
-        securityContext: elevated
     properties:
       id: Anthropic.Claude
       source: winget
@@ -108,36 +93,24 @@ resources:
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: Discord
-    metadata:
-      winget:
-        securityContext: elevated
     properties:
       id: Discord.Discord
       source: winget
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: DisneyPlus
-    metadata:
-      winget:
-        securityContext: elevated
     properties:
       id: 9NXQXXLFST89
       source: msstore
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: DolbyAccess
-    metadata:
-      winget:
-        securityContext: elevated
     properties:
       id: 9N0866FS04W8
       source: msstore
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: DotNetDesktopRuntime10
-    metadata:
-      winget:
-        securityContext: elevated
     properties:
       id: Microsoft.DotNet.DesktopRuntime.10
       source: winget
@@ -153,45 +126,30 @@ resources:
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: fzf
-    metadata:
-      winget:
-        securityContext: elevated
     properties:
       id: junegunn.fzf
       source: winget
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: Hulu
-    metadata:
-      winget:
-        securityContext: elevated
     properties:
       id: 9WZDNCRFJ3L1
       source: msstore
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: iCloud
-    metadata:
-      winget:
-        securityContext: elevated
     properties:
       id: 9PKTQ5699M62
       source: msstore
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: micro
-    metadata:
-      winget:
-        securityContext: elevated
     properties:
       id: zyedidia.micro
       source: winget
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: mise
-    metadata:
-      winget:
-        securityContext: elevated
     properties:
       id: jdx.mise
       source: winget
@@ -207,9 +165,6 @@ resources:
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: Netflix
-    metadata:
-      winget:
-        securityContext: elevated
     properties:
       id: 9WZDNCRFJ3TJ
       source: msstore
@@ -243,36 +198,18 @@ resources:
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: PrimeVideo
-    metadata:
-      winget:
-        securityContext: elevated
     properties:
       id: 9P6RC76MSMMJ
       source: msstore
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: ProtonDrive
-    metadata:
-      winget:
-        securityContext: elevated
     properties:
       id: Proton.ProtonDrive
       source: winget
       installMode: silent
   - type: Microsoft.WinGet/Package
-    name: Rufus
-    metadata:
-      winget:
-        securityContext: elevated
-    properties:
-      id: Rufus.Rufus
-      source: winget
-      installMode: silent
-  - type: Microsoft.WinGet/Package
     name: Slack
-    metadata:
-      winget:
-        securityContext: elevated
     properties:
       id: SlackTechnologies.Slack
       source: winget
@@ -333,18 +270,12 @@ resources:
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: VSCode
-    metadata:
-      winget:
-        securityContext: elevated
     properties:
       id: Microsoft.VisualStudioCode
       source: winget
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: WindowsApp
-    metadata:
-      winget:
-        securityContext: elevated
     properties:
       id: Microsoft.WindowsApp
       source: winget
