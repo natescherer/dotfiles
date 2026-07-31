@@ -1,34 +1,20 @@
 # This script applies the WinGet Configuration files that declaratively configure this Windows machine.
 
 # {{ $wingetConfigSourceDir := joinPath .chezmoi.sourceDir "dot_config/windows" }}
-# {{/* glob's match order isn't guaranteed, so sort explicitly. Doesn't need to encode apply order
-#      (that's the runtime $ConfigFiles discovery's job, mirroring this) -- just needs to be stable
-#      so the hash-comment block below doesn't reorder itself (and thus falsely appear "changed")
-#      between renders of otherwise-identical content. */}}
+# {{/* sortAlpha keeps the hash list below stable across renders -- glob's match order isn't guaranteed */}}
 # {{ $wingetConfigFiles := joinPath $wingetConfigSourceDir "*.configuration.winget" | glob | sortAlpha }}
 
-# The hashes below ensure this script reruns whenever any of the source files change. Generated
-# automatically from whatever *.configuration.winget files currently exist in dot_config/windows/
-# -- see $ConfigFiles further down for the matching runtime discovery.
-# {{/* The whole range/end block is squeezed onto this one physical line, with literal "\n"s
-#      injected in place of real line breaks, specifically so the leading "#" comments out the
-#      ENTIRE construct as one line as far as a PowerShell parser is concerned -- a linter sees
-#      one (very long) comment line instead of choking on a bare "{{ end }}" token, which it
-#      otherwise parses as the reserved `end` block keyword with no statement block following it.
-#      A multi-line range/end can't be commented this way: text placed directly before {{ end }}
-#      on its own line becomes part of the loop body (repeats every iteration) rather than
-#      rendering once, since trim markers only consume whitespace, never the characters added --
-#      confirmed the hard way. */}}
+# {{/* Hashes below make this run_onchange_ script rerun when any *.configuration.winget file
+#      changes. Squeezed onto one line (literal "\n"s instead of real line breaks) so a single
+#      leading "#" comments out the whole range/end for PowerShell -- a bare {{ end }} on its own
+#      line is a parse error, and text before a same-line {{ end }} repeats every iteration
+#      instead of trailing once. */}}
 # {{ "\n" }}{{ range $wingetConfigFiles }}## {{ base . }} hash: {{ include . | sha256sum }}{{ "\n" }}{{ end -}}
 ## optional-features-list.ps1 hash: {{ joinPath $wingetConfigSourceDir "optional-features-list.ps1" | include | sha256sum }}
 
-# Windows PowerShell 5.1 defaults [Console]::OutputEncoding to the ANSI code page (1252 on
-# en-US), not UTF-8. winget writes UTF-8 (emoji like the elevation shield, spinner glyphs,
-# smart quotes), so once that output is piped through a PowerShell cmdlet -- which every winget
-# call below is, via Tee-Object/Add-Content for logging -- it gets decoded under the wrong
-# codepage and comes out as mojibake before we ever touch it. Match winget's actual encoding up
-# front. Safe no-op on pwsh 7 (already defaults to UTF-8) and on hosts that reject the
-# assignment (e.g. some CI agents with redirected stdout) -- not worth failing the script over.
+# Windows PowerShell 5.1 defaults to the ANSI codepage, not UTF-8, so winget's UTF-8 output
+# (emoji, smart quotes) turns to mojibake once piped through Tee-Object/Add-Content below. Force
+# UTF-8 to match. No-op on pwsh 7; failure here isn't fatal (e.g. redirected-stdout CI hosts).
 try {
   $Utf8NoBom = [System.Text.UTF8Encoding]::new($false)
   [Console]::OutputEncoding = $Utf8NoBom
@@ -37,54 +23,34 @@ try {
   Write-Verbose "Could not force UTF-8 console encoding: $($_.Exception.Message)"
 }
 
-# First console output from this script -- chezmoi apply runs a lot of scripts back to back with
-# no inherent indication of which one is currently running, and this one in particular can take a
-# while (winget configure per file, plus the VCRedist/PSResourceGet/msstore preflight steps), so
-# say up front that it's this script that's about to start doing things.
+# chezmoi apply runs many scripts back to back with no indication which is running -- announce
+# this one, since it can take a while (winget configure per file, plus preflight steps below).
 Write-Host "Applying Windows configuration via winget configure...`n" -ForegroundColor Cyan
 
-# Every *.configuration.winget file in this directory is applied automatically -- no wrapper-script
-# edit needed to add a new one. $ConfigFiles below discovers them at runtime and applies them in
-# alphabetical order, which is correct by construction: _requirements.configuration.winget is the
-# ONLY file any other file depends on (settings.configuration.winget's resources need PowerShell
-# modules it installs), and a leading underscore (0x5F) sorts before every other filename here (all
-# lowercase, 0x61+). Every other file is independent of every other file, so their relative order
-# doesn't matter. If a genuinely new ordering dependency ever appears between two OTHER files
-# (not involving _requirements), this discovery approach can't express it -- that would need
-# either folding into _requirements-style isolation again, or an explicit dependsOn-style
-# mechanism added here.
+# $ConfigFiles below discovers *.configuration.winget files at runtime and applies them
+# alphabetically -- correct by construction, since _requirements.configuration.winget (the only
+# file anything else depends on, via its WindowsDscModules resource) sorts first thanks to its
+# leading underscore, and every other file is independent.
 #
-# Note on update cadence: apps.configuration.winget deliberately has no `useLatest: true`
-# anywhere -- each package resource only asserts "is this installed at all," not "is it current."
-# This file is a one-time provisioning baseline, not a continuous update mechanism, and this
-# script only reruns when one of these files' content changes (chezmoi's onchange semantics)
-# anyway. Ongoing app updates are UniGetUI's job.
+# apps.configuration.winget deliberately has no `useLatest: true` -- this is a one-time
+# provisioning baseline, not a continuous updater; UniGetUI handles ongoing app updates.
 #
-# This whole script reruns whenever ANY ONE of these files changes (chezmoi's onchange semantics
-# key off the script's own rendered content, which embeds every file's hash above) -- but winget
-# configure has real per-invocation overhead, so re-applying every file just because one changed
-# would be wasteful. The main loop below skips files whose content hasn't changed since their own
-# last successful-enough apply, tracked via a "<file>.chezmoi-hash" sidecar written next to each
-# deployed file (see Test-ConfigFileChanged/Set-ConfigFileAppliedHash below) -- so editing just
-# fonts.configuration.winget, for example, only reapplies that one file. Editing this script's
-# own body (e.g. to change this logic) changes its rendered content too, which forces one
-# guaranteed full run on every machine -- exactly the run that seeds every sidecar for the first
-# time, so fresh and long-lived machines behave identically on that first run, then diverge to
-# incremental thereafter.
+# This script reruns whenever ANY tracked file changes (chezmoi onchange keys off the hashes
+# above), but re-applying every file on every rerun would be wasteful. The loop below skips files
+# unchanged since their own last successful-enough apply, tracked via a "<file>.chezmoi-hash"
+# sidecar (see Test-ConfigFileChanged/Set-ConfigFileAppliedHash). Editing this script's own body
+# forces one full run everywhere, seeding every sidecar for the first time.
 $ConfigDir = Join-Path $HOME ".config" "windows"
 $ConfigFiles = (Get-ChildItem -Path $ConfigDir -Filter "*.configuration.winget" -File | Sort-Object Name).Name
 
-# winget configure's exit code isn't a reliable success signal (see below), and this script runs
-# unattended via chezmoi apply, so full output is captured here rather than only streamed to the
-# console -- otherwise a real failure has no record once the terminal that ran chezmoi apply closes.
+# winget's exit code isn't reliable (see below) and this runs unattended, so log everything --
+# otherwise a real failure leaves no record once the terminal closes.
 $LogDir = Join-Path $env:LOCALAPPDATA "chezmoi"
 New-Item -ItemType Directory -Path $LogDir -Force | Out-Null
 $LogPath = Join-Path $LogDir "winget-configure.log"
 "Run started $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')" | Set-Content -Path $LogPath
 
-# Retry with exponential backoff to ride out transient network blips. Each attempt's output is
-# logged, not just the final outcome. Defined up top so it's available to every winget call below,
-# not just the main config-apply loop.
+# Retries with exponential backoff to ride out transient network blips; every attempt is logged.
 function Invoke-WithRetry {
   param(
     [Parameter(Mandatory)] [scriptblock] $ScriptBlock,
@@ -108,12 +74,8 @@ function Invoke-WithRetry {
   }
 }
 
-# Per-file change tracking: a sidecar "<file>.chezmoi-hash" written next to each deployed .winget
-# file records the hash winget configure was last run against, so the main loop below can skip
-# files that haven't changed since their last successful-enough apply -- see that loop for why
-# this matters (this script reruns in full whenever ANY tracked file changes, so without this,
-# editing just one file still reapplies all of them). Same sidecar-hash convention already used by
-# run_onchange_after_vscode-profiles.py.tmpl for VS Code settings.json drift detection.
+# "<file>.chezmoi-hash" sidecars record the hash each file was last applied against, so the main
+# loop can skip unchanged files. Same convention as run_onchange_after_vscode-profiles.py.tmpl.
 function Get-ConfigFileHash {
   param([string] $Path)
   if (-not (Test-Path $Path)) { return $null }
@@ -136,19 +98,15 @@ function Set-ConfigFileAppliedHash {
   }
 }
 
-# Backs both the upfront check below and the per-file check in the main loop. winget configure
-# gives no indication on its own that one of its resources (e.g. enabling a Windows optional
-# feature) left the machine needing a reboot before further changes can be trusted, so this has
-# to be inferred from the registry directly.
+# winget configure gives no indication a resource left a reboot pending, so infer it from the
+# registry. Backs both the upfront check and the per-file check in the main loop below.
 function Test-RebootPending {
   return (Test-Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending') `
     -or (Test-Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\RebootRequired') `
     -or ($null -ne (Get-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager' -Name PendingFileRenameOperations -ErrorAction SilentlyContinue))
 }
 
-# Cheap system-state snapshot at the top of the log -- makes the log useful for
-# after-the-fact troubleshooting weeks from now, when there's no memory of what
-# state the machine was in.
+# System-state snapshot for the log, useful for troubleshooting weeks later.
 try {
   $Os = Get-CimInstance -ClassName Win32_OperatingSystem -ErrorAction Stop
   $OsInfo = "$($Os.Caption) $($Os.Version) build $($Os.BuildNumber)"
@@ -162,45 +120,35 @@ try {
 }
 "Preflight: OS=$OsInfo | PowerShell=$($PSVersionTable.PSVersion) | winget=$((winget --version) 2>$null) | DiskFreeGB(C)=$DiskFreeGB" | Add-Content -Path $LogPath
 
-# Check for a reboot already pending from BEFORE this script even ran (e.g. Windows Update, a
-# previous manual install) -- applying configuration on top of that is unreliable, so bail out
-# immediately rather than risk resources succeeding or failing unpredictably against a machine
-# that's already due for a restart. Exiting non-zero (rather than warning and continuing) makes
-# chezmoi retry this whole script on the next apply even if nothing else changed -- see the
-# per-file reboot check in the main loop below for why that matters.
+# A reboot already pending (e.g. from Windows Update) before this script even runs makes applying
+# config unreliable -- bail out now. Non-zero exit makes chezmoi retry on the next apply even if
+# nothing else changed (see the per-file check below for why that matters).
 if (Test-RebootPending) {
   Write-Host "A reboot is already pending. Reboot, then rerun 'chezmoi apply' to apply the configuration.`n" -ForegroundColor Yellow
   "=== reboot already pending before any configuration was applied -- exiting ===" | Add-Content -Path $LogPath
   exit 1
 }
 
-# Stop-the-world check: if winget configure is disabled by Group Policy, nothing
-# below can work. Fail loudly rather than warn -- as a run_onchange script, chezmoi
-# only marks this complete on a zero exit, so throwing here means chezmoi retries
-# on the next `chezmoi apply` even if none of the source files changed, and this
-# self-corrects once the policy is fixed without needing to touch the repo.
+# If winget configure is disabled by Group Policy, nothing below can work. Throw rather than warn
+# -- chezmoi only marks a run_onchange_ script complete on zero exit, so this retries on every
+# `chezmoi apply` until the policy is fixed, with no repo change needed.
 $PolicyPath = 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppInstaller'
 $PolicyValue = (Get-ItemProperty -Path $PolicyPath -Name 'EnableWindowsPackageManagerConfiguration' -ErrorAction SilentlyContinue).EnableWindowsPackageManagerConfiguration
 if ($null -ne $PolicyValue -and [int]$PolicyValue -eq 0) {
   throw "winget configure is disabled by Group Policy ($PolicyPath\EnableWindowsPackageManagerConfiguration = 0). This is the 'Enable Windows Package Manager Configuration' ADMX policy (Computer Configuration > Administrative Templates > Windows Components > App Installer). Fix the policy, then rerun."
 }
 
-# On a fresh machine, winget's `configure` subcommand refuses to run at all until its extended
-# features flag is turned on -- every winget configure call below fails outright with "Extended
-# features are not enabled" until this has run once. `winget configure --enable` is idempotent
-# (a safe no-op when already enabled), so just run it unconditionally rather than trying to detect
-# the flag's state first -- there's no single reliable settings.json/registry check for it across
-# winget versions. Not gated on exit code: winget's own docs note some builds return non-zero even
-# when the flag was already enabled, so a bad exit code here isn't trustworthy either way -- if
-# enabling it genuinely failed, the config-apply loop below will fail too and get logged there.
+# Fresh machines refuse `winget configure` until its extended-features flag is enabled once.
+# `--enable` is idempotent, so run it unconditionally rather than probe for the flag's state --
+# there's no reliable cross-version check for it. Exit code isn't gated on: some winget builds
+# return non-zero even when already enabled, and a real failure here surfaces in the loop below.
 Write-Host "Ensuring winget configure extended features are enabled...`n" -ForegroundColor Cyan
 "=== winget configure --enable ===" | Add-Content -Path $LogPath
 winget configure --enable 2>&1 |
   Tee-Object -FilePath $LogPath -Append
 
-# winget configure depends on the VC++ 2015+ x64 redistributable when invoked from
-# a non-elevated environment, and fails with an opaque internal error without it.
-# Self-heal by installing it directly rather than just diagnosing the gap.
+# winget configure needs the VC++ 2015+ x64 redistributable when run non-elevated, and fails with
+# an opaque internal error without it -- self-heal by installing it directly.
 $VCRedistKey = 'HKLM:\SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\X64'
 $VCRedistInstalled = (Get-ItemProperty -Path $VCRedistKey -Name 'Installed' -ErrorAction SilentlyContinue).Installed -eq 1
 if (-not $VCRedistInstalled) {
@@ -215,15 +163,12 @@ if (-not $VCRedistInstalled) {
   }
 }
 
-# _requirements.configuration.winget's WindowsDscModules resource needs
-# Microsoft.PowerShell.PSResourceGet/PSResourceList, which only exists starting in PSResourceGet
-# 1.3.0-preview1. Installed here directly (plain PowerShell, not a winget configure resource)
-# rather than as a RunCommandOnSet resource in a .winget file -- tried that twice and it didn't
-# hold up: (1) bootstrapping it via a resource in the SAME file as WindowsDscModules doesn't work,
-# since winget's dscv3 processor resolves every resource type in a document up front, before
-# executing any resource's Set; and (2) moving it to its own separate winget configure invocation
-# (a dedicated 1-init.configuration.winget) didn't reliably work either. Installing it directly
-# here, in this script's own process, sidesteps winget's resource resolution entirely.
+# _requirements.configuration.winget's WindowsDscModules resource needs PSResourceGet
+# 1.3.0-preview1+ (for Microsoft.PowerShell.PSResourceGet/PSResourceList), installed here directly
+# rather than as a winget configure resource -- two resource-based attempts failed: bootstrapping
+# it in the SAME file as WindowsDscModules doesn't work since winget's dscv3 processor resolves
+# every resource type up front before any Set runs, and a separate init file didn't reliably work
+# either. Installing it in this script's own process sidesteps winget's resource resolution entirely.
 $PSResourceGetOk = Get-PSResource -Name Microsoft.PowerShell.PSResourceGet -ErrorAction SilentlyContinue |
   Where-Object { $_.Version -ge [version]'1.3.0' }
 if (-not $PSResourceGetOk) {
@@ -241,27 +186,21 @@ if (-not $PSResourceGetOk) {
     Write-Host "Warning: failed to install PSResourceGet 1.3.0+ preview -- _requirements.configuration.winget's WindowsDscModules resource will likely fail. See $LogPath`n" -ForegroundColor Yellow
   } else {
     "=== PSResourceGet install verified: $($PSResourceGetOk.Version) $($PSResourceGetOk.Prerelease) ===" | Add-Content -Path $LogPath
-    # winget configure runs through WindowsPackageManagerServer, an out-of-process COM server that
-    # stays resident across invocations rather than restarting fresh each time (confirmed: a real
-    # instance on a dev machine had been running for over a week). It resolves PowerShell-module-based
-    # DSC resources once and keeps that resolution cached for its own lifetime, so an already-running
-    # instance from before this install still won't see the module we just installed --
-    # _requirements.configuration.winget's WindowsDscModules resource would then fail with "Resource
-    # not found" even though the module is verifiably on disk (confirmed empirically). Killing the
-    # server here forces a fresh instance (spawned automatically on the next winget configure call)
-    # that re-resolves resources from the current on-disk state.
+    # winget configure runs through WindowsPackageManagerServer, a COM server that stays resident
+    # across invocations (confirmed: one ran for over a week) and caches its DSC resource
+    # resolution -- an already-running instance won't see the module just installed, so
+    # WindowsDscModules would fail with "Resource not found" despite it being on disk. Kill it to
+    # force a fresh instance.
     Get-Process -Name WindowsPackageManagerServer -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
     "=== restarted WindowsPackageManagerServer after installing PSResourceGet ===" | Add-Content -Path $LogPath
   }
 }
 
-# Bug https://github.com/microsoft/winget-cli/issues/6091 currently prevents winget configure
-# from installing Microsoft Store apps for the first time. This is a dirty workaround until
-# that bug is fixed that pre-installs every Store app and accepts the agreement
+# Workaround for https://github.com/microsoft/winget-cli/issues/6091, which prevents winget
+# configure from installing Store apps for the first time: pre-install them here instead.
 $AppsConfigPath = Join-Path $ConfigDir "apps.configuration.winget"
 if (Test-Path $AppsConfigPath) {
-  # This whole block only matters when apps.configuration.winget itself changed -- skip it
-  # entirely otherwise, same reasoning as the per-file skip check in the main loop below.
+  # Only matters when apps.configuration.winget itself changed -- same skip reasoning as the loop below.
   if (-not (Test-ConfigFileChanged -Path $AppsConfigPath)) {
     "=== apps.configuration.winget unchanged, skipping msstore pre-install pass ===" | Add-Content -Path $LogPath
   } else {
@@ -276,11 +215,9 @@ if (Test-Path $AppsConfigPath) {
       }
     }
     foreach ($Id in $MsstoreIds) {
-      # Some Store apps come pre-provisioned on Windows out of the box, and on a rerun every one of
-      # these is already installed from the previous apply -- winget install then fails with
-      # 0x8A15002B (APPINSTALLER_CLI_ERROR_UPDATE_NOT_APPLICABLE, "no applicable update found") since
-      # it's effectively an upgrade check against an already-current package, not a real failure.
-      # Checking install state first and skipping silently avoids 3 retries per already-installed app.
+      # Already-installed Store apps make winget install fail with 0x8A15002B (no applicable
+      # update) -- not a real failure, just an upgrade check against a current package. Check
+      # first to skip it.
       winget list --id $Id -e --accept-source-agreements 2>&1 | Add-Content -Path $LogPath
       if ($LASTEXITCODE -eq 0) {
         "=== $Id already installed, skipping pre-install ===" | Add-Content -Path $LogPath
@@ -289,11 +226,8 @@ if (Test-Path $AppsConfigPath) {
       Write-Host "Pre-installing Store app $Id...`n" -ForegroundColor Cyan
       "=== winget install $Id (msstore pre-install) ===" | Add-Content -Path $LogPath
       Invoke-WithRetry -Name "msstore agreement accept: $Id" -ScriptBlock {
-        # Log-only, not Tee-Object'd to console: winget has no flag to suppress its own per-package
-        # "Found X / Agreements / License terms" narration (--disable-interactivity only suppresses
-        # prompts), and with 9 msstore apps that's a wall of text with little value on-screen given
-        # the Write-Host line above already reports which app is being processed, and the warning
-        # below already surfaces failures.
+        # Log-only: winget can't suppress its per-package "Found X / Agreements" narration, and
+        # with 9 msstore apps that's console noise the Write-Host above and warning below already cover.
         winget install --id $Id --source msstore --accept-package-agreements --accept-source-agreements --disable-interactivity 2>&1 |
           Add-Content -Path $LogPath
       }
@@ -314,11 +248,9 @@ foreach ($File in $ConfigFiles) {
   Write-Host "Applying $File via 'winget configure'...`n" -ForegroundColor Cyan
   "=== $File ===" | Add-Content -Path $LogPath
   Invoke-WithRetry -Name $File -ScriptBlock {
-    # winget configure has no flag to suppress its "You are responsible for understanding..."
-    # legal disclaimer -- --accept-configuration-agreements only avoids the interactive prompt,
-    # per winget's own docs, and it prints unconditionally otherwise. Filtered out of the console
-    # specifically (still written to the log in full via Add-Content below) since it's identical
-    # boilerplate on every single one of the files here.
+    # winget prints its legal disclaimer unconditionally regardless of
+    # --accept-configuration-agreements -- filtered from the console (still logged in full) since
+    # it's identical on every file.
     winget configure -f $Path --accept-configuration-agreements --disable-interactivity --suppress-initial-details 2>&1 |
       ForEach-Object {
         Add-Content -Path $LogPath -Value $_
@@ -330,42 +262,28 @@ foreach ($File in $ConfigFiles) {
     Write-Host "Warning: $File exited with code $LASTEXITCODE after retries. This may be a benign warning (e.g. 'module not provided') or a real failure -- see $LogPath`n" -ForegroundColor Yellow
   }
 
-  # Some resources (e.g. enabling a Windows optional feature, installing WSL components) leave the
-  # machine needing a reboot before their effects are actually in place, but winget configure gives
-  # no indication of this on its own -- checked fresh after every file, not just the ones known to
-  # trigger it today, since any file's resources could start requiring one in the future. Checked
-  # BEFORE recording this file's applied-hash below and BEFORE moving on to the next file: if a
-  # reboot only became pending because of what THIS file just did, its own resources may not have
-  # taken full effect yet either, so its hash deliberately isn't recorded -- the skip check at the
-  # top of this loop will pick it up again (along with every file after it in $ConfigFiles, never
-  # reached this run) once chezmoi retries the whole script.
+  # A file's resources (e.g. enabling a feature, WSL setup) can leave a reboot pending that winget
+  # configure won't report -- checked fresh after every file, since any could trigger one. Checked
+  # before recording the hash below: if this file caused it, its effects may not be fully in place
+  # yet, so its hash (and every later file's, never reached this run) stays unrecorded -- the skip
+  # check re-picks them up once chezmoi retries.
   if (Test-RebootPending) {
     Write-Host "A reboot is pending after applying $File. Reboot, then rerun 'chezmoi apply' again to finish applying the configuration.`n" -ForegroundColor Yellow
     "=== reboot pending after ${File}: not recording applied-hash, exiting ===" | Add-Content -Path $LogPath
-    # Non-zero (not one of winget's own unreliable exit codes, but our own deterministic
-    # registry-based check) so chezmoi retries this whole script on the next apply even if nothing
-    # else changed -- otherwise this script's always-0 exit (see the bottom of this file) would
-    # make chezmoi consider it already successfully applied and, per its run_onchange_ semantics,
-    # not even re-invoke it on a bare rerun with no other file changes -- confirmed empirically.
+    # Non-zero exit (not winget's own unreliable code) makes chezmoi retry this script even if
+    # nothing else changed -- this script always exits 0 otherwise (see bottom), which would
+    # otherwise make chezmoi treat it as already-successful and skip a bare rerun.
     exit 1
   }
 
-  # Updated regardless of winget's own exit code, matching the warning above: winget configure's
-  # exit code isn't a reliable success signal (see the comment at the bottom of this script), so
-  # gating this on a clean exit would mean any file that routinely emits a benign non-zero warning
-  # never gets its hash recorded -- permanently defeating the skip check above on every future run.
-  # Invoke-WithRetry already spent 3 attempts with backoff on this before we get here, and the
-  # reboot-pending check above already handled (and exited on) the one case where recording the
-  # hash here would be wrong.
+  # Recorded regardless of winget's exit code (unreliable, see bottom of script) -- gating on a
+  # clean exit would permanently defeat the skip check for files with benign non-zero warnings.
+  # The reboot-pending case above already exited before reaching here.
   Set-ConfigFileAppliedHash -Path $Path
 }
 
-# Reaching this line means every file in $ConfigFiles was either applied or already up to date,
-# and neither the upfront nor any per-file check above found a reboot pending -- i.e. this run
-# needs nothing further from the user.
 Write-Host "Windows configuration applied -- no reboot needed.`n" -ForegroundColor Green
 
-# winget configure returns a non-zero exit code even on a fully successful apply (e.g. for
-# benign "module not provided" warnings), so its exit code isn't a reliable success signal here.
-# Real failures are still visible above and logged to $LogPath for later inspection.
+# winget's exit code isn't reliable even on success (e.g. benign "module not provided" warnings)
+# -- real failures are already visible above and logged to $LogPath.
 exit 0
