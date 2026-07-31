@@ -1,6 +1,9 @@
 #Requires -Version 7.0
 
-# This script applies the WinGet Configuration files that declaratively configure this Windows machine.
+# Applies the WinGet Configuration files that declaratively configure this Windows machine.
+# Flow: preflight checks (pending reboot, Group Policy), prerequisite installs and upstream-bug
+# workarounds, then one `winget configure` run per changed *.configuration.winget file, with
+# applied-hash sidecars so unchanged files are skipped on later runs.
 
 # {{ $wingetConfigDirName := "winget-configuration-chezmoi" }}
 # {{ $wingetConfigSourceDir := joinPath .chezmoi.sourceDir "AppData/Local" $wingetConfigDirName }}
@@ -16,22 +19,39 @@
 ## optional-features-list.ps1 hash: {{ joinPath $wingetConfigSourceDir "optional-features-list.ps1" | include | sha256sum }}
 
 # chezmoi apply runs many scripts back to back with no indication which is running -- announce
-# this one, since it can take a while (winget configure per file, plus preflight steps below).
+# this one, since it can take a while.
 Write-Host "Applying Windows configuration via winget configure...`n" -ForegroundColor Cyan
 
-# $ConfigFiles below discovers *.configuration.winget files at runtime and applies them alphabetically
+#region Paths and logging
+
 $ConfigDir = Join-Path $env:LOCALAPPDATA "{{ $wingetConfigDirName }}"
+New-Item -ItemType Directory -Path $ConfigDir -Force | Out-Null
+
+# Discovered at runtime from the target dir -- the template block above hashes the *source*
+# copies only to trigger reruns.
 $ConfigFiles = (Get-ChildItem -Path $ConfigDir -Filter "*.configuration.winget" -File | Sort-Object Name).Name
 
-# winget's exit code isn't reliable (see below) and this runs unattended, so log everything --
-# otherwise a real failure leaves no record once the terminal closes.
-New-Item -ItemType Directory -Path $ConfigDir -Force | Out-Null
+# winget's exit code isn't reliable (see bottom of script) and this runs unattended, so log
+# everything -- otherwise a real failure leaves no record once the terminal closes.
 $LogPath = Join-Path $ConfigDir "winget-configure.log"
 "Run started $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')" | Set-Content -Path $LogPath
 
+# Where winget writes its own diagnostic logs -- pointed to from failure log lines.
 $WingetLogDir = Join-Path $env:LOCALAPPDATA 'Packages\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe\LocalState\DiagOutputDir'
 
+# Appends to this script's log; accepts pipeline input so command output can stream into it.
+function Write-Log {
+  param([Parameter(ValueFromPipeline)] $Message)
+  process { Add-Content -Path $LogPath -Value $Message }
+}
+
+#endregion
+
+#region Helpers
+
 # Retries with exponential backoff to ride out transient network blips; every attempt is logged.
+# Success is signaled through $LASTEXITCODE (0 = success): native commands set it themselves, and
+# cmdlet-only script blocks succeed unless they throw. Callers inspect $LASTEXITCODE afterwards.
 function Invoke-WithRetry {
   param(
     [Parameter(Mandatory)] [scriptblock] $ScriptBlock,
@@ -39,24 +59,26 @@ function Invoke-WithRetry {
     [int] $MaxAttempts = 3,
     [int] $InitialDelaySeconds = 5
   )
-  $Attempt = 0
   $Delay = $InitialDelaySeconds
-  while ($true) {
-    $Attempt++
-    "[retry] ${Name}: attempt $Attempt/$MaxAttempts" | Add-Content -Path $LogPath
-    & $ScriptBlock
-    if ($LASTEXITCODE -eq 0 -or $Attempt -ge $MaxAttempts) {
-      return
+  for ($Attempt = 1; $Attempt -le $MaxAttempts; $Attempt++) {
+    Write-Log "[retry] ${Name}: attempt $Attempt/$MaxAttempts"
+    $global:LASTEXITCODE = 0  # don't inherit a stale value from an earlier native command
+    try {
+      & $ScriptBlock
+    } catch {
+      Write-Log "[retry] ${Name}: attempt $Attempt threw: $($_.Exception.Message)"
+      $global:LASTEXITCODE = 1
     }
+    if ($LASTEXITCODE -eq 0 -or $Attempt -ge $MaxAttempts) { return }
     Write-Host "$Name failed (exit code $LASTEXITCODE), retrying in ${Delay}s (attempt $Attempt/$MaxAttempts)...`n" -ForegroundColor DarkYellow
-    "[retry] ${Name}: attempt $Attempt failed with exit code $LASTEXITCODE, retrying in ${Delay}s" | Add-Content -Path $LogPath
+    Write-Log "[retry] ${Name}: attempt $Attempt failed with exit code $LASTEXITCODE, retrying in ${Delay}s"
     Start-Sleep -Seconds $Delay
-    $Delay = $Delay * 2
+    $Delay *= 2
   }
 }
 
-# "<file>.chezmoi-hash" sidecars record the hash each file was last applied against, so the main
-# loop can skip unchanged files. Same convention as run_onchange_after_vscode-profiles.py.tmpl.
+# "<file>.chezmoi-hash" sidecars record the hash each config file was last applied against, so
+# the apply loop can skip unchanged files.
 function Get-ConfigFileHash {
   param([string] $Path)
   if (-not (Test-Path $Path)) { return $null }
@@ -67,8 +89,7 @@ function Test-ConfigFileChanged {
   param([string] $Path)
   $HashPath = "$Path.chezmoi-hash"
   if (-not (Test-Path $HashPath)) { return $true }
-  $Last = (Get-Content -Path $HashPath -Raw).Trim()
-  return (Get-ConfigFileHash -Path $Path) -ne $Last
+  return (Get-ConfigFileHash -Path $Path) -ne (Get-Content -Path $HashPath -Raw).Trim()
 }
 
 function Set-ConfigFileAppliedHash {
@@ -80,23 +101,22 @@ function Set-ConfigFileAppliedHash {
 }
 
 # winget configure gives no indication a resource left a reboot pending, so infer it from the
-# registry. Backs both the upfront check and the per-file check in the main loop below.
+# registry. Backs both the upfront check and the per-file check in the apply loop.
 function Test-RebootPending {
   return (Test-Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending') `
     -or (Test-Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\RebootRequired') `
     -or ($null -ne (Get-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager' -Name PendingFileRenameOperations -ErrorAction SilentlyContinue))
 }
 
-# Queues `chezmoi apply` to rerun automatically at next logon when a reboot is pending, so applying
-# the rest of the configuration doesn't wait on remembering to rerun it by hand. HKCU RunOnce (not
-# a Scheduled Task) because it needs no elevation -- this script already runs unelevated -- and
-# Windows deletes the value itself once it fires, so there's nothing to clean up on success. Fires
-# at the next *interactive logon of this user*, which matches how this script itself is invoked.
+# Queues `chezmoi apply` to rerun automatically at next logon, so applying the rest of the
+# configuration doesn't wait on remembering to rerun it by hand. HKCU RunOnce (not a Scheduled
+# Task) because it needs no elevation -- this script already runs unelevated -- and Windows
+# deletes the value itself once it fires, so there's nothing to clean up on success. Fires at
+# the next *interactive logon of this user*, which matches how this script itself is invoked.
 function Register-ChezmoiApplyOnNextLogon {
-  $RunOnceKey = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\RunOnce'
   $ChezmoiExe = (Get-Command chezmoi -ErrorAction SilentlyContinue).Source
   if (-not $ChezmoiExe) {
-    "=== could not resolve chezmoi.exe on PATH -- skipping RunOnce registration ===" | Add-Content -Path $LogPath
+    Write-Log "=== could not resolve chezmoi.exe on PATH -- skipping RunOnce registration ==="
     return $false
   }
   $WtExe = (Get-Command wt -ErrorAction SilentlyContinue).Source
@@ -106,12 +126,64 @@ function Register-ChezmoiApplyOnNextLogon {
   } else {
     "powershell.exe -NoExit -Command `"& '$ChezmoiExe' apply`""
   }
-  Set-ItemProperty -Path $RunOnceKey -Name 'ChezmoiApply' -Value $Command
-  "=== registered RunOnce 'ChezmoiApply' to rerun 'chezmoi apply' at next logon ===" | Add-Content -Path $LogPath
+  Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\RunOnce' -Name 'ChezmoiApply' -Value $Command
+  Write-Log "=== registered RunOnce 'ChezmoiApply' to rerun 'chezmoi apply' at next logon ==="
   return $true
 }
 
-# System-state snapshot for the log, useful for troubleshooting weeks later.
+# Stops the script when a reboot is pending: queues the RunOnce rerun, tells the user what to do,
+# and exits non-zero so chezmoi retries this run_onchange_ script on the next apply even if
+# nothing else changed -- the script always exits 0 otherwise (see bottom), which would make
+# chezmoi treat it as already-successful and skip a bare rerun.
+function Stop-ForPendingReboot {
+  param(
+    [Parameter(Mandatory)] [string] $Reason,
+    [Parameter(Mandatory)] [string] $LogMessage
+  )
+  if (Register-ChezmoiApplyOnNextLogon) {
+    Write-Host "$Reason Reboot -- 'chezmoi apply' will rerun automatically at next logon to finish applying the configuration.`n" -ForegroundColor Yellow
+  } else {
+    Write-Host "$Reason Reboot, then rerun 'chezmoi apply' to finish applying the configuration.`n" -ForegroundColor Yellow
+  }
+  Write-Log $LogMessage
+  exit 1
+}
+
+# Locates dsc.exe under an extracted DSC ZIP-release directory (see the DSC ZIP workaround below).
+function Find-DscZipExe {
+  param([string] $Dir)
+  if (-not (Test-Path $Dir)) { return $null }
+  return (Get-ChildItem -Path $Dir -Filter 'dsc.exe' -Recurse -ErrorAction SilentlyContinue |
+    Select-Object -First 1).FullName
+}
+
+# Emits package ids whose source is msstore from a configuration file (see the msstore
+# pre-install workaround below). Line-based scan: an "id:" followed later by "source: msstore".
+function Get-MsstoreIds {
+  param([string] $Path)
+  $PendingId = $null
+  foreach ($Line in Get-Content -Path $Path) {
+    if ($Line -match '^\s*id:\s*(\S+)\s*$') {
+      $PendingId = $Matches[1]
+    } elseif ($Line -match '^\s*source:\s*msstore\s*$' -and $PendingId) {
+      $PendingId
+      $PendingId = $null
+    }
+  }
+}
+
+# The newest installed PSResourceGet, if it satisfies the 1.3.0-preview1+ requirement of the
+# Microsoft.PowerShell.PSResourceGet/PSResourceList resource; nothing otherwise.
+function Get-SufficientPSResourceGet {
+  Get-PSResource -Name Microsoft.PowerShell.PSResourceGet -ErrorAction SilentlyContinue |
+    Where-Object { $_.Version -ge [version]'1.3.0' }
+}
+
+#endregion
+
+#region Preflight
+
+# System-state snapshot for the log, useful for troubleshooting later.
 try {
   $Os = Get-CimInstance -ClassName Win32_OperatingSystem -ErrorAction Stop
   $OsInfo = "$($Os.Caption) $($Os.Version) build $($Os.BuildNumber)"
@@ -123,114 +195,110 @@ try {
 } catch {
   $DiskFreeGB = "(unavailable)"
 }
-"Preflight: OS=$OsInfo | PowerShell=$($PSVersionTable.PSVersion) | winget=$((winget --version) 2>$null) | DiskFreeGB(C)=$DiskFreeGB | WingetLogDir=$WingetLogDir" | Add-Content -Path $LogPath
+Write-Log "Preflight: OS=$OsInfo | PowerShell=$($PSVersionTable.PSVersion) | winget=$((winget --version) 2>$null) | DiskFreeGB(C)=$DiskFreeGB | WingetLogDir=$WingetLogDir"
 
-# A reboot already pending (e.g. from Windows Update) before this script even runs makes applying
-# config unreliable -- bail out now. Non-zero exit makes chezmoi retry on the next apply even if
-# nothing else changed (see the per-file check below for why that matters).
+# A reboot already pending (e.g. from Windows Update) before this script even runs makes
+# applying configuration unreliable -- bail out now.
 if (Test-RebootPending) {
-  if (Register-ChezmoiApplyOnNextLogon) {
-    Write-Host "A reboot is already pending. Reboot -- 'chezmoi apply' will rerun automatically at next logon.`n" -ForegroundColor Yellow
-  } else {
-    Write-Host "A reboot is already pending. Reboot, then rerun 'chezmoi apply' to apply the configuration.`n" -ForegroundColor Yellow
-  }
-  "=== reboot already pending before any configuration was applied -- exiting ===" | Add-Content -Path $LogPath
-  exit 1
+  Stop-ForPendingReboot -Reason "A reboot is already pending." `
+    -LogMessage "=== reboot already pending before any configuration was applied -- exiting ==="
 }
 
-# If winget configure is disabled by Group Policy, nothing below can work. Throw rather than warn
-# -- chezmoi only marks a run_onchange_ script complete on zero exit, so this retries on every
-# `chezmoi apply` until the policy is fixed, with no repo change needed.
+# If winget configure is disabled by Group Policy, nothing below can work. Throw rather than
+# warn -- the non-zero exit makes chezmoi retry on every `chezmoi apply` until the policy is
+# fixed, with no repo change needed.
 $PolicyPath = 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppInstaller'
 $PolicyValue = (Get-ItemProperty -Path $PolicyPath -Name 'EnableWindowsPackageManagerConfiguration' -ErrorAction SilentlyContinue).EnableWindowsPackageManagerConfiguration
 if ($null -ne $PolicyValue -and [int]$PolicyValue -eq 0) {
   throw "winget configure is disabled by Group Policy ($PolicyPath\EnableWindowsPackageManagerConfiguration = 0). This is the 'Enable Windows Package Manager Configuration' ADMX policy (Computer Configuration > Administrative Templates > Windows Components > App Installer). Fix the policy, then rerun."
 }
 
+#endregion
+
+#region Prerequisites and upstream workarounds
+
 # Fresh machines refuse `winget configure` until its extended-features flag is enabled once.
 # `--enable` is idempotent, so run it unconditionally rather than probe for the flag's state --
 # there's no reliable cross-version check for it. Exit code isn't gated on: some winget builds
-# return non-zero even when already enabled, and a real failure here surfaces in the loop below.
+# return non-zero even when already enabled, and a real failure here surfaces in the apply loop.
 Write-Host "Ensuring winget configure extended features are enabled...`n" -ForegroundColor Cyan
-"=== winget configure --enable ===" | Add-Content -Path $LogPath
+Write-Log "=== winget configure --enable ==="
 winget configure --enable --verbose-logs
 
-# winget configure needs the VC++ 2015+ x64 redistributable when run non-elevated, and fails with
-# an opaque internal error without it -- self-heal by installing it directly.
+# winget configure needs the VC++ 2015+ x64 redistributable when run non-elevated, and fails
+# with an opaque internal error without it -- self-heal by installing it directly.
 $VCRedistKey = 'HKLM:\SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\X64'
-$VCRedistInstalled = (Get-ItemProperty -Path $VCRedistKey -Name 'Installed' -ErrorAction SilentlyContinue).Installed -eq 1
-if (-not $VCRedistInstalled) {
+if ((Get-ItemProperty -Path $VCRedistKey -Name 'Installed' -ErrorAction SilentlyContinue).Installed -ne 1) {
   Write-Host "Microsoft Visual C++ Redistributable 2015+ (x64) not found -- installing (winget configure can fail with an internal error without it)...`n" -ForegroundColor Yellow
-  "=== Installing Microsoft.VCRedist.2015+.x64 ===" | Add-Content -Path $LogPath
+  Write-Log "=== Installing Microsoft.VCRedist.2015+.x64 ==="
   Invoke-WithRetry -Name 'Microsoft.VCRedist.2015+.x64 install' -ScriptBlock {
     winget install --id 'Microsoft.VCRedist.2015+.x64' --source winget --accept-package-agreements --accept-source-agreements --disable-interactivity --verbose-logs
   }
   if ($LASTEXITCODE -ne 0) {
-    "=== winget's own diagnostic logs for this failure: $WingetLogDir ===" | Add-Content -Path $LogPath
+    Write-Log "=== winget's own diagnostic logs for this failure: $WingetLogDir ==="
     throw "Failed to install Microsoft.VCRedist.2015+.x64 (exit code $LASTEXITCODE) -- winget configure is likely to fail without it. See $LogPath and rerun."
   }
 }
 
-# The Microsoft.PowerShell.PSResourceGet/PSResourceList resource needs PSResourceGet 1.3.0-preview1+
-$PSResourceGetOk = Get-PSResource -Name Microsoft.PowerShell.PSResourceGet -ErrorAction SilentlyContinue |
-  Where-Object { $_.Version -ge [version]'1.3.0' }
-if (-not $PSResourceGetOk) {
+# The Microsoft.PowerShell.PSResourceGet/PSResourceList resource needs PSResourceGet 1.3.0-preview1+.
+if (-not (Get-SufficientPSResourceGet)) {
   Write-Host "Installing PSResourceGet 1.3.0+...`n" -ForegroundColor Cyan
-  "=== Installing Microsoft.PowerShell.PSResourceGet (prerelease) ===" | Add-Content -Path $LogPath
+  Write-Log "=== Installing Microsoft.PowerShell.PSResourceGet (prerelease) ==="
   try {
-    Install-PSResource -Name Microsoft.PowerShell.PSResourceGet -Prerelease -TrustRepository -Scope CurrentUser -ErrorAction Stop *>&1 |
-      Add-Content -Path $LogPath
+    Install-PSResource -Name Microsoft.PowerShell.PSResourceGet -Prerelease -TrustRepository -Scope CurrentUser -ErrorAction Stop *>&1 | Write-Log
   } catch {
-    "PSResourceGet install threw: $($_.Exception.Message)" | Add-Content -Path $LogPath
+    Write-Log "PSResourceGet install threw: $($_.Exception.Message)"
   }
-  $PSResourceGetOk = Get-PSResource -Name Microsoft.PowerShell.PSResourceGet -ErrorAction SilentlyContinue |
-    Where-Object { $_.Version -ge [version]'1.3.0' }
-  if (-not $PSResourceGetOk) {
+  $PSResourceGetInstalled = Get-SufficientPSResourceGet
+  if (-not $PSResourceGetInstalled) {
     Write-Host "Warning: failed to install PSResourceGet 1.3.0+ . See $LogPath`n" -ForegroundColor Yellow
   } else {
-    "=== PSResourceGet install verified: $($PSResourceGetOk.Version) $($PSResourceGetOk.Prerelease) ===" | Add-Content -Path $LogPath
+    Write-Log "=== PSResourceGet install verified: $($PSResourceGetInstalled.Version) $($PSResourceGetInstalled.Prerelease) ==="
     # winget configure runs through WindowsPackageManagerServer, a COM server that stays resident
     # across invocations (confirmed: one ran for over a week) and caches its DSC resource
-    # resolution -- an already-running instance won't see the module just installed, so
-    # WindowsDscModules would fail with "Resource not found" despite it being on disk. Kill it to
-    # force a fresh instance.
+    # resolution -- an already-running instance won't see the just-installed module, so
+    # WindowsDscModules would fail with "Resource not found" despite it being on disk. Kill it
+    # to force a fresh instance.
     Get-Process -Name WindowsPackageManagerServer -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
-    "=== restarted WindowsPackageManagerServer after installing PSResourceGet ===" | Add-Content -Path $LogPath
+    Write-Log "=== restarted WindowsPackageManagerServer after installing PSResourceGet ==="
   }
 }
 
 # Workaround for https://github.com/PowerShell/DSC/issues/1653: Microsoft.Windows/OptionalFeatureList
-# errors outright -- "This resource currently is not
-# supported when installed via Appx" -- under the Appx-packaged dsc.exe that winget configure uses by
-# default. Per DSC v3.2.0's release notes this resource "requires using the ZIP package of DSC for
-# now". Downloading that ZIP release once and pointing every `winget configure` call at it via
-# --processor-path sidesteps the limitation for all files, not just the one that needs it -- there's
-# no per-resource processor override. Always resolved to GitHub's "latest" release (which already
-# excludes pre-releases/drafts) rather than pinned, so this self-updates. Remove this whole block
-# (and the --processor-path argument in the main loop below) once the linked issue is fixed upstream.
-$DscLatestRelease = Invoke-RestMethod -Uri 'https://api.github.com/repos/PowerShell/DSC/releases/latest'
-$DscZipVersion = $DscLatestRelease.tag_name.TrimStart('v')
-$DscZipDir = Join-Path $ConfigDir "dsc-zip\$DscZipVersion"
-$DscZipExe = if (Test-Path $DscZipDir) {
-  (Get-ChildItem -Path $DscZipDir -Filter 'dsc.exe' -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1).FullName
+# errors outright ("This resource currently is not supported when installed via Appx") under the
+# Appx-packaged dsc.exe that winget configure uses by default; per DSC v3.2.0's release notes the
+# resource "requires using the ZIP package of DSC for now". Downloading that ZIP release once and
+# pointing every `winget configure` call at it via --processor-path sidesteps the limitation for
+# all files, not just the one that needs it -- there's no per-resource processor override. Always
+# resolved to GitHub's "latest" release (which already excludes pre-releases/drafts) rather than
+# pinned, so this self-updates. Remove this block, Find-DscZipExe above, and the --processor-path
+# argument in the apply loop once the linked issue is fixed upstream.
+$DscZipRoot = Join-Path $ConfigDir 'dsc-zip'
+try {
+  $DscLatestRelease = Invoke-RestMethod -Uri 'https://api.github.com/repos/PowerShell/DSC/releases/latest' -ErrorAction Stop
+  $DscZipDir = Join-Path $DscZipRoot $DscLatestRelease.tag_name.TrimStart('v')
+} catch {
+  # The GitHub API can be down or rate-limited -- an already-downloaded copy beats failing.
+  $DscLatestRelease = $null
+  $DscZipDir = (Get-ChildItem -Path $DscZipRoot -Directory -ErrorAction SilentlyContinue |
+    Sort-Object LastWriteTime -Descending | Select-Object -First 1).FullName
+  Write-Log "=== GitHub latest-release lookup failed ($($_.Exception.Message)) -- falling back to cached DSC ZIP package at: $DscZipDir ==="
 }
+$DscZipExe = if ($DscZipDir) { Find-DscZipExe -Dir $DscZipDir }
 
 if (-not $DscZipExe) {
+  if (-not $DscLatestRelease) {
+    throw "Could not resolve the latest DSC release from GitHub and no cached DSC ZIP package exists -- Microsoft.Windows/OptionalFeatureList resources will fail. See $LogPath and rerun."
+  }
   $DscZipAsset = $DscLatestRelease.assets | Where-Object { $_.name -match 'x86_64-pc-windows-msvc\.zip$' } | Select-Object -First 1
   if (-not $DscZipAsset) {
     throw "Could not find an x86_64-pc-windows-msvc.zip asset in the latest DSC release ($($DscLatestRelease.tag_name)) -- release layout may have changed. See $LogPath."
   }
-  Write-Host "Downloading DSC $($DscLatestRelease.tag_name) ZIP package (needed for Microsoft.Windows/OptionalFeatureList -- see PowerShell/DSC#1653)...`n" -ForegroundColor Cyan
-  "=== Downloading DSC $($DscLatestRelease.tag_name) ZIP package ===" | Add-Content -Path $LogPath
-  $DscZipDownloadPath = Join-Path $env:TEMP "dsc-$DscZipVersion.zip"
+  Write-Host "Downloading DSC $($DscLatestRelease.tag_name) ZIP package...`n" -ForegroundColor Cyan
+  Write-Log "=== Downloading DSC $($DscLatestRelease.tag_name) ZIP package ==="
+  $DscZipDownloadPath = Join-Path $env:TEMP "dsc-$($DscLatestRelease.tag_name.TrimStart('v')).zip"
   Invoke-WithRetry -Name 'DSC ZIP download' -ScriptBlock {
-    try {
-      Invoke-WebRequest -Uri $DscZipAsset.browser_download_url -OutFile $DscZipDownloadPath -ErrorAction Stop
-      $global:LASTEXITCODE = 0
-    } catch {
-      "DSC ZIP download failed: $($_.Exception.Message)" | Add-Content -Path $LogPath
-      $global:LASTEXITCODE = 1
-    }
+    Invoke-WebRequest -Uri $DscZipAsset.browser_download_url -OutFile $DscZipDownloadPath -ErrorAction Stop
   }
   if ($LASTEXITCODE -ne 0) {
     throw "Failed to download DSC $($DscLatestRelease.tag_name) ZIP package after retries -- Microsoft.Windows/OptionalFeatureList resources will fail. See $LogPath and rerun."
@@ -239,121 +307,103 @@ if (-not $DscZipExe) {
   New-Item -ItemType Directory -Path $DscZipDir -Force | Out-Null
   Expand-Archive -Path $DscZipDownloadPath -DestinationPath $DscZipDir -Force
   Remove-Item -Path $DscZipDownloadPath -Force -ErrorAction SilentlyContinue
-  $DscZipExe = (Get-ChildItem -Path $DscZipDir -Filter 'dsc.exe' -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1).FullName
+  $DscZipExe = Find-DscZipExe -Dir $DscZipDir
   if (-not $DscZipExe) {
     throw "dsc.exe not found after extracting the DSC $($DscLatestRelease.tag_name) ZIP package -- release layout may have changed. See $LogPath."
   }
-  "=== DSC $($DscLatestRelease.tag_name) ZIP package extracted to $DscZipExe ===" | Add-Content -Path $LogPath
+  Write-Log "=== DSC $($DscLatestRelease.tag_name) ZIP package extracted to $DscZipExe ==="
 }
 
-# winget refuses --processor-path without this admin setting enabled first ("This feature needs to
-# be enabled by administrators"). `winget settings export` gives a reliable unelevated read of its
-# current state; enabling it needs its own elevated process (a plain `winget settings --enable` from
-# this unelevated script fails the same way), so this only prompts UAC the first time -- or after
-# whatever store backs admin settings gets reset.
+# winget refuses --processor-path without this admin setting enabled first ("This feature needs
+# to be enabled by administrators"). `winget settings export` gives a reliable unelevated read of
+# its current state; enabling it needs its own elevated process (a plain `winget settings
+# --enable` from this unelevated script fails the same way), so this only prompts UAC the first
+# time -- or after whatever store backs admin settings gets reset.
 $AdminSettings = (winget settings export 2>$null | ConvertFrom-Json).adminSettings
 if (-not $AdminSettings.ConfigurationProcessorPath) {
   Write-Host "Enabling winget's ConfigurationProcessorPath admin setting (requires elevation -- expect a UAC prompt)...`n" -ForegroundColor Cyan
-  "=== Enabling ConfigurationProcessorPath admin setting (elevated) ===" | Add-Content -Path $LogPath
+  Write-Log "=== Enabling ConfigurationProcessorPath admin setting (elevated) ==="
   $Proc = Start-Process -FilePath 'winget' -ArgumentList 'settings', '--enable', 'ConfigurationProcessorPath' -Verb RunAs -Wait -PassThru
   if ($Proc.ExitCode -ne 0) {
     throw "Failed to enable ConfigurationProcessorPath admin setting (exit code $($Proc.ExitCode)) -- Microsoft.Windows/OptionalFeatureList resources will fail. Enable it manually by running 'winget settings --enable ConfigurationProcessorPath' as administrator, then rerun."
   }
-  "=== ConfigurationProcessorPath admin setting enabled ===" | Add-Content -Path $LogPath
+  Write-Log "=== ConfigurationProcessorPath admin setting enabled ==="
 }
 
 # Workaround for https://github.com/microsoft/winget-cli/issues/6091, which prevents winget
 # configure from installing Store apps for the first time: pre-install them here instead. Scans
-# every *.configuration.winget file (not just one hardcoded name) since msstore ids can live in
-# any of them; a file only contributes ids when it changed, same skip reasoning as the loop below.
+# every *.configuration.winget file
 $MsstoreIds = [System.Collections.Generic.HashSet[string]]::new()
 foreach ($File in $ConfigFiles) {
   $Path = Join-Path $ConfigDir $File
-  if (-not (Test-ConfigFileChanged -Path $Path)) {
-    continue
-  }
-  $PendingId = $null
-  foreach ($Line in Get-Content -Path $Path) {
-    if ($Line -match '^\s*id:\s*(\S+)\s*$') {
-      $PendingId = $Matches[1]
-    } elseif ($Line -match '^\s*source:\s*msstore\s*$' -and $PendingId) {
-      [void]$MsstoreIds.Add($PendingId)
-      $PendingId = $null
-    }
+  if (Test-ConfigFileChanged -Path $Path) {
+    Get-MsstoreIds -Path $Path | ForEach-Object { [void]$MsstoreIds.Add($_) }
   }
 }
 if ($MsstoreIds.Count -eq 0) {
-  "=== no changed *.configuration.winget files reference msstore ids, skipping pre-install pass ===" | Add-Content -Path $LogPath
-} else {
-  foreach ($Id in $MsstoreIds) {
-    # Already-installed Store apps make winget install fail with 0x8A15002B (no applicable
-    # update) -- not a real failure, just an upgrade check against a current package. Check
-    # first to skip it.
-    winget list --id $Id -e --accept-source-agreements 2>&1 | Add-Content -Path $LogPath
-    if ($LASTEXITCODE -eq 0) {
-      "=== $Id already installed, skipping pre-install ===" | Add-Content -Path $LogPath
-      continue
-    }
-    Write-Host "Pre-installing Store app $Id...`n" -ForegroundColor Cyan
-    "=== winget install $Id (msstore pre-install) ===" | Add-Content -Path $LogPath
-    Invoke-WithRetry -Name "msstore agreement accept: $Id" -ScriptBlock {
-      # Log-only: winget can't suppress its per-package "Found X / Agreements" narration, and
-      # with 9 msstore apps that's console noise the Write-Host above and warning below already cover.
-      winget install --id $Id --source msstore --accept-package-agreements --accept-source-agreements --disable-interactivity 2>&1 |
-        Add-Content -Path $LogPath
-    }
-    if ($LASTEXITCODE -ne 0) {
-      Write-Host "Warning: pre-accepting $Id failed (exit code $LASTEXITCODE) -- its winget configure resource will likely fail too. See $LogPath`n" -ForegroundColor Yellow
-    }
+  Write-Log "=== no changed *.configuration.winget files reference msstore ids, skipping pre-install pass ==="
+}
+foreach ($Id in $MsstoreIds) {
+  # Already-installed Store apps make winget install fail with 0x8A15002B (no applicable update)
+  # -- not a real failure, just an upgrade check against a current package. Check first to skip it.
+  winget list --id $Id -e --accept-source-agreements 2>&1 | Write-Log
+  if ($LASTEXITCODE -eq 0) {
+    Write-Log "=== $Id already installed, skipping pre-install ==="
+    continue
+  }
+  Write-Host "Pre-installing Store app $Id...`n" -ForegroundColor Cyan
+  Write-Log "=== winget install $Id (msstore pre-install) ==="
+  Invoke-WithRetry -Name "msstore pre-install: $Id" -ScriptBlock {
+    # Log-only: winget can't suppress its per-package "Found X / Agreements" narration, and with
+    # many Store apps that's console noise the Write-Host above and warning below already cover.
+    winget install --id $Id --source msstore --accept-package-agreements --accept-source-agreements --disable-interactivity 2>&1 | Write-Log
+  }
+  if ($LASTEXITCODE -ne 0) {
+    Write-Host "Warning: pre-installing $Id failed (exit code $LASTEXITCODE) -- its winget configure resource will likely fail too. See $LogPath`n" -ForegroundColor Yellow
   }
 }
+
+#endregion
+
+#region Apply configuration files
 
 foreach ($File in $ConfigFiles) {
   $Path = Join-Path $ConfigDir $File
   if (-not (Test-ConfigFileChanged -Path $Path)) {
     Write-Host "Skipping $File -- unchanged since last successful apply.`n" -ForegroundColor DarkGray
-    "=== ${File}: unchanged, skipping ===" | Add-Content -Path $LogPath
+    Write-Log "=== ${File}: unchanged, skipping ==="
     continue
   }
+
   Write-Host "Applying $File via 'winget configure'...`n" -ForegroundColor Cyan
-  "=== $File ===" | Add-Content -Path $LogPath
+  Write-Log "=== $File ==="
   Invoke-WithRetry -Name $File -ScriptBlock {
-    # winget prints its legal disclaimer unconditionally regardless of
-    # --accept-configuration-agreements -- shown once per file below since running unredirected
-    # (see the stdout-piping tradeoff noted near $WingetLogDir above) means we can no longer
-    # filter it out of the console. Remove this note if
-    # https://github.com/microsoft/winget-cli/issues/6419 is implemented upstream.
+    # If https://github.com/microsoft/winget-cli/issues/6419) is ever implemented, we'll want to add its flag here
+    # When https://github.com/PowerShell/DSC/issues/1653 is fixed, remove the --processor-path argument and the DSC ZIP workaround above
     winget configure -f $Path --processor-path $DscZipExe --accept-configuration-agreements --disable-interactivity --suppress-initial-details --verbose-logs
   }
-  "--- exit code: $LASTEXITCODE ---" | Add-Content -Path $LogPath
+  Write-Log "--- exit code: $LASTEXITCODE ---"
   if ($LASTEXITCODE -ne 0) {
-    "=== winget's own diagnostic logs for this failure: $WingetLogDir ===" | Add-Content -Path $LogPath
+    Write-Log "=== winget's own diagnostic logs for this failure: $WingetLogDir ==="
     Write-Host "Warning: $File exited with code $LASTEXITCODE after retries. This may be a benign warning (e.g. 'module not provided') or a real failure -- see $LogPath`n" -ForegroundColor Yellow
   }
 
-  # A file's resources (e.g. enabling a feature, WSL setup) can leave a reboot pending that winget
-  # configure won't report -- checked fresh after every file, since any could trigger one. Checked
-  # before recording the hash below: if this file caused it, its effects may not be fully in place
-  # yet, so its hash (and every later file's, never reached this run) stays unrecorded -- the skip
-  # check re-picks them up once chezmoi retries.
+  # A file's resources (e.g. enabling a feature, WSL setup) can leave a reboot pending that
+  # winget configure won't report -- checked fresh after every file, since any could trigger one.
+  # Checked before recording the hash below: if this file caused it, its effects may not be fully
+  # in place yet, so its hash (and every later file's, never reached this run) stays unrecorded
+  # -- the skip check re-picks them up once chezmoi retries.
   if (Test-RebootPending) {
-    if (Register-ChezmoiApplyOnNextLogon) {
-      Write-Host "A reboot is pending after applying $File. Reboot -- 'chezmoi apply' will rerun automatically at next logon to finish applying the configuration.`n" -ForegroundColor Yellow
-    } else {
-      Write-Host "A reboot is pending after applying $File. Reboot, then rerun 'chezmoi apply' again to finish applying the configuration.`n" -ForegroundColor Yellow
-    }
-    "=== reboot pending after ${File}: not recording applied-hash, exiting ===" | Add-Content -Path $LogPath
-    # Non-zero exit (not winget's own unreliable code) makes chezmoi retry this script even if
-    # nothing else changed -- this script always exits 0 otherwise (see bottom), which would
-    # otherwise make chezmoi treat it as already-successful and skip a bare rerun.
-    exit 1
+    Stop-ForPendingReboot -Reason "A reboot is pending after applying $File." `
+      -LogMessage "=== reboot pending after ${File}: not recording applied-hash, exiting ==="
   }
 
   # Recorded regardless of winget's exit code (unreliable, see bottom of script) -- gating on a
   # clean exit would permanently defeat the skip check for files with benign non-zero warnings.
-  # The reboot-pending case above already exited before reaching here.
   Set-ConfigFileAppliedHash -Path $Path
 }
+
+#endregion
 
 Write-Host "Windows configuration applied -- no reboot needed.`n" -ForegroundColor Green
 
