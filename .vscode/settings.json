@@ -19,6 +19,9 @@
     "**/*.tmpl",
     "**/.chezmoitemplates/**"
   ],
+  "json.schemaDownload.trustedDomains": {
+    "https://aka.ms": true
+  },
   "yaml.disableSchemaDetection": [
     "**/*.yaml.tmpl",
     "**/*.yml.tmpl",
@@ -30,8 +33,5 @@
     "**/.forgejo/workflows/*.yaml",
     "azure-pipelines.yml",
     "azure-pipelines.yaml"
-  ],
-  "json.schemaDownload.trustedDomains": {
-    "https://aka.ms": true
-  }
+  ]
 }
