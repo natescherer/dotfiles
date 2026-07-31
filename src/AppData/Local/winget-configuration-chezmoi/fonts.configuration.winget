@@ -17,13 +17,12 @@ resources:
         (Get-ChildItem), not chezmoi template-render time. This file used to be a .tmpl that
         globbed that directory while chezmoi rendered it, but this file and the
         .chezmoiexternal.toml.tmpl downloads that populate that directory are both regular
-        chezmoi targets in the same alphabetical apply phase, and
-        ".config/windows/fonts.configuration.winget" sorts before
-        ".local/share/chezmoifonts/..." -- so on a fresh machine the template rendered before
-        the fonts were actually downloaded, globbed an empty directory, and produced an empty
-        (schema-invalid) resources list. Discovering fonts when this script actually runs
-        (always after downloads complete) sidesteps that ordering race entirely -- and means
-        this file no longer needs to be a template at all. The registry value name is read
+        chezmoi targets applied in the same pass, with no guaranteed ordering between them --
+        so on a fresh machine the template sometimes rendered before the fonts were actually
+        downloaded, globbed an empty directory, and produced an empty (schema-invalid)
+        resources list. Discovering fonts when this script actually runs (always after all
+        files are applied) sidesteps that ordering race entirely -- and means this file no
+        longer needs to be a template at all. The registry value name is read
         from each font's own name table (family + style), matching what right-click "Install"
         does, rather than derived from the filename. Runs via PowerShellScript (pwsh), not
         WindowsPowerShellScript -- unlike optional-features.configuration.winget, nothing here (Add-Type

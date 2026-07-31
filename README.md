@@ -99,14 +99,14 @@ Currently managed:
 - [Windows](https://windows.com) 🪟
   - Config Files
     - [src/dot_wslconfig](src/dot_wslconfig)
-    - [src/dot_config/windows/_requirements.configuration.winget](src/dot_config/windows/_requirements.configuration.winget)
-    - [src/dot_config/windows/pwsh.configuration.winget](src/dot_config/windows/pwsh.configuration.winget)
-    - [src/dot_config/windows/settings.configuration.winget](src/dot_config/windows/settings.configuration.winget)
-    - [src/dot_config/windows/apps.configuration.winget](src/dot_config/windows/apps.configuration.winget)
-    - [src/dot_config/windows/optional-features.configuration.winget](src/dot_config/windows/optional-features.configuration.winget)
-    - [src/dot_config/windows/optional-features-list.ps1](src/dot_config/windows/optional-features-list.ps1)
-    - [src/dot_config/windows/wsl.configuration.winget](src/dot_config/windows/wsl.configuration.winget)
-    - [src/dot_config/windows/fonts.configuration.winget](src/dot_config/windows/fonts.configuration.winget)
+    - [src/AppData/Local/winget-configuration-chezmoi/_requirements.configuration.winget](src/AppData/Local/winget-configuration-chezmoi/_requirements.configuration.winget)
+    - [src/AppData/Local/winget-configuration-chezmoi/pwsh.configuration.winget](src/AppData/Local/winget-configuration-chezmoi/pwsh.configuration.winget)
+    - [src/AppData/Local/winget-configuration-chezmoi/settings.configuration.winget](src/AppData/Local/winget-configuration-chezmoi/settings.configuration.winget)
+    - [src/AppData/Local/winget-configuration-chezmoi/apps.configuration.winget](src/AppData/Local/winget-configuration-chezmoi/apps.configuration.winget)
+    - [src/AppData/Local/winget-configuration-chezmoi/optional-features.configuration.winget](src/AppData/Local/winget-configuration-chezmoi/optional-features.configuration.winget)
+    - [src/AppData/Local/winget-configuration-chezmoi/optional-features-list.ps1](src/AppData/Local/winget-configuration-chezmoi/optional-features-list.ps1)
+    - [src/AppData/Local/winget-configuration-chezmoi/wsl.configuration.winget](src/AppData/Local/winget-configuration-chezmoi/wsl.configuration.winget)
+    - [src/AppData/Local/winget-configuration-chezmoi/fonts.configuration.winget](src/AppData/Local/winget-configuration-chezmoi/fonts.configuration.winget)
     - [src/.chezmoiscripts/40-windows/run_onchange_after_winget-configure.ps1.tmpl](src/.chezmoiscripts/40-windows/run_onchange_after_winget-configure.ps1.tmpl)
 - [Windows Terminal](https://apps.microsoft.com/detail/9n0dx20hk701) 🪟
   - Config Files

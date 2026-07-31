@@ -1,6 +1,7 @@
 # This script applies the WinGet Configuration files that declaratively configure this Windows machine.
 
-# {{ $wingetConfigSourceDir := joinPath .chezmoi.sourceDir "dot_config/windows" }}
+# {{ $wingetConfigDirName := "winget-configuration-chezmoi" }}
+# {{ $wingetConfigSourceDir := joinPath .chezmoi.sourceDir "AppData/Local" $wingetConfigDirName }}
 # {{/* sortAlpha keeps the hash list below stable across renders -- glob's match order isn't guaranteed */}}
 # {{ $wingetConfigFiles := joinPath $wingetConfigSourceDir "*.configuration.winget" | glob | sortAlpha }}
 
@@ -40,14 +41,15 @@ Write-Host "Applying Windows configuration via winget configure...`n" -Foregroun
 # unchanged since their own last successful-enough apply, tracked via a "<file>.chezmoi-hash"
 # sidecar (see Test-ConfigFileChanged/Set-ConfigFileAppliedHash). Editing this script's own body
 # forces one full run everywhere, seeding every sidecar for the first time.
-$ConfigDir = Join-Path $HOME ".config" "windows"
+# Lives under AppData\Local, not .config, since nothing reads this path via XDG -- it's
+# chezmoi/script-owned data (this script's own log lives here too, see $LogPath below).
+$ConfigDir = Join-Path $env:LOCALAPPDATA "{{ $wingetConfigDirName }}"
 $ConfigFiles = (Get-ChildItem -Path $ConfigDir -Filter "*.configuration.winget" -File | Sort-Object Name).Name
 
 # winget's exit code isn't reliable (see below) and this runs unattended, so log everything --
 # otherwise a real failure leaves no record once the terminal closes.
-$LogDir = Join-Path $env:LOCALAPPDATA "chezmoi"
-New-Item -ItemType Directory -Path $LogDir -Force | Out-Null
-$LogPath = Join-Path $LogDir "winget-configure.log"
+New-Item -ItemType Directory -Path $ConfigDir -Force | Out-Null
+$LogPath = Join-Path $ConfigDir "winget-configure.log"
 "Run started $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')" | Set-Content -Path $LogPath
 
 # Retries with exponential backoff to ride out transient network blips; every attempt is logged.
