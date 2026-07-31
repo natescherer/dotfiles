@@ -37,6 +37,12 @@ try {
   Write-Verbose "Could not force UTF-8 console encoding: $($_.Exception.Message)"
 }
 
+# First console output from this script -- chezmoi apply runs a lot of scripts back to back with
+# no inherent indication of which one is currently running, and this one in particular can take a
+# while (winget configure per file, plus the VCRedist/PSResourceGet/msstore preflight steps), so
+# say up front that it's this script that's about to start doing things.
+Write-Host "Applying Windows configuration via winget configure...`n" -ForegroundColor Cyan
+
 # Every *.configuration.winget file in this directory is applied automatically -- no wrapper-script
 # edit needed to add a new one. $ConfigFiles below discovers them at runtime and applies them in
 # alphabetical order, which is correct by construction: _requirements.configuration.winget is the
@@ -130,6 +136,16 @@ function Set-ConfigFileAppliedHash {
   }
 }
 
+# Backs both the upfront check below and the per-file check in the main loop. winget configure
+# gives no indication on its own that one of its resources (e.g. enabling a Windows optional
+# feature) left the machine needing a reboot before further changes can be trusted, so this has
+# to be inferred from the registry directly.
+function Test-RebootPending {
+  return (Test-Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending') `
+    -or (Test-Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\RebootRequired') `
+    -or ($null -ne (Get-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager' -Name PendingFileRenameOperations -ErrorAction SilentlyContinue))
+}
+
 # Cheap system-state snapshot at the top of the log -- makes the log useful for
 # after-the-fact troubleshooting weeks from now, when there's no memory of what
 # state the machine was in.
@@ -145,6 +161,18 @@ try {
   $DiskFreeGB = "(unavailable)"
 }
 "Preflight: OS=$OsInfo | PowerShell=$($PSVersionTable.PSVersion) | winget=$((winget --version) 2>$null) | DiskFreeGB(C)=$DiskFreeGB" | Add-Content -Path $LogPath
+
+# Check for a reboot already pending from BEFORE this script even ran (e.g. Windows Update, a
+# previous manual install) -- applying configuration on top of that is unreliable, so bail out
+# immediately rather than risk resources succeeding or failing unpredictably against a machine
+# that's already due for a restart. Exiting non-zero (rather than warning and continuing) makes
+# chezmoi retry this whole script on the next apply even if nothing else changed -- see the
+# per-file reboot check in the main loop below for why that matters.
+if (Test-RebootPending) {
+  Write-Host "A reboot is already pending. Reboot, then rerun 'chezmoi apply' to apply the configuration.`n" -ForegroundColor Yellow
+  "=== reboot already pending before any configuration was applied -- exiting ===" | Add-Content -Path $LogPath
+  exit 1
+}
 
 # Stop-the-world check: if winget configure is disabled by Group Policy, nothing
 # below can work. Fail loudly rather than warn -- as a run_onchange script, chezmoi
@@ -301,44 +329,41 @@ foreach ($File in $ConfigFiles) {
   if ($LASTEXITCODE -ne 0) {
     Write-Host "Warning: $File exited with code $LASTEXITCODE after retries. This may be a benign warning (e.g. 'module not provided') or a real failure -- see $LogPath`n" -ForegroundColor Yellow
   }
-  # Updated regardless of exit code, matching the warning above: winget configure's exit code isn't
-  # a reliable success signal (see the comment at the bottom of this script), so gating this on a
-  # clean exit would mean any file that routinely emits a benign non-zero warning never gets its
-  # hash recorded -- permanently defeating the skip check above on every future run.
-  # Invoke-WithRetry already spent 3 attempts with backoff on this before we get here.
+
+  # Some resources (e.g. enabling a Windows optional feature, installing WSL components) leave the
+  # machine needing a reboot before their effects are actually in place, but winget configure gives
+  # no indication of this on its own -- checked fresh after every file, not just the ones known to
+  # trigger it today, since any file's resources could start requiring one in the future. Checked
+  # BEFORE recording this file's applied-hash below and BEFORE moving on to the next file: if a
+  # reboot only became pending because of what THIS file just did, its own resources may not have
+  # taken full effect yet either, so its hash deliberately isn't recorded -- the skip check at the
+  # top of this loop will pick it up again (along with every file after it in $ConfigFiles, never
+  # reached this run) once chezmoi retries the whole script.
+  if (Test-RebootPending) {
+    Write-Host "A reboot is pending after applying $File. Reboot, then rerun 'chezmoi apply' again to finish applying the configuration.`n" -ForegroundColor Yellow
+    "=== reboot pending after ${File}: not recording applied-hash, exiting ===" | Add-Content -Path $LogPath
+    # Non-zero (not one of winget's own unreliable exit codes, but our own deterministic
+    # registry-based check) so chezmoi retries this whole script on the next apply even if nothing
+    # else changed -- otherwise this script's always-0 exit (see the bottom of this file) would
+    # make chezmoi consider it already successfully applied and, per its run_onchange_ semantics,
+    # not even re-invoke it on a bare rerun with no other file changes -- confirmed empirically.
+    exit 1
+  }
+
+  # Updated regardless of winget's own exit code, matching the warning above: winget configure's
+  # exit code isn't a reliable success signal (see the comment at the bottom of this script), so
+  # gating this on a clean exit would mean any file that routinely emits a benign non-zero warning
+  # never gets its hash recorded -- permanently defeating the skip check above on every future run.
+  # Invoke-WithRetry already spent 3 attempts with backoff on this before we get here, and the
+  # reboot-pending check above already handled (and exited on) the one case where recording the
+  # hash here would be wrong.
   Set-ConfigFileAppliedHash -Path $Path
 }
 
-# optional-features.configuration.winget enables Windows optional features (e.g. Hyper-V, WSL) that typically
-# need a reboot before they take effect, but winget configure gives no indication of this on its own.
-$RebootPending = (Test-Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending') `
-  -or (Test-Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\RebootRequired') `
-  -or ($null -ne (Get-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager' -Name PendingFileRenameOperations -ErrorAction SilentlyContinue))
-if ($RebootPending) {
-  Write-Host "A reboot is pending. Reboot and rerun 'chezmoi apply' again to finish applying the configuration.`n" -ForegroundColor Yellow
-
-  # Without this, "rerun chezmoi apply" above wouldn't actually do anything: this script always
-  # exits 0 (see below), so chezmoi would consider it already successfully applied and, per its
-  # run_onchange_ semantics, wouldn't even re-invoke it on a bare rerun with no other file changes
-  # -- confirmed empirically. Two things are needed to make the rerun genuinely effective:
-  #
-  # 1. Remove the applied-hash sidecar for the specific files whose resources can be left
-  #    incomplete by a pending reboot, so the main loop above doesn't skip them next time even
-  #    though their content hasn't changed. Only wsl.configuration.winget's InstallUbuntu
-  #    resource is confirmed to actually fail its Set operation until after reboot (it depends on
-  #    Virtual Machine Platform, enabled moments earlier in the same run, actually being active);
-  #    optional-features.configuration.winget's Enable-WindowsOptionalFeature call reports success
-  #    immediately regardless of reboot state, so retrying it doesn't change anything -- included
-  #    here anyway since it's cheap and idempotent, in case that ever stops being true.
-  foreach ($RebootAffectedFile in @("optional-features.configuration.winget", "wsl.configuration.winget")) {
-    Remove-Item -Path (Join-Path $ConfigDir "$RebootAffectedFile.chezmoi-hash") -Force -ErrorAction SilentlyContinue
-  }
-
-  # 2. Exit non-zero so chezmoi retries this whole script on the next apply even if nothing else
-  #    changed -- not one of winget's own unreliable exit codes, but our own deterministic
-  #    registry-based reboot check, so it's safe to act on directly here.
-  exit 1
-}
+# Reaching this line means every file in $ConfigFiles was either applied or already up to date,
+# and neither the upfront nor any per-file check above found a reboot pending -- i.e. this run
+# needs nothing further from the user.
+Write-Host "Windows configuration applied -- no reboot needed.`n" -ForegroundColor Green
 
 # winget configure returns a non-zero exit code even on a fully successful apply (e.g. for
 # benign "module not provided" warnings), so its exit code isn't a reliable success signal here.
