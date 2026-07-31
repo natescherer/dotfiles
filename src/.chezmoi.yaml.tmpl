@@ -1,5 +1,5 @@
 {{- $isPersonal := promptBoolOnce . "isPersonal" "Is this a a personal computer? (Enter for default)" true }}
-{{- $editor := promptStringOnce . "editor" "Set preferred console editor (Enter for default):" "micro" }}
+{{- $editor := "micro" }}
 
 {{- $adminRightsPrompt := "Does your regular user account have admin rights on this machine?" }}
 {{- if eq .chezmoi.os "linux" }}
@@ -7,9 +7,16 @@
 {{- end }}
 {{- $adminRights := promptBoolOnce . "adminRights" $adminRightsPrompt false }}
 
-{{- $applyWingetConfiguration := false }}
+{{- $applyOSConfigPrompt := "" }}
 {{- if eq .chezmoi.os "windows" }}
-{{- $applyWingetConfiguration = promptBoolOnce . "applyWingetConfiguration" "Apply WinGet Configuration files to declaratively configure this Windows machine? (Enter for default)" false }}
+{{- $applyOSConfigPrompt = "Apply WinGet Configuration files to declaratively configure this Windows machine? (Enter for default)" }}
+{{- else if eq .chezmoi.os "darwin" }}
+{{- $applyOSConfigPrompt = "Apply Ansible playbook to declaratively configure this Mac? (Enter for default)" }}
+{{- end }}
+
+{{- $applyOSConfig := false }}
+{{- if or (eq .chezmoi.os "windows") (eq .chezmoi.os "darwin") }}
+{{- $applyOSConfig = promptBoolOnce . "applyOSConfig" $applyOSConfigPrompt false }}
 {{- end }}
 
 {{- if eq .chezmoi.os "windows" }}
@@ -17,15 +24,15 @@ cd:
     command: pwsh
 {{- end }}
 data:
+    # COPIER-ME
     editor: {{ $editor }}
-{{- $gitName := promptStringOnce . "gitName" "Git name (Enter for default):" "Nate Scherer" }}
-    gitName: {{ $gitName }}
-{{- $gitEmail := promptStringOnce . "gitEmail" "Git email (Enter for default):" "376408+natescherer@users.noreply.github.com" }}
-    gitEmail: {{ $gitEmail }}
-    applyWingetConfiguration: {{ $applyWingetConfiguration }}
+    # COPIER-ME
+    gitName: Nate Scherer
+    # COPIER-ME
+    gitEmail: 376408+natescherer@users.noreply.github.com
+    applyOSConfig: {{ $applyOSConfig }}
     isPersonal: {{ $isPersonal }}
     adminRights: {{ $adminRights }}
-    modKey: {{ if eq .chezmoi.os "darwin" }}⌘{{ else }}Ctrl{{ end }}
 diff:
     command: "code"
     args:

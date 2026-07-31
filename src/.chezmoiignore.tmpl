@@ -83,7 +83,9 @@ git/gh
 git/gh/**
 {{- end }}
 
-{{- if eq .applyWingetConfiguration false }}
+{{- if eq .applyOSConfig false }}
+{{- if eq .chezmoi.os "windows" }}
 # Skip applying WinGet Configuration files
 .chezmoiscripts/40-windows/run_onchange_after_winget-configure.ps1.tmpl
+{{- end }}
 {{- end }}
