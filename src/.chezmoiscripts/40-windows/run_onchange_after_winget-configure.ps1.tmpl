@@ -13,17 +13,6 @@
 # {{ "\n" }}{{ range $wingetConfigFiles }}## {{ base . }} hash: {{ include . | sha256sum }}{{ "\n" }}{{ end -}}
 ## optional-features-list.ps1 hash: {{ joinPath $wingetConfigSourceDir "optional-features-list.ps1" | include | sha256sum }}
 
-# Windows PowerShell 5.1 defaults to the ANSI codepage, not UTF-8, so winget's UTF-8 output
-# (emoji, smart quotes) turns to mojibake once piped through Tee-Object/Add-Content below. Force
-# UTF-8 to match. No-op on pwsh 7; failure here isn't fatal (e.g. redirected-stdout CI hosts).
-try {
-  $Utf8NoBom = [System.Text.UTF8Encoding]::new($false)
-  [Console]::OutputEncoding = $Utf8NoBom
-  $OutputEncoding = $Utf8NoBom
-} catch {
-  Write-Verbose "Could not force UTF-8 console encoding: $($_.Exception.Message)"
-}
-
 # chezmoi apply runs many scripts back to back with no indication which is running -- announce
 # this one, since it can take a while (winget configure per file, plus preflight steps below).
 Write-Host "Applying Windows configuration via winget configure...`n" -ForegroundColor Cyan
@@ -37,6 +26,8 @@ $ConfigFiles = (Get-ChildItem -Path $ConfigDir -Filter "*.configuration.winget" 
 New-Item -ItemType Directory -Path $ConfigDir -Force | Out-Null
 $LogPath = Join-Path $ConfigDir "winget-configure.log"
 "Run started $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')" | Set-Content -Path $LogPath
+
+$WingetLogDir = Join-Path $env:LOCALAPPDATA 'Packages\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe\LocalState\DiagOutputDir'
 
 # Retries with exponential backoff to ride out transient network blips; every attempt is logged.
 function Invoke-WithRetry {
@@ -130,7 +121,7 @@ try {
 } catch {
   $DiskFreeGB = "(unavailable)"
 }
-"Preflight: OS=$OsInfo | PowerShell=$($PSVersionTable.PSVersion) | winget=$((winget --version) 2>$null) | DiskFreeGB(C)=$DiskFreeGB" | Add-Content -Path $LogPath
+"Preflight: OS=$OsInfo | PowerShell=$($PSVersionTable.PSVersion) | winget=$((winget --version) 2>$null) | DiskFreeGB(C)=$DiskFreeGB | WingetLogDir=$WingetLogDir" | Add-Content -Path $LogPath
 
 # A reboot already pending (e.g. from Windows Update) before this script even runs makes applying
 # config unreliable -- bail out now. Non-zero exit makes chezmoi retry on the next apply even if
@@ -160,8 +151,7 @@ if ($null -ne $PolicyValue -and [int]$PolicyValue -eq 0) {
 # return non-zero even when already enabled, and a real failure here surfaces in the loop below.
 Write-Host "Ensuring winget configure extended features are enabled...`n" -ForegroundColor Cyan
 "=== winget configure --enable ===" | Add-Content -Path $LogPath
-winget configure --enable 2>&1 |
-  Tee-Object -FilePath $LogPath -Append
+winget configure --enable --verbose-logs
 
 # winget configure needs the VC++ 2015+ x64 redistributable when run non-elevated, and fails with
 # an opaque internal error without it -- self-heal by installing it directly.
@@ -171,10 +161,10 @@ if (-not $VCRedistInstalled) {
   Write-Host "Microsoft Visual C++ Redistributable 2015+ (x64) not found -- installing (winget configure can fail with an internal error without it)...`n" -ForegroundColor Yellow
   "=== Installing Microsoft.VCRedist.2015+.x64 ===" | Add-Content -Path $LogPath
   Invoke-WithRetry -Name 'Microsoft.VCRedist.2015+.x64 install' -ScriptBlock {
-    winget install --id 'Microsoft.VCRedist.2015+.x64' --source winget --accept-package-agreements --accept-source-agreements --disable-interactivity 2>&1 |
-      Tee-Object -FilePath $LogPath -Append
+    winget install --id 'Microsoft.VCRedist.2015+.x64' --source winget --accept-package-agreements --accept-source-agreements --disable-interactivity --verbose-logs
   }
   if ($LASTEXITCODE -ne 0) {
+    "=== winget's own diagnostic logs for this failure: $WingetLogDir ===" | Add-Content -Path $LogPath
     throw "Failed to install Microsoft.VCRedist.2015+.x64 (exit code $LASTEXITCODE) -- winget configure is likely to fail without it. See $LogPath and rerun."
   }
 }
@@ -213,25 +203,27 @@ if (-not $PSResourceGetOk) {
 # default. Per DSC v3.2.0's release notes this resource "requires using the ZIP package of DSC for
 # now". Downloading that ZIP release once and pointing every `winget configure` call at it via
 # --processor-path sidesteps the limitation for all files, not just the one that needs it -- there's
-# no per-resource processor override. Pinned (not "latest") and hash-verified: unlike PSResourceGet/
-# VCRedist above, this downloads a raw release asset directly rather than through winget/PSGallery, so
-# there's no package-manager-level integrity check to lean on. Remove this whole block (and the
-# --processor-path argument in the main loop below) once the linked issue is fixed upstream.
-$DscZipVersion = '3.2.3'
-$DscZipSha256 = 'E1E48218014C166BBBE0EE6364D1E9C2AB20AB5515CEDA4EABD529A4BFD49881'
+# no per-resource processor override. Always resolved to GitHub's "latest" release (which already
+# excludes pre-releases/drafts) rather than pinned, so this self-updates. Remove this whole block
+# (and the --processor-path argument in the main loop below) once the linked issue is fixed upstream.
+$DscLatestRelease = Invoke-RestMethod -Uri 'https://api.github.com/repos/PowerShell/DSC/releases/latest'
+$DscZipVersion = $DscLatestRelease.tag_name.TrimStart('v')
 $DscZipDir = Join-Path $ConfigDir "dsc-zip\$DscZipVersion"
 $DscZipExe = if (Test-Path $DscZipDir) {
   (Get-ChildItem -Path $DscZipDir -Filter 'dsc.exe' -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1).FullName
 }
 
 if (-not $DscZipExe) {
-  Write-Host "Downloading DSC v$DscZipVersion ZIP package (needed for Microsoft.Windows/OptionalFeatureList -- see PowerShell/DSC#1653)...`n" -ForegroundColor Cyan
-  "=== Downloading DSC v$DscZipVersion ZIP package ===" | Add-Content -Path $LogPath
-  $DscZipUrl = "https://github.com/PowerShell/DSC/releases/download/v$DscZipVersion/DSC-$DscZipVersion-x86_64-pc-windows-msvc.zip"
+  $DscZipAsset = $DscLatestRelease.assets | Where-Object { $_.name -match 'x86_64-pc-windows-msvc\.zip$' } | Select-Object -First 1
+  if (-not $DscZipAsset) {
+    throw "Could not find an x86_64-pc-windows-msvc.zip asset in the latest DSC release ($($DscLatestRelease.tag_name)) -- release layout may have changed. See $LogPath."
+  }
+  Write-Host "Downloading DSC $($DscLatestRelease.tag_name) ZIP package (needed for Microsoft.Windows/OptionalFeatureList -- see PowerShell/DSC#1653)...`n" -ForegroundColor Cyan
+  "=== Downloading DSC $($DscLatestRelease.tag_name) ZIP package ===" | Add-Content -Path $LogPath
   $DscZipDownloadPath = Join-Path $env:TEMP "dsc-$DscZipVersion.zip"
   Invoke-WithRetry -Name 'DSC ZIP download' -ScriptBlock {
     try {
-      Invoke-WebRequest -Uri $DscZipUrl -OutFile $DscZipDownloadPath -UseBasicParsing -ErrorAction Stop
+      Invoke-WebRequest -Uri $DscZipAsset.browser_download_url -OutFile $DscZipDownloadPath -ErrorAction Stop
       $global:LASTEXITCODE = 0
     } catch {
       "DSC ZIP download failed: $($_.Exception.Message)" | Add-Content -Path $LogPath
@@ -239,13 +231,7 @@ if (-not $DscZipExe) {
     }
   }
   if ($LASTEXITCODE -ne 0) {
-    throw "Failed to download DSC v$DscZipVersion ZIP package after retries -- Microsoft.Windows/OptionalFeatureList resources will fail. See $LogPath and rerun."
-  }
-
-  $ActualHash = (Get-FileHash -Path $DscZipDownloadPath -Algorithm SHA256).Hash
-  if ($ActualHash -ne $DscZipSha256) {
-    Remove-Item -Path $DscZipDownloadPath -Force -ErrorAction SilentlyContinue
-    throw "DSC v$DscZipVersion ZIP package hash mismatch (expected $DscZipSha256, got $ActualHash) -- refusing to use a possibly-tampered download. See $LogPath."
+    throw "Failed to download DSC $($DscLatestRelease.tag_name) ZIP package after retries -- Microsoft.Windows/OptionalFeatureList resources will fail. See $LogPath and rerun."
   }
 
   New-Item -ItemType Directory -Path $DscZipDir -Force | Out-Null
@@ -253,9 +239,9 @@ if (-not $DscZipExe) {
   Remove-Item -Path $DscZipDownloadPath -Force -ErrorAction SilentlyContinue
   $DscZipExe = (Get-ChildItem -Path $DscZipDir -Filter 'dsc.exe' -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1).FullName
   if (-not $DscZipExe) {
-    throw "dsc.exe not found after extracting the DSC v$DscZipVersion ZIP package -- release layout may have changed. See $LogPath."
+    throw "dsc.exe not found after extracting the DSC $($DscLatestRelease.tag_name) ZIP package -- release layout may have changed. See $LogPath."
   }
-  "=== DSC v$DscZipVersion ZIP package extracted to $DscZipExe ===" | Add-Content -Path $LogPath
+  "=== DSC $($DscLatestRelease.tag_name) ZIP package extracted to $DscZipExe ===" | Add-Content -Path $LogPath
 }
 
 # winget refuses --processor-path without this admin setting enabled first ("This feature needs to
@@ -331,18 +317,15 @@ foreach ($File in $ConfigFiles) {
   "=== $File ===" | Add-Content -Path $LogPath
   Invoke-WithRetry -Name $File -ScriptBlock {
     # winget prints its legal disclaimer unconditionally regardless of
-    # --accept-configuration-agreements -- filtered from the console (still logged in full) since
-    # it's identical on every file.
-    winget configure -f $Path --processor-path $DscZipExe --accept-configuration-agreements --disable-interactivity --suppress-initial-details 2>&1 |
-      ForEach-Object {
-        Add-Content -Path $LogPath -Value $_
-        # The below filters our extraneous input, and can be removed if
-        # https://github.com/microsoft/winget-cli/issues/6419 is implemented
-        if ($_ -notmatch '^You are responsible for understanding') { $_ }
-      }
+    # --accept-configuration-agreements -- shown once per file below since running unredirected
+    # (see the stdout-piping tradeoff noted near $WingetLogDir above) means we can no longer
+    # filter it out of the console. Remove this note if
+    # https://github.com/microsoft/winget-cli/issues/6419 is implemented upstream.
+    winget configure -f $Path --processor-path $DscZipExe --accept-configuration-agreements --disable-interactivity --suppress-initial-details --verbose-logs
   }
   "--- exit code: $LASTEXITCODE ---" | Add-Content -Path $LogPath
   if ($LASTEXITCODE -ne 0) {
+    "=== winget's own diagnostic logs for this failure: $WingetLogDir ===" | Add-Content -Path $LogPath
     Write-Host "Warning: $File exited with code $LASTEXITCODE after retries. This may be a benign warning (e.g. 'module not provided') or a real failure -- see $LogPath`n" -ForegroundColor Yellow
   }
 
