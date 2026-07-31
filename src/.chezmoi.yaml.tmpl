@@ -1,10 +1,11 @@
 {{- $isPersonal := promptBoolOnce . "isPersonal" "Is this a a personal computer? (Enter for default)" true }}
 {{- $editor := promptStringOnce . "editor" "Set preferred console editor (Enter for default):" "micro" }}
 
-{{- $macOSAdminRights := false }}
-{{- if eq .chezmoi.os "darwin" }}
-{{- $macOSAdminRights = promptBoolOnce . "macOSAdminRights" "Does your regular user account have admin rights on this Mac?" false }}
+{{- $adminRightsPrompt := "Does your regular user account have admin rights on this machine?" }}
+{{- if eq .chezmoi.os "linux" }}
+{{- $adminRightsPrompt = "Does your regular user account have sudo rights on this machine?" }}
 {{- end }}
+{{- $adminRights := promptBoolOnce . "adminRights" $adminRightsPrompt false }}
 
 {{- $applyWingetConfiguration := false }}
 {{- if eq .chezmoi.os "windows" }}
@@ -23,7 +24,7 @@ data:
     gitEmail: {{ $gitEmail }}
     applyWingetConfiguration: {{ $applyWingetConfiguration }}
     isPersonal: {{ $isPersonal }}
-    macOSAdminRights: {{ $macOSAdminRights }}
+    adminRights: {{ $adminRights }}
     modKey: {{ if eq .chezmoi.os "darwin" }}⌘{{ else }}Ctrl{{ end }}
 diff:
     command: "code"

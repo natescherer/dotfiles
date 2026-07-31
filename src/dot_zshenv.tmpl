@@ -23,7 +23,7 @@ export {{ .name }}="{{ joinPath $.chezmoi.homeDir (get . "home_subpath_part1") (
 {{- end }}
 
 # Variable App Configs
-{{- if and (eq .chezmoi.os "darwin") (eq .macOSAdminRights false) }}
+{{- if and (eq .chezmoi.os "darwin") (eq .adminRights false) }}
 export HOMEBREW_CASK_OPTS="--appdir=~/Applications" # Homebrew:Set cask installs to use per-user directory
 {{- end }}
 {{- if eq .isPersonal true }}
