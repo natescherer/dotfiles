@@ -43,6 +43,7 @@ resources:
   - type: Microsoft.DSC.Transitional/PowerShellScript
     name: InstallUbuntu
     dependsOn:
+      # yaml-language-server-disable
       - InstallWslComponents # This is valid even though there's a schema error, see https://github.com/microsoft/winget-cli/issues/5906
     metadata:
       winget:
