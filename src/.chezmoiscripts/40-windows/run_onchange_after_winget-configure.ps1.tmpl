@@ -1,13 +1,26 @@
 # This script applies the WinGet Configuration files that declaratively configure this Windows machine.
 
-# The hashes below ensure this script reruns whenever any of the source files change.
-## 2-pwsh.configuration.winget hash: {{ joinPath .chezmoi.sourceDir "dot_config/windows/2-pwsh.configuration.winget" | include | sha256sum }}
-## 3-settings.configuration.winget hash: {{ joinPath .chezmoi.sourceDir "dot_config/windows/3-settings.configuration.winget" | include | sha256sum }}
-## 4-apps.configuration.winget hash: {{ joinPath .chezmoi.sourceDir "dot_config/windows/4-apps.configuration.winget" | include | sha256sum }}
-## 5-features.configuration.winget hash: {{ joinPath .chezmoi.sourceDir "dot_config/windows/5-features.configuration.winget" | include | sha256sum }}
-## optional-features-list.ps1 hash: {{ joinPath .chezmoi.sourceDir "dot_config/windows/optional-features-list.ps1" | include | sha256sum }}
-## 6-wsl.configuration.winget hash: {{ joinPath .chezmoi.sourceDir "dot_config/windows/6-wsl.configuration.winget" | include | sha256sum }}
-## 7-fonts.configuration.winget hash: {{ joinPath .chezmoi.sourceDir "dot_config/windows/7-fonts.configuration.winget" | include | sha256sum }}
+# {{ $wingetConfigSourceDir := joinPath .chezmoi.sourceDir "dot_config/windows" }}
+# {{/* glob's match order isn't guaranteed, so sort explicitly. Doesn't need to encode apply order
+#      (that's the runtime $ConfigFiles discovery's job, mirroring this) -- just needs to be stable
+#      so the hash-comment block below doesn't reorder itself (and thus falsely appear "changed")
+#      between renders of otherwise-identical content. */}}
+# {{ $wingetConfigFiles := joinPath $wingetConfigSourceDir "*.configuration.winget" | glob | sortAlpha }}
+
+# The hashes below ensure this script reruns whenever any of the source files change. Generated
+# automatically from whatever *.configuration.winget files currently exist in dot_config/windows/
+# -- see $ConfigFiles further down for the matching runtime discovery.
+# {{/* The whole range/end block is squeezed onto this one physical line, with literal "\n"s
+#      injected in place of real line breaks, specifically so the leading "#" comments out the
+#      ENTIRE construct as one line as far as a PowerShell parser is concerned -- a linter sees
+#      one (very long) comment line instead of choking on a bare "{{ end }}" token, which it
+#      otherwise parses as the reserved `end` block keyword with no statement block following it.
+#      A multi-line range/end can't be commented this way: text placed directly before {{ end }}
+#      on its own line becomes part of the loop body (repeats every iteration) rather than
+#      rendering once, since trim markers only consume whitespace, never the characters added --
+#      confirmed the hard way. */}}
+# {{ "\n" }}{{ range $wingetConfigFiles }}## {{ base . }} hash: {{ include . | sha256sum }}{{ "\n" }}{{ end -}}
+## optional-features-list.ps1 hash: {{ joinPath $wingetConfigSourceDir "optional-features-list.ps1" | include | sha256sum }}
 
 # Windows PowerShell 5.1 defaults [Console]::OutputEncoding to the ANSI code page (1252 on
 # en-US), not UTF-8. winget writes UTF-8 (emoji like the elevation shield, spinner glyphs,
@@ -24,12 +37,18 @@ try {
   Write-Verbose "Could not force UTF-8 console encoding: $($_.Exception.Message)"
 }
 
-# Files are named with a leading N- prefix indicating the order they must be applied in, and
-# $ConfigFiles below applies them in that same order:
-# - 2-pwsh must run before 3-settings, since settings resources (e.g.
-#   Microsoft.Windows.Settings/*) depend on the PowerShell modules 2-pwsh installs.
+# Every *.configuration.winget file in this directory is applied automatically -- no wrapper-script
+# edit needed to add a new one. $ConfigFiles below discovers them at runtime and applies them in
+# alphabetical order, which is correct by construction: _requirements.configuration.winget is the
+# ONLY file any other file depends on (settings.configuration.winget's resources need PowerShell
+# modules it installs), and a leading underscore (0x5F) sorts before every other filename here (all
+# lowercase, 0x61+). Every other file is independent of every other file, so their relative order
+# doesn't matter. If a genuinely new ordering dependency ever appears between two OTHER files
+# (not involving _requirements), this discovery approach can't express it -- that would need
+# either folding into _requirements-style isolation again, or an explicit dependsOn-style
+# mechanism added here.
 #
-# Note on update cadence: 4-apps.configuration.winget deliberately has no `useLatest: true`
+# Note on update cadence: apps.configuration.winget deliberately has no `useLatest: true`
 # anywhere -- each package resource only asserts "is this installed at all," not "is it current."
 # This file is a one-time provisioning baseline, not a continuous update mechanism, and this
 # script only reruns when one of these files' content changes (chezmoi's onchange semantics)
@@ -37,24 +56,17 @@ try {
 #
 # This whole script reruns whenever ANY ONE of these files changes (chezmoi's onchange semantics
 # key off the script's own rendered content, which embeds every file's hash above) -- but winget
-# configure has real per-invocation overhead, so re-applying all 6 files just because one changed
+# configure has real per-invocation overhead, so re-applying every file just because one changed
 # would be wasteful. The main loop below skips files whose content hasn't changed since their own
 # last successful-enough apply, tracked via a "<file>.chezmoi-hash" sidecar written next to each
 # deployed file (see Test-ConfigFileChanged/Set-ConfigFileAppliedHash below) -- so editing just
-# 7-fonts.configuration.winget, for example, only reapplies that one file. Editing this script's
+# fonts.configuration.winget, for example, only reapplies that one file. Editing this script's
 # own body (e.g. to change this logic) changes its rendered content too, which forces one
 # guaranteed full run on every machine -- exactly the run that seeds every sidecar for the first
 # time, so fresh and long-lived machines behave identically on that first run, then diverge to
 # incremental thereafter.
 $ConfigDir = Join-Path $HOME ".config" "windows"
-$ConfigFiles = @(
-  "2-pwsh.configuration.winget",
-  "3-settings.configuration.winget",
-  "4-apps.configuration.winget",
-  "5-features.configuration.winget",
-  "6-wsl.configuration.winget",
-  "7-fonts.configuration.winget"
-)
+$ConfigFiles = (Get-ChildItem -Path $ConfigDir -Filter "*.configuration.winget" -File | Sort-Object Name).Name
 
 # winget configure's exit code isn't a reliable success signal (see below), and this script runs
 # unattended via chezmoi apply, so full output is captured here rather than only streamed to the
@@ -175,19 +187,19 @@ if (-not $VCRedistInstalled) {
   }
 }
 
-# 2-pwsh.configuration.winget's WindowsDscModules resource needs Microsoft.PowerShell.PSResourceGet/PSResourceList,
-# which only exists starting in PSResourceGet 1.3.0-preview1. Installed here directly (plain
-# PowerShell, not a winget configure resource) rather than as a RunCommandOnSet resource in a
-# .winget file -- tried that twice and it didn't hold up: (1) bootstrapping it via a resource in the
-# SAME file as WindowsDscModules doesn't work, since winget's dscv3 processor resolves every resource
-# type in a document up front, before executing any resource's Set; and (2) moving it to its own
-# separate winget configure invocation (a dedicated 1-init.configuration.winget) didn't reliably work
-# either. Installing it directly here, in this script's own process, sidesteps winget's resource
-# resolution entirely.
+# _requirements.configuration.winget's WindowsDscModules resource needs
+# Microsoft.PowerShell.PSResourceGet/PSResourceList, which only exists starting in PSResourceGet
+# 1.3.0-preview1. Installed here directly (plain PowerShell, not a winget configure resource)
+# rather than as a RunCommandOnSet resource in a .winget file -- tried that twice and it didn't
+# hold up: (1) bootstrapping it via a resource in the SAME file as WindowsDscModules doesn't work,
+# since winget's dscv3 processor resolves every resource type in a document up front, before
+# executing any resource's Set; and (2) moving it to its own separate winget configure invocation
+# (a dedicated 1-init.configuration.winget) didn't reliably work either. Installing it directly
+# here, in this script's own process, sidesteps winget's resource resolution entirely.
 $PSResourceGetOk = Get-PSResource -Name Microsoft.PowerShell.PSResourceGet -ErrorAction SilentlyContinue |
   Where-Object { $_.Version -ge [version]'1.3.0' }
 if (-not $PSResourceGetOk) {
-  Write-Host "Installing PSResourceGet 1.3.0+ preview (required by 2-pwsh.configuration.winget)...`n" -ForegroundColor Cyan
+  Write-Host "Installing PSResourceGet 1.3.0+ preview (required by _requirements.configuration.winget)...`n" -ForegroundColor Cyan
   "=== Installing Microsoft.PowerShell.PSResourceGet (prerelease) ===" | Add-Content -Path $LogPath
   try {
     Install-PSResource -Name Microsoft.PowerShell.PSResourceGet -Prerelease -TrustRepository -Scope CurrentUser -ErrorAction Stop *>&1 |
@@ -198,7 +210,7 @@ if (-not $PSResourceGetOk) {
   $PSResourceGetOk = Get-PSResource -Name Microsoft.PowerShell.PSResourceGet -ErrorAction SilentlyContinue |
     Where-Object { $_.Version -ge [version]'1.3.0' }
   if (-not $PSResourceGetOk) {
-    Write-Host "Warning: failed to install PSResourceGet 1.3.0+ preview -- 2-pwsh.configuration.winget's WindowsDscModules resource will likely fail. See $LogPath`n" -ForegroundColor Yellow
+    Write-Host "Warning: failed to install PSResourceGet 1.3.0+ preview -- _requirements.configuration.winget's WindowsDscModules resource will likely fail. See $LogPath`n" -ForegroundColor Yellow
   } else {
     "=== PSResourceGet install verified: $($PSResourceGetOk.Version) $($PSResourceGetOk.Prerelease) ===" | Add-Content -Path $LogPath
     # winget configure runs through WindowsPackageManagerServer, an out-of-process COM server that
@@ -206,10 +218,10 @@ if (-not $PSResourceGetOk) {
     # instance on a dev machine had been running for over a week). It resolves PowerShell-module-based
     # DSC resources once and keeps that resolution cached for its own lifetime, so an already-running
     # instance from before this install still won't see the module we just installed --
-    # 2-pwsh.configuration.winget's WindowsDscModules resource would then fail with "Resource not
-    # found" even though the module is verifiably on disk (confirmed empirically). Killing the server
-    # here forces a fresh instance (spawned automatically on the next winget configure call) that
-    # re-resolves resources from the current on-disk state.
+    # _requirements.configuration.winget's WindowsDscModules resource would then fail with "Resource
+    # not found" even though the module is verifiably on disk (confirmed empirically). Killing the
+    # server here forces a fresh instance (spawned automatically on the next winget configure call)
+    # that re-resolves resources from the current on-disk state.
     Get-Process -Name WindowsPackageManagerServer -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
     "=== restarted WindowsPackageManagerServer after installing PSResourceGet ===" | Add-Content -Path $LogPath
   }
@@ -218,12 +230,12 @@ if (-not $PSResourceGetOk) {
 # Bug https://github.com/microsoft/winget-cli/issues/6091 currently prevents winget configure
 # from installing Microsoft Store apps for the first time. This is a dirty workaround until
 # that bug is fixed that pre-installs every Store app and accepts the agreement
-$AppsConfigPath = Join-Path $ConfigDir "4-apps.configuration.winget"
+$AppsConfigPath = Join-Path $ConfigDir "apps.configuration.winget"
 if (Test-Path $AppsConfigPath) {
-  # This whole block only matters when 4-apps.configuration.winget itself changed -- skip it
+  # This whole block only matters when apps.configuration.winget itself changed -- skip it
   # entirely otherwise, same reasoning as the per-file skip check in the main loop below.
   if (-not (Test-ConfigFileChanged -Path $AppsConfigPath)) {
-    "=== 4-apps.configuration.winget unchanged, skipping msstore pre-install pass ===" | Add-Content -Path $LogPath
+    "=== apps.configuration.winget unchanged, skipping msstore pre-install pass ===" | Add-Content -Path $LogPath
   } else {
     $MsstoreIds = [System.Collections.Generic.List[string]]::new()
     $PendingId = $null
@@ -278,7 +290,7 @@ foreach ($File in $ConfigFiles) {
     # legal disclaimer -- --accept-configuration-agreements only avoids the interactive prompt,
     # per winget's own docs, and it prints unconditionally otherwise. Filtered out of the console
     # specifically (still written to the log in full via Add-Content below) since it's identical
-    # boilerplate on every single one of the 6 files here.
+    # boilerplate on every single one of the files here.
     winget configure -f $Path --accept-configuration-agreements --disable-interactivity --suppress-initial-details 2>&1 |
       ForEach-Object {
         Add-Content -Path $LogPath -Value $_
@@ -297,7 +309,7 @@ foreach ($File in $ConfigFiles) {
   Set-ConfigFileAppliedHash -Path $Path
 }
 
-# 5-features.configuration.winget enables Windows optional features (e.g. Hyper-V, WSL) that typically
+# optional-features.configuration.winget enables Windows optional features (e.g. Hyper-V, WSL) that typically
 # need a reboot before they take effect, but winget configure gives no indication of this on its own.
 $RebootPending = (Test-Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending') `
   -or (Test-Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\RebootRequired') `
@@ -312,13 +324,13 @@ if ($RebootPending) {
   #
   # 1. Remove the applied-hash sidecar for the specific files whose resources can be left
   #    incomplete by a pending reboot, so the main loop above doesn't skip them next time even
-  #    though their content hasn't changed. Only 6-wsl.configuration.winget's InstallUbuntu
+  #    though their content hasn't changed. Only wsl.configuration.winget's InstallUbuntu
   #    resource is confirmed to actually fail its Set operation until after reboot (it depends on
   #    Virtual Machine Platform, enabled moments earlier in the same run, actually being active);
-  #    5-features.configuration.winget's Enable-WindowsOptionalFeature call reports success
+  #    optional-features.configuration.winget's Enable-WindowsOptionalFeature call reports success
   #    immediately regardless of reboot state, so retrying it doesn't change anything -- included
   #    here anyway since it's cheap and idempotent, in case that ever stops being true.
-  foreach ($RebootAffectedFile in @("5-features.configuration.winget", "6-wsl.configuration.winget")) {
+  foreach ($RebootAffectedFile in @("optional-features.configuration.winget", "wsl.configuration.winget")) {
     Remove-Item -Path (Join-Path $ConfigDir "$RebootAffectedFile.chezmoi-hash") -Force -ErrorAction SilentlyContinue
   }
 

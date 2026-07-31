@@ -1,5 +1,14 @@
 ## WARNING: This file is chezmoi-managed and should not be manually edited!
 
+# Named with a leading underscore so it sorts (and therefore applies) before every other
+# *.configuration.winget file in this directory -- this is the ONLY inter-file ordering
+# dependency among all of them: WindowsDscModules below installs PowerShell modules
+# (Microsoft.Windows.Settings, Microsoft.Windows.Developer) that settings.configuration.winget's
+# resources need to already be present. Every other file here is independent of the others and
+# can apply in any order, which is why none of them (including this one) are numbered --
+# run_onchange_after_winget-configure.ps1.tmpl discovers and sorts *.configuration.winget files
+# in this directory automatically, so a leading underscore is the only ordering mechanism left.
+
 # yaml-language-server: $schema=https://aka.ms/configuration-dsc-schema/0.3
 $schema: https://raw.githubusercontent.com/PowerShell/DSC/main/schemas/2023/08/config/document.json
 metadata:
@@ -7,24 +16,6 @@ metadata:
     processor:
       identifier: dscv3
 resources:
-  - type: Microsoft.DSC.Transitional/RunCommandOnSet
-    name: ExecutionPolicyWindowsPowerShell
-    properties:
-      executable: powershell
-      arguments:
-        - -NoProfile
-        - -NoLogo
-        - -Command
-        - "Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope CurrentUser -Force"
-  - type: Microsoft.DSC.Transitional/RunCommandOnSet
-    name: ExecutionPolicyPwsh
-    properties:
-      executable: pwsh
-      arguments:
-        - -NoProfile
-        - -NoLogo
-        - -Command
-        - "Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope CurrentUser -Force"
   - type: Microsoft.PowerShell.PSResourceGet/Repository
     name: TrustPSGallery
     properties:

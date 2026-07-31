@@ -12,7 +12,7 @@ resources:
     metadata:
       winget:
         securityContext: elevated
-      description: wsl --install --no-distribution enables Virtual Machine Platform and the WSL feature, and fetches the WSL2 kernel, in one call. May require a reboot to take effect (see InstallUbuntu below and the pending-reboot check in run_onchange_after_winget-configure.ps1.tmpl). Runs via PowerShellScript (pwsh), not WindowsPowerShellScript -- unlike 5-features.configuration.winget's dism_dsc/Appx issue, nothing here (Get-CimInstance, Start-Process) requires Windows PowerShell 5.1; verified both behave identically under this file's exact get/test/set logic.
+      description: wsl --install --no-distribution enables Virtual Machine Platform and the WSL feature, and fetches the WSL2 kernel, in one call. May require a reboot to take effect (see InstallUbuntu below and the pending-reboot check in run_onchange_after_winget-configure.ps1.tmpl). Runs via PowerShellScript (pwsh), not WindowsPowerShellScript -- unlike optional-features.configuration.winget's dism_dsc/Appx issue, nothing here (Get-CimInstance, Start-Process) requires Windows PowerShell 5.1; verified both behave identically under this file's exact get/test/set logic.
     properties:
       getScript: |
         $svc = Get-CimInstance -ClassName Win32_Service -Filter "Name='vmcompute'"
@@ -53,7 +53,7 @@ resources:
         Virtual Machine Platform to already be active -- on a machine that just had it enabled by
         InstallWslComponents in this same run, this resource will fail until after a reboot; rerun
         applies once WSL is confirmed working. Checks for the distro named exactly "Ubuntu", not
-        merely "any distro registered" -- Docker Desktop (4-apps.configuration.winget, applied
+        merely "any distro registered" -- Docker Desktop (apps.configuration.winget, applied
         before this file) registers its own "docker-desktop" WSL distro on install, and Podman
         does the same with "podman-machine-default"; a bare "any distro present" check reports
         satisfied on a fresh machine that has one of those but never actually installs Ubuntu
