@@ -104,6 +104,8 @@ git/gh/**
 {{- if eq .chezmoi.os "darwin" }}
 # Skip applying Ansible playbook
 .chezmoiscripts/30-macos/run_onchange_after_ansible-configure.sh.tmpl
+# Skip installing macOS configuration profiles
+.chezmoiscripts/30-macos/run_onchange_profiles-importer.sh.tmpl
 {{- end }}
 {{- end }}
 

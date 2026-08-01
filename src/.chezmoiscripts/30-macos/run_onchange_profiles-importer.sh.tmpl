@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+
+# Opens any *.mobileconfig files in .scriptdata/macos-profiles so the user can install them.
+# This is the generic landing spot for any macOS setting that's only configurable via an MDM
+# configuration profile (notification permissions, PPPC/privacy grants, Screen Time, etc.) --
+# add a new .mobileconfig here for the next one, no script changes needed. There's no headless/
+# CLI install path for any of these -- Apple removed silent `profiles install` in Big Sur, so
+# System Settings' own "Install" click is unavoidable. Rerunning is gated purely by the
+# run_onchange_ content hash below (same approach as run_onchange_defaults-importer.sh.tmpl):
+# each profile only re-prompts when its own content actually changes.
+
+{{- $profilesDir := print .chezmoi.sourceDir "/.scriptdata/macos-profiles" -}}
+{{- $profileFiles := list -}}
+{{- range joinPath $profilesDir "*.mobileconfig" | glob | sortAlpha -}}
+{{- $profileFiles = append $profileFiles . -}}
+{{- end }}
+#
+{{ range $profileFiles -}}
+## {{ base . }} hash: {{ include . | sha256sum }}
+{{ end -}}
+
+set -euo pipefail
+
+{{ range $profileFiles }}
+echo -e "\033[0;36m\nThis machine needs a one-time install of the '{{ base . }}' configuration profile\nto pre-approve some app permissions. After you press Enter, System Settings will\nopen -- click 'Install' there, then close System Settings.\033[0m\n"
+read -r -p "Press Enter to continue... "
+open "{{ . }}"
+read -r -p "Press Enter once you've clicked Install and closed System Settings... "
+{{ end -}}

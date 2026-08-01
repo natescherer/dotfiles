@@ -43,6 +43,11 @@ Currently managed:
 - [Go](https://https://go.dev/) 🐧 🍎 🪟
   - Config Files
     - [src/.chezmoidata/env-vars.toml](src/.chezmoidata/env-vars.toml)
+- [Homebrew Autoupdate](https://github.com/DomT4/homebrew-autoupdate) 🍎
+  - Notes
+    - Notification permissions are pre-granted via a configuration profile, since macOS has no supported way to grant them silently. Installed via script [src/.chezmoiscripts/30-macos/run_onchange_profiles-importer.sh.tmpl](src/.chezmoiscripts/30-macos/run_onchange_profiles-importer.sh.tmpl)
+  - Config Files
+    - [src/.scriptdata/macos-profiles/com.github.domt4.homebrew-autoupdate.mobileconfig](src/.scriptdata/macos-profiles/com.github.domt4.homebrew-autoupdate.mobileconfig)
 - [k9s](https://github.com/derailed/k9s) 🐧 🍎 🪟
   - Config Files
     - [src/dot_config/k9s/config.yaml.tmpl](src/dot_config/k9s/config.yaml.tmpl)
