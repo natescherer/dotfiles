@@ -378,7 +378,7 @@ foreach ($File in $ConfigFiles) {
     continue
   }
 
-  Write-Host "`mApplying $File via 'winget configure'..." -ForegroundColor Cyan
+  Write-Host "`nApplying $File via 'winget configure'..." -ForegroundColor Cyan
   Write-Log "=== $File ==="
   Invoke-WithRetry -Name $File -ScriptBlock {
     # If https://github.com/microsoft/winget-cli/issues/6419) is ever implemented, we'll want to add its flag here
