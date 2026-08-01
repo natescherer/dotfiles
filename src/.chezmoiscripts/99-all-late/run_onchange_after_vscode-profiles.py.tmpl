@@ -116,15 +116,26 @@ def list_extensions(profile_name):
 def install_extension(profile_name, extension_id):
     profile_args = () if profile_name == "Default" else ("--profile", profile_name)
     print(f"Installing '{extension_id}' into VS Code profile '{profile_name}'...\n")
-    run_code(*profile_args, "--install-extension", extension_id)
+    result = run_code(*profile_args, "--install-extension", extension_id)
+    if result.returncode != 0:
+        print(
+            f"{RED_TERM_COLOR}Error: failed to install '{extension_id}' into VS Code profile "
+            f"'{profile_name}' (exit code {result.returncode}). Re-run 'chezmoi apply' to try "
+            f"again.{RESET_TERM_STYLE}\n{result.stdout}{result.stderr}",
+            file=sys.stderr,
+        )
+        return False
+    return True
 
 
 def sync_extensions(profile_name, desired_extensions):
     desired = set(desired_extensions)
     installed = list_extensions(profile_name)
 
+    all_succeeded = True
     for extension_id in sorted(desired - installed):
-        install_extension(profile_name, extension_id)
+        if not install_extension(profile_name, extension_id):
+            all_succeeded = False
 
     extra = installed - desired
     if extra:
@@ -135,6 +146,8 @@ def sync_extensions(profile_name, desired_extensions):
             f"{', '.join(sorted(extra))}{RESET_TERM_STYLE}\n",
             file=sys.stderr,
         )
+
+    return all_succeeded
 
 
 def hash_string(value):
@@ -277,6 +290,8 @@ def main():
 
     user_dir = vscode_user_dir()
 
+    all_succeeded = True
+
     for profile in PROFILES:
         name = profile["name"]
 
@@ -296,13 +311,21 @@ def main():
                     f"extension and settings sync this run. Re-run 'chezmoi apply' to try again.{RESET_TERM_STYLE}\n",
                     file=sys.stderr,
                 )
+                all_succeeded = False
                 continue
 
             set_profile_icon(user_dir, name, profile["icon"])
             profile_dir = os.path.join(user_dir, "profiles", location)
 
-        sync_extensions(name, profile["extensions"])
+        if not sync_extensions(name, profile["extensions"]):
+            all_succeeded = False
         write_profile_settings(name, profile_dir, profile["settings"])
+
+    if not all_succeeded:
+        # Exiting non-zero (see the shutil.which("code") check above for why) so chezmoi retries
+        # this script on the next apply instead of marking it done despite unsynced extensions.
+        print(f"{RED_TERM_COLOR}VS Code profile sync finished with errors; re-run 'chezmoi apply' to retry.{RESET_TERM_STYLE}\n", file=sys.stderr)
+        sys.exit(1)
 
     print(f"{BRIGHT_GREEN_TERM_COLOR}VS Code profile sync complete!{RESET_TERM_STYLE}\n")
 
