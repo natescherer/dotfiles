@@ -125,6 +125,12 @@ Currently managed:
 
 ### macOS
 
+Now easy run available via:
+
+```shell
+curl -fS https://raw.githubusercontent.com/natescherer/dotfiles/main/init-macos.sh | bash
+```
+
 #### Preflight
 
 1. Install macOS, logging into Apple Account (unless a VM)
