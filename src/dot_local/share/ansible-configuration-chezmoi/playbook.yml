@@ -1,0 +1,66 @@
+---
+- name: Build a new Mac
+  hosts: mac
+  connection: local
+  gather_facts: true
+
+  vars:
+    sudoers_dropin: /etc/sudoers.d/ansible-macos-build
+
+  tasks:
+    # Some Homebrew casks (docker-desktop, git-credential-manager, etc.) call
+    # `sudo` internally to finish installing, and that nested call has no
+    # controlling terminal to prompt on. A "keep the sudo ticket warm"
+    # background loop isn't reliable here — Ansible's async tasks detach
+    # into their own session, so they don't share a ticket with the sibling
+    # task actually running `brew install`. Granting temporary NOPASSWD sudo
+    # for the run sidesteps that entirely, and the `always` block below
+    # guarantees it gets revoked even if a task in the middle fails.
+    # This genuinely creates/deletes a file every run (it's not meant to
+    # persist between runs, so there's no "already correct" state to
+    # compare against) — changed_when: false here is a deliberate choice to
+    # keep the run output clean, not a correctness fix like the ones
+    # elsewhere in this repo.
+    - name: Allow passwordless sudo for the duration of this run
+      ansible.builtin.copy:
+        dest: "{{ sudoers_dropin }}"
+        content: "{{ ansible_facts.user_id }} ALL=(ALL) NOPASSWD: ALL\n"
+        mode: "0440"
+        validate: "visudo -cf %s"
+      become: true
+      changed_when: false
+      tags: always
+
+    - name: Run the build
+      block:
+        - ansible.builtin.include_role:
+            name: homebrew
+          tags: homebrew
+
+        - ansible.builtin.include_role:
+            name: mac_app_store
+          tags: mac_app_store
+
+        - ansible.builtin.include_role:
+            name: chromium_pwas
+          tags: chromium_pwas
+
+        - ansible.builtin.include_role:
+            name: macos_settings
+          tags: macos_settings
+
+        - ansible.builtin.include_role:
+            name: app_associations
+          tags: app_associations
+
+        - ansible.builtin.include_role:
+            name: dock_pins
+          tags: dock_pins
+      always:
+        - name: Revoke passwordless sudo
+          ansible.builtin.file:
+            path: "{{ sudoers_dropin }}"
+            state: absent
+          become: true
+          changed_when: false
+          tags: always

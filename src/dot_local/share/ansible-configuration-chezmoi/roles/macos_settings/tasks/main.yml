@@ -1,0 +1,95 @@
+---
+
+- name: Check current appearance mode
+  ansible.builtin.command: >-
+    osascript -e 'tell application "System Events" to tell appearance preferences to get dark mode'
+  register: dark_mode_current
+  changed_when: false
+
+- name: Enable Dark Mode
+  ansible.builtin.command: >-
+    osascript -e 'tell application "System Events" to tell appearance preferences to set dark mode to true'
+  when: dark_mode_current.stdout | trim != 'true'
+
+- name: Configure Dock behavior
+  community.general.osx_defaults:
+    domain: com.apple.dock
+    key: "{{ item.key }}"
+    type: "{{ item.type }}"
+    value: "{{ item.value }}"
+    state: present
+  loop:
+    - { key: tilesize, type: int, value: 44 }
+    - { key: mineffect, type: string, value: genie }
+    - { key: minimize-to-application, type: bool, value: true }
+    - { key: autohide, type: bool, value: false }
+    - { key: launchanim, type: bool, value: true }
+    - { key: show-process-indicators, type: bool, value: true }
+    - { key: show-recents, type: bool, value: false }
+  notify: Restart Dock
+
+- name: Enable Live Text
+  community.general.osx_defaults:
+    domain: NSGlobalDomain
+    key: AppleLiveTextEnabled
+    type: bool
+    value: true
+    state: present
+
+- name: Set menu bar clock to analog
+  community.general.osx_defaults:
+    domain: com.apple.menuextra.clock
+    key: IsAnalog
+    type: bool
+    value: true
+    state: present
+  notify: Restart Control Center
+
+# `pmset -c disablesleep 1` doesn't get reported back under that name —
+# pmset -g custom doesn't list it at all, at least on hardware without a
+# battery. pmset -g (no "custom") shows it as "SleepDisabled" under
+# "System-wide power settings:" instead, confirmed against actual output.
+- name: Check current SleepDisabled setting
+  ansible.builtin.shell: pmset -g | awk '/SleepDisabled/{print $2}'
+  register: current_disablesleep
+  changed_when: false
+
+- name: Prevent sleep on power adapter when display is off
+  ansible.builtin.command: pmset -c disablesleep 1
+  become: true
+  when: current_disablesleep.stdout | trim != '1'
+  changed_when: true
+
+- name: Configure Finder behavior
+  community.general.osx_defaults:
+    domain: com.apple.finder
+    key: "{{ item.key }}"
+    type: "{{ item.type }}"
+    value: "{{ item.value }}"
+    state: present
+  loop:
+    - { key: NewWindowTarget, type: string, value: PfHm }
+    - { key: ShowRecentTags, type: bool, value: false }
+    - { key: _FXSortFoldersFirst, type: bool, value: true }
+    - { key: ShowTabView, type: bool, value: true }
+    - { key: ShowPathbar, type: bool, value: true }
+    - { key: ShowStatusBar, type: bool, value: true }
+    - { key: FXPreferredViewStyle, type: string, value: Nlsv }
+    - { key: AppleShowAllFiles, type: bool, value: true }
+  notify: Restart Finder
+
+- name: Show all filename extensions in Finder
+  community.general.osx_defaults:
+    domain: NSGlobalDomain
+    key: AppleShowAllExtensions
+    type: bool
+    value: true
+    state: present
+  notify: Restart Finder
+
+- name: Enable Touch ID for sudo
+  ansible.builtin.shell: |
+    sed "s/^#auth/auth/" /etc/pam.d/sudo_local.template > /etc/pam.d/sudo_local
+  become: true
+  args:
+    creates: /etc/pam.d/sudo_local

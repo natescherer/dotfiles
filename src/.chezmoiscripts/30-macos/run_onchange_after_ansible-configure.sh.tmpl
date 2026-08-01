@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+
+# Applies the vendored Ansible playbook that declaratively configures this Mac: Homebrew
+# formulas/casks/taps, Mac App Store apps, Chromium PWAs, macOS system settings, default app
+# associations, and Dock pins. Self-heals its own Ansible/Galaxy dependencies, then runs
+# `ansible-playbook -K` once -- interactive, since the playbook's own sudoers-bootstrap task
+# needs a become password and Ansible only prompts for it once per run, reusing it for every
+# later become task in the same invocation.
+#
+# Unlike run_onchange_after_winget-configure.ps1.tmpl, no per-file applied-hash sidecar is
+# needed here: ansible-playbook is a single idempotent command with a reliable exit code, so
+# the run_onchange_ gate below (rerun only when the vendored playbook content changes) is
+# sufficient on its own.
+
+{{- $ansibleDir := print .chezmoi.sourceDir "/dot_local/share/ansible-configuration-chezmoi" -}}
+{{- $ansibleFiles := list -}}
+{{- range joinPath $ansibleDir "**" | glob | sortAlpha -}}
+{{- if not (stat .).isDir -}}
+{{- $ansibleFiles = append $ansibleFiles . -}}
+{{- end -}}
+{{- end }}
+#
+# Hashes below make this run_onchange_ script rerun whenever any vendored playbook file
+# changes -- same trick as run_onchange_after_winget-configure.ps1.tmpl.
+{{ range $ansibleFiles -}}
+## {{ trimPrefix (print $ansibleDir "/") . }} hash: {{ include . | sha256sum }}
+{{ end -}}
+
+set -euo pipefail
+
+echo -e "\033[1;32m\nApplying macOS configuration via ansible-playbook...\033[0m"
+
+TargetDir="$HOME/.local/share/ansible-configuration-chezmoi"
+LogFile="$TargetDir/ansible-playbook.log"
+echo "Run started $(date '+%Y-%m-%d %H:%M:%S')" > "$LogFile"
+
+if ! command -v ansible-playbook >/dev/null 2>&1; then
+  echo -e "\033[1;36mansible-playbook not found -- installing via 'brew install ansible'...\033[0m"
+  brew install ansible 2>&1 | tee -a "$LogFile"
+fi
+
+cd "$TargetDir"
+
+echo -e "\033[1;32m\nInstalling/updating required Ansible Galaxy collections...\033[0m"
+ansible-galaxy collection install -r requirements.yml 2>&1 | tee -a "$LogFile"
+
+echo -e "\033[1;32m\nRunning ansible-playbook -- you will be prompted for your sudo password...\033[0m"
+ansible-playbook playbook.yml -K 2>&1 | tee -a "$LogFile"
+
+echo -e "\033[1;32m\nmacOS configuration applied.\033[0m"

@@ -1,0 +1,111 @@
+---
+# Homebrew taps
+homebrew_taps:
+  - domt4/autoupdate
+
+# homebrew-autoupdate schedule/flags — see https://github.com/DomT4/homebrew-autoupdate
+# Runs every 43200 seconds (12h), upgrading + cleaning up automatically.
+homebrew_autoupdate_args: "43200 --upgrade --cleanup --immediate --sudo"
+homebrew_autoupdate_plist: "{{ ansible_facts.env.HOME }}/Library/LaunchAgents/com.github.domt4.homebrew-autoupdate.plist"
+
+# Apps pinned to the Dock, left to right, as full paths to their .app
+# bundle. This replaces the Dock's whole pinned-app list (including
+# whatever macOS ships by default), so leave nothing off the list you want
+# to keep. Finder isn't included — it's a fixed icon macOS always shows
+# first, not something in this list.
+dock_pinned_apps:
+  - /Applications/System Settings.app
+  - /Applications/Utilities/Activity Monitor.app
+  - /Applications/Ghostty.app
+  - /Applications/Microsoft Outlook.app
+  - /Applications/Messages.app
+  - /Applications/Discord.app
+  - /Applications/Firefox.app
+  - /Applications/Brave Browser.app
+  - /Applications/TickTick.app
+  - /Applications/AnyList.app
+  - /Applications/Obsidian.app
+  - /Applications/VSCodium.app
+  - /Applications/Visual Studio Code.app
+  - /Applications/Music.app
+  - ~/Applications/Chromium Apps.localized/YouTube.app
+
+# Formulas (CLI tools / non-GUI packages)
+homebrew_formulas:
+  - chezmoi
+  - coreutils
+  - curl
+  - dockutil
+  - fzf
+  - git
+  - jq
+  - mas
+  - micro
+  - mise
+  - pinentry-mac
+  - sheldon
+  - starship
+  - utiluti
+  - yq
+
+# Casks (GUI apps / fonts)
+homebrew_casks:
+  - 1password-cli
+  - alt-tab
+  - anylist
+  - brave-browser
+  - discord
+  - docker-desktop
+  - firefox
+  - font-cascadia-mono-nf
+  - ghostty
+  - git-credential-manager
+  - keka
+  - macshot
+  - megasync
+  - obsidian
+  - stats
+  - thaw
+  - ungoogled-chromium
+  - visual-studio-code
+  - vlc
+  - vscodium
+
+# Mac App Store apps: name -> App Store numeric id
+mac_app_store_apps:
+  1Password: 443987910
+  Amphetamine: 937984704
+  Clocker: 1056643111
+  Kindle: 302584613
+  "Microsoft 365": 1450038993
+  Paprika: 1303222628
+  "Poolsuite FM": 1514817810
+  Speedtest: 1153157709
+  TestFlight: 899247664
+  TickTick: 966085870
+  "UTM Virtual Machines": 1538878817
+  WireGuard: 1451685025
+  "Windows App": 1295203466
+  Xcode: 497799835
+  "Yubico Authenticator": 1497506650
+
+# PWAs to install in ungoogled-chromium via WebAppInstallForceList policy.
+# Each entry accepts any key WebAppInstallForceList supports — see
+# https://chromeenterprise.google/policies/#WebAppInstallForceList
+#
+# custom_name/custom_icon are set explicitly below rather than left for
+# Chromium to auto-detect from the site's manifest: the forced/background
+# install path doesn't fully render the page the way a manual "Install"
+# click does, so manifest (and even favicon/title) detection can silently
+# fail — that's what produced an app named `https/www.youtube.com.app`
+# with no icon. custom_icon.hash is the SHA256 of the icon file itself
+# (Chromium validates it against the downloaded bytes at install time);
+# recompute it if you ever change the icon URL, e.g.:
+#   curl -sL '<icon url>' | shasum -a 256
+chromium_web_apps:
+  - url: "https://www.youtube.com"
+    default_launch_container: window
+    custom_name: "YouTube"
+    custom_icon:
+      url: "https://www.google.com/s2/favicons?sz=256&domain=youtube.com"
+      hash: "cb6adb19843b645bc227181f52746f01e9a8fda6c11338cac23c5977c7d2386c"

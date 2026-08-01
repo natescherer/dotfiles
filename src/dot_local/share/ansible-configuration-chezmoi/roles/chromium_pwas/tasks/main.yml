@@ -1,0 +1,75 @@
+---
+- name: Check whether Chromium is installed
+  ansible.builtin.stat:
+    path: "/Applications/Chromium.app"
+  register: chromium_app
+
+# Chromium reads WebAppInstallForceList (and other enterprise policies) only
+# from the "Managed Preferences" domain, not a regular ~/Library/Preferences
+# plist — a plain `defaults write org.chromium.Chromium ...` would land in
+# the wrong domain and Chromium would silently ignore it. Writing the plist
+# straight to /Library/Managed Preferences/ is the same thing an MDM profile
+# would ultimately deliver, just without needing MDM. This is a *forced*
+# install — Chromium will show "managed by your organization" and the app
+# can't be freely removed the normal way — traded deliberately for getting
+# a real, manifest-icon-having, chrome://apps-tracked install out of a
+# script.
+# /Library/Managed Preferences isn't guaranteed to exist — it's normally
+# created the first time a configuration profile/MDM enrollment lands on
+# the Mac, which may never have happened on a fresh install.
+- name: Ensure /Library/Managed Preferences exists
+  ansible.builtin.file:
+    path: "/Library/Managed Preferences"
+    state: directory
+    owner: root
+    group: wheel
+    mode: "0755"
+  become: true
+  when: chromium_app.stat.exists and chromium_web_apps | length > 0
+
+- name: Force-install PWAs in Chromium
+  ansible.builtin.template:
+    src: org.chromium.Chromium.plist.j2
+    dest: "/Library/Managed Preferences/org.chromium.Chromium.plist"
+    owner: root
+    group: wheel
+    mode: "0644"
+  become: true
+  register: chromium_policy
+  when: chromium_app.stat.exists and chromium_web_apps | length > 0
+
+# Chromium only actually acts on WebAppInstallForceList — downloading each
+# app's manifest/icon and creating the installed web app — once it's
+# actually running. Launching it in the background, waiting for the
+# installed .app bundles to actually show up, then quitting is the least
+# disruptive way to make this happen non-interactively, rather than
+# requiring someone to open the browser by hand after every run. Only
+# bother doing this when the policy actually changed, so a re-run with no
+# changes doesn't interrupt an already-running Chromium for no reason.
+- name: Launch Chromium so it installs the forced PWAs
+  ansible.builtin.command: open -g -a Chromium
+  when: chromium_policy is changed
+
+# Confirmed on-device: ungoogled-chromium uses "Chromium Apps.localized"
+# here (unlike upstream Chromium/Chrome, which hardcodes "Chrome Apps" per
+# its source — this fork apparently derives it from the product name
+# instead). If a future build ever changes this, the task will just retry
+# for a minute and move on (failed_when: false below) rather than blocking
+# the whole run on it.
+- name: Wait for Chromium to install the forced PWAs
+  ansible.builtin.find:
+    paths: "{{ ansible_facts.env.HOME }}/Applications/Chromium Apps.localized"
+    patterns: "*.app"
+    file_type: directory
+  register: chromium_installed_pwas
+  until: chromium_installed_pwas.matched | default(0) >= (chromium_web_apps | length)
+  retries: 12
+  delay: 5
+  when: chromium_policy is changed
+  failed_when: false
+
+- name: Quit Chromium
+  ansible.builtin.command: killall Chromium
+  when: chromium_policy is changed
+  changed_when: true
+  failed_when: false

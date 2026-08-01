@@ -7,6 +7,9 @@
 ## macOS folders
 Library/
 Library/**
+## macOS Ansible configuration
+.local/share/ansible-configuration-chezmoi/
+.local/share/ansible-configuration-chezmoi/**
 ## macOS scripts
 .chezmoiscripts/30-macos/
 .chezmoiscripts/30-macos/**
@@ -65,6 +68,9 @@ dot_wslconfig
 .chezmoiscripts/30-macos/
 .chezmoiscripts/30-macos/**
 .chezmoiscripts/01-all-early/mise-checker.sh
+## macOS Ansible configuration
+.local/share/ansible-configuration-chezmoi/
+.local/share/ansible-configuration-chezmoi/**
 ## macOS folders
 Library/
 Library/**
@@ -94,6 +100,10 @@ git/gh/**
 {{- if eq .chezmoi.os "windows" }}
 # Skip applying WinGet Configuration files
 .chezmoiscripts/40-windows/run_onchange_after_winget-configure.ps1.tmpl
+{{- end }}
+{{- if eq .chezmoi.os "darwin" }}
+# Skip applying Ansible playbook
+.chezmoiscripts/30-macos/run_onchange_after_ansible-configure.sh.tmpl
 {{- end }}
 {{- end }}
 

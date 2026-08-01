@@ -1,0 +1,89 @@
+---
+# Setting the default web browser (the http URL scheme, which macOS also
+# propagates to https and public.html) always pops a system confirmation
+# dialog that a human has to click through — a deliberate anti-hijacking
+# measure, not a tooling limitation. duti can't get past this (it just
+# errors out non-interactively), so we use utiluti instead: it's a modern,
+# signed/notarized replacement that handles the same dialog properly rather
+# than choking on it. The command blocks until the dialog is answered — if
+# nobody's at the screen, the playbook just waits there — and if the user
+# rejects the change, that's a non-zero exit we deliberately don't fail the
+# play on (failed_when: false), since a "no" is a valid outcome, not a
+# broken run. See https://github.com/scriptingosx/utiluti
+
+- name: Check whether Firefox is installed
+  ansible.builtin.stat:
+    path: "/Applications/Firefox.app"
+  register: firefox_app
+
+- name: Check current default browser
+  ansible.builtin.command: utiluti url http --bundle-id
+  environment:
+    PATH: "{{ homebrew_prefix }}/bin:{{ ansible_facts.env.PATH }}"
+  register: current_default_browser
+  when: firefox_app.stat.exists
+  changed_when: false
+  failed_when: false
+
+# Skipped entirely (not just reported as unchanged) when Firefox is already
+# the default, so a re-run doesn't pop the confirmation dialog for no
+# reason.
+- name: Set Firefox as the default browser
+  ansible.builtin.command: utiluti url set http org.mozilla.firefox
+  environment:
+    PATH: "{{ homebrew_prefix }}/bin:{{ ansible_facts.env.PATH }}"
+  when: firefox_app.stat.exists and current_default_browser.stdout | trim != 'org.mozilla.firefox'
+  changed_when: true
+  failed_when: false
+
+- name: Check whether Outlook is installed
+  ansible.builtin.stat:
+    path: "/Applications/Microsoft Outlook.app"
+  register: outlook_app
+
+- name: Check current default mail app
+  ansible.builtin.command: utiluti url mailto --bundle-id
+  environment:
+    PATH: "{{ homebrew_prefix }}/bin:{{ ansible_facts.env.PATH }}"
+  register: current_default_mail_app
+  when: outlook_app.stat.exists
+  changed_when: false
+  failed_when: false
+
+- name: Set Outlook as the default mail app
+  ansible.builtin.command: utiluti url set mailto com.microsoft.Outlook
+  environment:
+    PATH: "{{ homebrew_prefix }}/bin:{{ ansible_facts.env.PATH }}"
+  when: outlook_app.stat.exists and current_default_mail_app.stdout | trim != 'com.microsoft.Outlook'
+  changed_when: true
+  failed_when: false
+
+# .ics is a file-type/UTI association rather than a URL scheme — still
+# scriptable as of this writing, but macOS 26.4+ started requiring the same
+# kind of confirmation for some file-type changes too, so this may start
+# prompting the same way on a future OS update.
+- name: Get the UTI for .ics files
+  ansible.builtin.command: utiluti get-uti ics
+  environment:
+    PATH: "{{ homebrew_prefix }}/bin:{{ ansible_facts.env.PATH }}"
+  register: ics_uti
+  when: outlook_app.stat.exists
+  changed_when: false
+  failed_when: false
+
+- name: Check current handler for .ics files
+  ansible.builtin.command: "utiluti type {{ ics_uti.stdout | trim }} --bundle-id"
+  environment:
+    PATH: "{{ homebrew_prefix }}/bin:{{ ansible_facts.env.PATH }}"
+  register: current_ics_handler
+  when: outlook_app.stat.exists
+  changed_when: false
+  failed_when: false
+
+- name: Associate .ics files with Outlook
+  ansible.builtin.command: utiluti type set extension:ics com.microsoft.Outlook
+  environment:
+    PATH: "{{ homebrew_prefix }}/bin:{{ ansible_facts.env.PATH }}"
+  when: outlook_app.stat.exists and current_ics_handler.stdout | trim != 'com.microsoft.Outlook'
+  changed_when: true
+  failed_when: false

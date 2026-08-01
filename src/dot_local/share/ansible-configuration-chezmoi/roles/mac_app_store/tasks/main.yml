@@ -1,0 +1,26 @@
+---
+# The user must be signed into the Mac App Store for this role to work, 
+# if not, the role will warn the user and skip installing Mac App Store apps.
+- name: Check Mac App Store sign-in status
+  ansible.builtin.command: mas account
+  environment:
+    PATH: "{{ homebrew_prefix }}/bin:{{ ansible_facts.env.PATH }}"
+  register: mas_account
+  changed_when: false
+  failed_when: false
+
+- name: Warn if not signed into the Mac App Store
+  ansible.builtin.debug:
+    msg: >-
+      Not signed into the Mac App Store — sign in via the App Store app
+      (Settings > Apple Account), then re-run this playbook to install
+      Mac App Store apps.
+  when: mas_account.rc != 0 or 'Not signed in' in mas_account.stdout
+
+- name: Install Mac App Store apps
+  community.general.mas:
+    id: "{{ mac_app_store_apps.values() | list }}"
+    state: present
+  environment:
+    PATH: "{{ homebrew_prefix }}/bin:{{ ansible_facts.env.PATH }}"
+  when: mas_account.rc == 0 and 'Not signed in' not in mas_account.stdout

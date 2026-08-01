@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>WebAppInstallForceList</key>
+    <array>
+{% for app in chromium_web_apps %}
+        <dict>
+{% for key, value in app.items() %}
+            <key>{{ key }}</key>
+{% if value is mapping %}
+            <dict>
+{% for subkey, subvalue in value.items() %}
+                <key>{{ subkey }}</key>
+                <string>{{ subvalue | e }}</string>
+{% endfor %}
+            </dict>
+{% elif value is sameas true %}
+            <true/>
+{% elif value is sameas false %}
+            <false/>
+{% else %}
+            <string>{{ value | e }}</string>
+{% endif %}
+{% endfor %}
+        </dict>
+{% endfor %}
+    </array>
+</dict>
+</plist>

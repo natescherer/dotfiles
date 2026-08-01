@@ -49,6 +49,10 @@ Currently managed:
 - [kubie](https://github.com/sbstp/kubie) 🐧 🍎
   - Config Files
     - [src/dot_kube/kubie.yaml](src/dot_kube/kubie.yaml)
+- [macOS](https://www.apple.com/macos/) 🍎
+  - Config Files
+    - [src/dot_local/share/ansible-configuration-chezmoi](src/dot_local/share/ansible-configuration-chezmoi)
+    - [src/.chezmoiscripts/30-macos/run_onchange_after_ansible-configure.sh.tmpl](src/.chezmoiscripts/30-macos/run_onchange_after_ansible-configure.sh.tmpl)
 - [micro](https://micro-editor.github.io/) 🐧 🍎 🪟
   - Config Files
     - [src/dot_config/micro/settings.json](src/dot_config/micro/settings.json)
@@ -121,6 +125,11 @@ Currently managed:
 
 ### macOS
 
+#### Preflight
+
+1. Install macOS, logging into Apple Account (unless a VM)
+1. Set hostname
+
 ```shell
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 eval "$(/opt/homebrew/bin/brew shellenv zsh)"
@@ -185,6 +194,5 @@ mise env -s pwsh | iex
 ## Activating
 
 ```shell
-chezmoi init natescherer
-chezmoi apply
+chezmoi init --apply natescherer
 ```
