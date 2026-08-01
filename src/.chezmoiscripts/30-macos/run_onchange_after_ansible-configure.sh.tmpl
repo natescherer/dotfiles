@@ -28,6 +28,11 @@
 
 set -euo pipefail
 
+# Piping through `tee` below makes brew/ansible think stdout isn't a terminal, which normally
+# disables their colored output -- force it back on.
+export HOMEBREW_COLOR=1
+export ANSIBLE_FORCE_COLOR=1
+
 echo -e "\033[1;32m\nApplying macOS configuration via ansible-playbook...\033[0m"
 
 TargetDir="$HOME/.local/share/ansible-configuration-chezmoi"
