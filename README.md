@@ -93,6 +93,11 @@ Currently managed:
       - Each file in this directory defines the settings for a profile
     - [src/.chezmoiscripts/99-all_late/run_onchange_after_vscode-profiles.py.tmpl](src/.chezmoiscripts/99-all_late/run_onchange_after_vscode-profiles.py.tmpl)
       - Performs profile provisioning and updating
+- [VMware Workstation](https://www.vmware.com/products/workstation-pro.html) 🪟
+  - Notes
+    - VMware stores its session state in the same INI file as its settings, so needed settings are patched in-place via script
+  - Config Files
+    - [src/.chezmoidata/windows_ini_key_patches.toml](src/.chezmoidata/windows_ini_key_patches.toml)
 - [Windows](https://windows.com) 🪟
   - Config Files
     - [src/dot_wslconfig](src/dot_wslconfig)

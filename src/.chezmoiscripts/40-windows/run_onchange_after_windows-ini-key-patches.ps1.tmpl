@@ -1,0 +1,69 @@
+#Requires -Version 7.0
+
+# Surgical key/value patches for Windows apps whose INI-style config file also stores the app's
+# own live runtime/session state in that same file.
+# That co-mmingling means the file as a whole can't be handed to chezmoi's normal handling.
+#
+# Sources data from .chezmoidata/windows_ini_key_patches.toml
+
+# {{ $dataFile := joinPath .chezmoi.sourceDir ".chezmoidata/windows_ini_key_patches.toml" }}
+## windows_ini_key_patches.toml hash: {{ include $dataFile | sha256sum }}
+
+# get (not plain dot access) tolerates a missing windows_ini_key_patches table, or one missing
+# the files key -- chezmoi's strict template mode errors on plain dot access into a map that
+# doesn't have the key, which a stripped-down/empty data file would trigger.
+$FilesJson = @'
+{{ get (get . "windows_ini_key_patches" | default (dict)) "files" | default (list) | toJson }}
+'@
+$Files = $FilesJson | ConvertFrom-Json
+
+# Empty/missing `files` in the TOML (`toJson` renders that as the literal string "null", which
+# ConvertFrom-Json turns into $null) or a "[[windows_ini_key_patches.files]]"-less table both mean
+# there's nothing to patch -- exit quietly rather than printing "Applying..."/"...applied." around
+# a no-op.
+if (-not $Files) {
+  exit 0
+}
+
+Write-Host "`nApplying Windows INI key patches..." -ForegroundColor Green
+
+foreach ($File in $Files) {
+  $Path = Join-Path $HOME $File.path
+
+  $Dir = Split-Path -Parent $Path
+  New-Item -ItemType Directory -Path $Dir -Force | Out-Null
+
+  $Lines = if (Test-Path $Path) { @(Get-Content -Path $Path) } else { @('.encoding = "UTF-8"') }
+
+  $Changed = $false
+  foreach ($Prop in $File.keys.PSObject.Properties) {
+    $Key = $Prop.Name
+    $Value = $Prop.Value
+    $DesiredLine = "$Key = `"$Value`""
+    $Pattern = '^\s*' + [regex]::Escape($Key) + '\s*='
+
+    $ExistingIndex = -1
+    for ($i = 0; $i -lt $Lines.Count; $i++) {
+      if ($Lines[$i] -match $Pattern) { $ExistingIndex = $i; break }
+    }
+
+    if ($ExistingIndex -ge 0) {
+      if ($Lines[$ExistingIndex] -ne $DesiredLine) {
+        $Lines[$ExistingIndex] = $DesiredLine
+        $Changed = $true
+      }
+    } else {
+      $Lines += $DesiredLine
+      $Changed = $true
+    }
+  }
+
+  if ($Changed) {
+    Set-Content -Path $Path -Value $Lines
+    Write-Host "Patched $($File.name) keys in $Path" -ForegroundColor Cyan
+  } else {
+    Write-Host "$($File.name) keys already up to date in $Path" -ForegroundColor DarkGray
+  }
+}
+
+Write-Host "`nWindows INI key patches applied." -ForegroundColor Green

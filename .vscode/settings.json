@@ -5,7 +5,7 @@
     "**/src/.chezmoitemplates/vscode/**/*.json": "jsonc",
     "*.json.tmpl": "jsonc",
     "*.sh.tmpl": "shellscript",
-    "*.ps1.tmpl": "go-template",
+    "*.ps1.tmpl": "powershell",
     "*.toml.tmpl": "toml",
     "*.winget.tmpl": "yaml",
     "*.yaml.tmpl": "go-template",

@@ -1,0 +1,19 @@
+# Surgical key/value patches for Windows apps whose INI-style config file also stores the app's
+# own live runtime/session state in that same file.
+# That co-mmingling means the file as a whole can't be handed to chezmoi's normal handling.
+# .chezmoiscripts/40-windows/run_onchange_after_windows-ini-key-patches.ps1.tmpl inserts/updates
+# only the specific keys listed below, leaving every other line exactly as the app left it.
+#
+# Don't add an app here just because its settings happen to live in an INI file -- if the file
+# holds only durable settings (no runtime state get mixed in), managing the whole file directly is
+# simpler and should be preferred.
+[windows_ini_key_patches]
+
+[[windows_ini_key_patches.files]]
+name = "VMware Workstation"
+# Resolved as Join-Path $HOME <path> by the apply script.
+path = "AppData/Roaming/VMware/preferences.ini"
+
+[windows_ini_key_patches.files.keys]
+# Edit > Preferences > Display > "Allow hardware acceleration for all virtual machine consoles"
+"pref.remoteMKSHardwareAccel" = "TRUE"
