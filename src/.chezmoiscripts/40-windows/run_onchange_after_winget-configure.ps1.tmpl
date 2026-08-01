@@ -245,7 +245,7 @@ if ((Get-ItemProperty -Path $VCRedistKey -Name 'Installed' -ErrorAction Silently
 
 # The Microsoft.PowerShell.PSResourceGet/PSResourceList resource needs PSResourceGet 1.3.0-preview1+.
 if (-not (Get-SufficientPSResourceGet)) {
-  Write-Host "Installing PSResourceGet 1.3.0+..." -ForegroundColor Cyan
+  Write-Host "`nInstalling PSResourceGet 1.3.0+..." -ForegroundColor Green
   Write-Log "=== Installing Microsoft.PowerShell.PSResourceGet (prerelease) ==="
   try {
     Install-PSResource -Name Microsoft.PowerShell.PSResourceGet -Prerelease -TrustRepository -Scope CurrentUser -ErrorAction Stop *>&1 | Write-Log
@@ -345,6 +345,10 @@ foreach ($File in $ConfigFiles) {
 }
 if ($MsstoreIds.Count -eq 0) {
   Write-Log "=== no changed *.configuration.winget files reference msstore ids, skipping pre-install pass ==="
+}
+if ($MsstoreIds.Count -gt 0) {
+  Write-Host "`nPre-installing changed Store apps referenced in configuration files..." -ForegroundColor Green
+  Write-Log "=== Pre-installing changed Store apps referenced in configuration files: $($MsstoreIds -join ', ') ==="
 }
 foreach ($Id in $MsstoreIds) {
   # Already-installed Store apps make winget install fail with 0x8A15002B (no applicable update)
