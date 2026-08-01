@@ -347,8 +347,8 @@ if ($MsstoreIds.Count -eq 0) {
   Write-Log "=== no changed *.configuration.winget files reference msstore ids, skipping pre-install pass ==="
 }
 if ($MsstoreIds.Count -gt 0) {
-  Write-Host "`nPre-installing changed Store apps referenced in configuration files..." -ForegroundColor Green
-  Write-Log "=== Pre-installing changed Store apps referenced in configuration files: $($MsstoreIds -join ', ') ==="
+  Write-Host "`nPre-installing Store apps referenced in configuration files..." -ForegroundColor Green
+  Write-Log "=== Pre-installing Store apps referenced in configuration files: $($MsstoreIds -join ', ') ==="
 }
 foreach ($Id in $MsstoreIds) {
   # Already-installed Store apps make winget install fail with 0x8A15002B (no applicable update)
