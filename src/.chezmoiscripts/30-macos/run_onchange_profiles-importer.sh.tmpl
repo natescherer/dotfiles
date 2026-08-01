@@ -19,6 +19,16 @@
 # Known limitation: if you manually remove an already-handled profile via System Settings,
 # this won't notice and won't re-prompt -- delete its sidecar file under $XDG_STATE_HOME to
 # force a re-prompt, or just edit the .mobileconfig to bump its content.
+#
+# After `open`ing a .mobileconfig, macOS just queues it and shows a "Profile Downloaded"
+# notification banner rather than jumping to the review screen itself -- easy to miss, and
+# not exactly confidence-inspiring for an unsigned, self-authored profile. The deep-link/
+# prefpane attempts below are a best-effort nudge to bring System Settings to the right
+# screen instead of leaving the user to go hunt for it; unverified against a real Mac as of
+# writing (Apple has moved this screen around across macOS versions, and reworded/renamed the
+# System Settings deep-link identifiers each time), so they're wrapped to silently no-op if
+# wrong rather than fail the actual install. The printed fallback path covers the two most
+# recent known locations in case neither attempt lands on the right screen.
 
 {{- $profilesDir := print .chezmoi.sourceDir "/.scriptdata/macos-profiles" -}}
 {{- $profiles := list -}}
@@ -40,9 +50,12 @@ HASH_FILE="$STATE_DIR/{{ .name }}.sha256"
 if [ -f "$HASH_FILE" ] && [ "$(cat "$HASH_FILE")" = "{{ .hash }}" ]; then
   echo -e "\033[0;90m'{{ .name }}' is unchanged since it was last installed; skipping.\033[0m"
 else
-  echo -e "\033[0;36m\nThis machine needs a one-time install of the '{{ .name }}' configuration profile\nto pre-approve some app permissions. After you press Enter, System Settings will\nopen -- click 'Install' there, then close System Settings.\033[0m\n"
+  echo -e "\033[0;36m\nThis machine needs a one-time install of the '{{ .name }}' configuration profile\nto pre-approve some app permissions. After you press Enter, System Settings will\nopen -- click 'Install' there, then close System Settings.\nIf it doesn't jump straight to the review screen, look under System Settings > General >\nDevice Management, or Privacy & Security > Profiles on newer macOS.\033[0m\n"
   read -r -p "Press Enter to continue... "
   open "{{ .path }}"
+  open "x-apple.systempreferences:com.apple.Profiles-Settings.extension" 2>/dev/null \
+    || open /System/Library/PreferencePanes/Profiles.prefPane 2>/dev/null \
+    || true
   read -r -p "Press Enter once you've clicked Install and closed System Settings... "
   echo "{{ .hash }}" > "$HASH_FILE"
 fi
