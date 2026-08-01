@@ -17,6 +17,6 @@ eval "$(mise env -s zsh)"
 echo -e "\033[1;36m\nSetting up Python via mise...\033[0m"
 mise use -g python@latest
 echo -e "\033[1;36m\nInitializing chezmoi...\033[0m"
-chezmoi init --apply natescherer
+chezmoi init --apply natescherer < /dev/tty
 
 echo -e "\033[1;92m\nmacOS machine set up successfully!\033[0m"
