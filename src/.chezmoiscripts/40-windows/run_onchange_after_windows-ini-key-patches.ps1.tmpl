@@ -2,12 +2,19 @@
 
 # Surgical key/value patches for Windows apps whose INI-style config file also stores the app's
 # own live runtime/session state in that same file.
-# That co-mmingling means the file as a whole can't be handed to chezmoi's normal handling.
 #
 # Sources data from .chezmoidata/windows_ini_key_patches.toml
 
-# {{ $dataFile := joinPath .chezmoi.sourceDir ".chezmoidata/windows_ini_key_patches.toml" }}
-## windows_ini_key_patches.toml hash: {{ include $dataFile | sha256sum }}
+# .chezmoidata files can't be templated -- data has to be loaded before the template engine has
+# anything to execute templates with (see https://github.com/twpayne/chezmoi/issues/3526, still
+# open) -- so a file entry's whenTrue/whenFalse conditions (naming arbitrary top-level chezmoi
+# variables) can't be evaluated by the Go template that renders this script either. Instead, the
+# full chezmoi variable map is embedded below and each file's conditions are evaluated here in
+# PowerShell, once this script actually runs.
+$ChezmoiDataJson = @'
+{{ . | toJson }}
+'@
+$ChezmoiData = $ChezmoiDataJson | ConvertFrom-Json
 
 # get (not plain dot access) tolerates a missing windows_ini_key_patches table, or one missing
 # the files key -- chezmoi's strict template mode errors on plain dot access into a map that
@@ -25,15 +32,48 @@ if (-not $Files) {
   exit 0
 }
 
+# whenTrue requires every named variable to be $true; whenFalse requires every named variable to
+# be anything other than $true. Either list can name more than one variable, both lists can be set
+# on the same file, and everything combines with AND -- every condition in both lists has to hold.
+# A variable name that isn't in $ChezmoiData resolves to $null, which satisfies whenFalse (it's
+# not $true) but fails whenTrue (it isn't $true either) -- an unset variable reads as falsy.
+function Test-FileConditions {
+  param($File)
+  foreach ($VarName in $File.whenTrue) {
+    if ($ChezmoiData.$VarName -ne $true) { return $false }
+  }
+  foreach ($VarName in $File.whenFalse) {
+    if ($ChezmoiData.$VarName -eq $true) { return $false }
+  }
+  return $true
+}
+
 Write-Host "`nApplying Windows INI key patches..." -ForegroundColor Green
 
+$AnyMissing = $false
+
 foreach ($File in $Files) {
+  if (-not (Test-FileConditions -File $File)) {
+    Write-Host "Skipping $($File.name) -- whenTrue/whenFalse conditions not met" -ForegroundColor DarkGray
+    continue
+  }
+
   $Path = Join-Path $HOME $File.path
 
-  $Dir = Split-Path -Parent $Path
-  New-Item -ItemType Directory -Path $Dir -Force | Out-Null
+  # A missing target file almost always means the app itself hasn't been run for the first time
+  # yet -- that's usually what creates it. Pre-creating it ourselves would mean *we* write the
+  # app's first config file, which risks interfering with whatever first-run behavior the app has
+  # (some apps treat an existing config file as a sign they're already set up and skip onboarding).
+  # So this skips the file and exits non-zero instead, which makes chezmoi retry this script on
+  # the next `chezmoi apply` even though nothing else changed -- same trick
+  # Stop-ForPendingReboot uses in run_onchange_after_winget-configure.ps1.tmpl.
+  if (-not (Test-Path $Path)) {
+    Write-Host "Skipping $($File.name) -- $Path doesn't exist yet (the app has probably never been run); will retry on the next chezmoi apply" -ForegroundColor Yellow
+    $AnyMissing = $true
+    continue
+  }
 
-  $Lines = if (Test-Path $Path) { @(Get-Content -Path $Path) } else { @('.encoding = "UTF-8"') }
+  $Lines = @(Get-Content -Path $Path)
 
   $Changed = $false
   foreach ($Prop in $File.keys.PSObject.Properties) {
@@ -64,6 +104,11 @@ foreach ($File in $Files) {
   } else {
     Write-Host "$($File.name) keys already up to date in $Path" -ForegroundColor DarkGray
   }
+}
+
+if ($AnyMissing) {
+  Write-Host "`nWindows INI key patches partially applied -- see above for which target files don't exist yet." -ForegroundColor Yellow
+  exit 1
 }
 
 Write-Host "`nWindows INI key patches applied." -ForegroundColor Green
