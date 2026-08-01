@@ -83,6 +83,11 @@ Currently managed:
   - Config Files
     - [src/.scriptdata/macos-defaults/eu.exelban.Stats.plist](src/.scriptdata/macos-defaults/eu.exelban.Stats.plist)
       - Note this is a non-editable binary file, made via `defaults export eu.exelban.Stats eu.exelban.Stats.plist`
+- [UniGetUI](https://www.marticliment.com/unigetui/) 🪟
+  - Notes
+    - Uses an unusual model of one-file-per-setting, there are many files under the below directory
+  - Config Files
+    - [src/AppData/Local/UniGetUI/Configuration](src/AppData/Local/UniGetUI/Configuration)
 - [Visual Studio Code](https://code.visualstudio.com/) 🐧 🍎 🪟
   - Notes
     - Configured to support the syncing of profiles
@@ -118,9 +123,6 @@ Currently managed:
 
 ```shell
 brew install chezmoi
-brew install starship
-brew install coretools
-brew install sheldon
 brew install mise
 mise use -g python@latest
 eval "$(mise env -s zsh)"
@@ -133,7 +135,7 @@ Install the following tools however is appropriate for your distro:
 - Starship
 - Sheldon
 - Mise
-- Zsh
+- Zsh (make sure to set as default shell)
 
 Then run the below to set up Python and put it the path:
 
