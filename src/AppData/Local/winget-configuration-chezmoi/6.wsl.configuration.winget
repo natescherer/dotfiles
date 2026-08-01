@@ -40,8 +40,8 @@ resources:
         elseif ($p.ExitCode -ne 0) {
           throw "InstallWslComponents: wsl --install failed with exit code $($p.ExitCode)"
         }
-  - type: Microsoft.DSC.Transitional/PowerShellScript
-    name: InstallUbuntu
+  - type: Microsoft.WinGet/Package
+    name: Ubuntu
     dependsOn:
       # yaml-language-server-disable
       - InstallWslComponents # This is valid even though there's a schema error, see https://github.com/microsoft/winget-cli/issues/5906
@@ -49,55 +49,6 @@ resources:
       winget:
         securityContext: elevated
     properties:
-      getScript: |
-        # Run wsl --list via Start-Process with redirected output. Calling wsl.exe
-        # directly leaks its non-zero exit code (when no distro is installed) into
-        # $LASTEXITCODE and routes its stderr into PowerShell's error stream -- both
-        # of which the dscv3 PowerShell adapter treats as a resource failure.
-        # Start-Process isolates the native call: stderr never reaches the error
-        # stream and $LASTEXITCODE is untouched. Safe to redirect here (unlike
-        # InstallWslComponents above) since WSL itself is already confirmed working
-        # by the time this resource runs.
-        $env:WSL_UTF8 = '1'
-        $distros = @()
-        $out = [System.IO.Path]::GetTempFileName()
-        $err = [System.IO.Path]::GetTempFileName()
-        $p = Start-Process -FilePath 'wsl.exe' -ArgumentList '--list','--quiet' `
-               -NoNewWindow -Wait -PassThru `
-               -RedirectStandardOutput $out -RedirectStandardError $err
-        if ($p.ExitCode -eq 0) {
-          $distros = @(Get-Content -LiteralPath $out -Encoding UTF8 |
-            ForEach-Object { ($_ -replace "`0", '').Trim() } |
-            Where-Object { $_ })
-        }
-        Remove-Item -LiteralPath $out, $err -Force -ErrorAction SilentlyContinue
-        return @{ ubuntuInstalled = ($distros -contains 'Ubuntu'); distroCount = $distros.Count; distros = ($distros -join ',') }
-      testScript: |
-        $env:WSL_UTF8 = '1'
-        $out = [System.IO.Path]::GetTempFileName()
-        $err = [System.IO.Path]::GetTempFileName()
-        $p = Start-Process -FilePath 'wsl.exe' -ArgumentList '--list','--quiet' `
-               -NoNewWindow -Wait -PassThru `
-               -RedirectStandardOutput $out -RedirectStandardError $err
-        if ($p.ExitCode -ne 0) {
-          Remove-Item -LiteralPath $out, $err -Force -ErrorAction SilentlyContinue
-          return $false
-        }
-        $distros = @(Get-Content -LiteralPath $out -Encoding UTF8 |
-          ForEach-Object { ($_ -replace "`0", '').Trim() } |
-          Where-Object { $_ })
-        Remove-Item -LiteralPath $out, $err -Force -ErrorAction SilentlyContinue
-        return $distros -contains 'Ubuntu'
-      setScript: |
-        # Suppress the "Welcome to WSL" first-run GUI/OOBE
-        $lxssPath = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Lxss'
-        New-Item -Path $lxssPath -Force | Out-Null
-        Set-ItemProperty -Path $lxssPath -Name 'OOBEComplete' -Value 1 -Type DWord -Force
-
-        Write-Host "InstallUbuntu: running wsl --install -d Ubuntu --no-launch..."
-        # Same unredirected Start-Process pattern as InstallWslComponents -- see
-        # that resource's setScript comment for why.
-        $p = Start-Process -FilePath 'wsl.exe' -ArgumentList '--install','-d','Ubuntu','--no-launch' -Wait -PassThru
-        if ($p.ExitCode -ne 0) {
-          throw "InstallUbuntu: wsl --install -d Ubuntu --no-launch failed with exit code $($p.ExitCode)"
-        }
+      id: 9PDXGNCFSCZV
+      source: msstore
+      installMode: silent
