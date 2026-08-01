@@ -122,6 +122,8 @@ Currently managed:
 ### macOS
 
 ```shell
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+eval "$(/opt/homebrew/bin/brew shellenv zsh)"
 brew install chezmoi
 brew install mise
 mise use -g python@latest
