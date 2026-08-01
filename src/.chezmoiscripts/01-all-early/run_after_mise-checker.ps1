@@ -3,9 +3,9 @@
 # to install them if so. Checking first via `mise ls --missing` keeps the common no-op case quiet
 # and fast instead of invoking a full `mise install` on every apply.
 #
-# Why is this in a folder called '01_all_early'? Directory order is what determines script
-# execution order, and 01 is lower than every OS-specific folder (10-linux, 20-linux_and_macos,
-# 30-macos, 40-windows, 41-windows_late, 99-all_late), so mise-managed tools get installed as
+# Why is this in a folder called '01-all-early'? Directory order is what determines script
+# execution order, and 01 is lower than every OS-specific folder (10-linux, 20-linux-and-macos,
+# 30-macos, 40-windows, 41-windows-late, 99-all-late), so mise-managed tools get installed as
 # early as possible for anything later in the apply run that wants them.
 #
 # PowerShell, not Python: this script's job is making sure mise-managed tools -- which can

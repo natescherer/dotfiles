@@ -3,7 +3,7 @@
 # Surgical key/value patches for Windows apps whose INI-style config file also stores the app's
 # own live runtime/session state in that same file.
 #
-# Sources data from .chezmoidata/windows_ini_key_patches.toml
+# Sources data from .chezmoidata/windows-ini-patches.toml
 
 # .chezmoidata files can't be templated -- data has to be loaded before the template engine has
 # anything to execute templates with (see https://github.com/twpayne/chezmoi/issues/3526, still
@@ -16,16 +16,16 @@ $ChezmoiDataJson = @'
 '@
 $ChezmoiData = $ChezmoiDataJson | ConvertFrom-Json
 
-# get (not plain dot access) tolerates a missing windows_ini_key_patches table, or one missing
+# get (not plain dot access) tolerates a missing windows_ini_patches table, or one missing
 # the files key -- chezmoi's strict template mode errors on plain dot access into a map that
 # doesn't have the key, which a stripped-down/empty data file would trigger.
 $FilesJson = @'
-{{ get (get . "windows_ini_key_patches" | default (dict)) "files" | default (list) | toJson }}
+{{ get (get . "windows_ini_patches" | default (dict)) "files" | default (list) | toJson }}
 '@
 $Files = $FilesJson | ConvertFrom-Json
 
 # Empty/missing `files` in the TOML (`toJson` renders that as the literal string "null", which
-# ConvertFrom-Json turns into $null) or a "[[windows_ini_key_patches.files]]"-less table both mean
+# ConvertFrom-Json turns into $null) or a "[[windows_ini_patches.files]]"-less table both mean
 # there's nothing to patch -- exit quietly rather than printing "Applying..."/"...applied." around
 # a no-op.
 if (-not $Files) {
@@ -48,7 +48,7 @@ function Test-FileConditions {
   return $true
 }
 
-Write-Host "`nApplying Windows INI key patches..." -ForegroundColor Green
+Write-Host "`nApplying Windows INI patches..." -ForegroundColor Green
 
 $AnyMissing = $false
 
@@ -107,8 +107,8 @@ foreach ($File in $Files) {
 }
 
 if ($AnyMissing) {
-  Write-Host "`nWindows INI key patches partially applied -- see above for which target files don't exist yet." -ForegroundColor Yellow
+  Write-Host "`nWindows INI patches partially applied -- see above for which target files don't exist yet." -ForegroundColor Yellow
   exit 1
 }
 
-Write-Host "`nWindows INI key patches applied." -ForegroundColor Green
+Write-Host "`nWindows INI patches applied." -ForegroundColor Green

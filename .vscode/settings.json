@@ -11,7 +11,7 @@
     "*.yaml.tmpl": "go-template",
     "dot_wslconfig": "ini",
     "dot_zshenv.tmpl": "shellscript",
-    "dot_zsh_aliases.tmpl": "shellscript",
+    "dot_zsh-aliases.tmpl": "shellscript",
     "dot_zshrc.tmpl": "shellscript",
   },
   "git.branchProtection": [],

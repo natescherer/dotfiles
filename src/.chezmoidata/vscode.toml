@@ -38,7 +38,7 @@ containers = [
 [[vscode.profiles]]
 name = "Default"
 # Default profile doesn't have a custom icon in the VS Code UI
-settings_files = [".chezmoitemplates/vscode/reusable_settings/core.json", ".chezmoitemplates/vscode/profile_settings/default.json"]
+settings_files = [".chezmoitemplates/vscode/reusable-settings/core.json", ".chezmoitemplates/vscode/profile-settings/default.json"]
 extension_sets = []
 extensions = [
   "bardleware.sandstorm",  # Red theme to act as an indicator that you need to choose a profile
@@ -47,7 +47,7 @@ extensions = [
 [[vscode.profiles]]
 name = "Chezmoi"
 icon = "home"
-settings_files = [".chezmoitemplates/vscode/reusable_settings/core.json", ".chezmoitemplates/vscode/profile_settings/python.json"]
+settings_files = [".chezmoitemplates/vscode/reusable-settings/core.json", ".chezmoitemplates/vscode/profile-settings/python.json"]
 extension_sets = ["core", "python"]
 extensions = [
   "ms-vscode.powershell",  # PowerShell extension
@@ -57,7 +57,7 @@ extensions = [
 [[vscode.profiles]]
 name = "Kubernetes"
 icon = "server"
-settings_files = [".chezmoitemplates/vscode/reusable_settings/core.json", ".chezmoitemplates/vscode/profile_settings/python.json", ".chezmoitemplates/vscode/profile_settings/kubernetes.json"]
+settings_files = [".chezmoitemplates/vscode/reusable-settings/core.json", ".chezmoitemplates/vscode/profile-settings/python.json", ".chezmoitemplates/vscode/profile-settings/kubernetes.json"]
 extension_sets = ["core", "python"]
 extensions = [
   "ms-kubernetes-tools.vscode-kubernetes-tools",
@@ -66,7 +66,7 @@ extensions = [
 [[vscode.profiles]]
 name = "Nix"
 icon = "terminal-linux"
-settings_files = [".chezmoitemplates/vscode/reusable_settings/core.json", ".chezmoitemplates/vscode/profile_settings/nix.json"]
+settings_files = [".chezmoitemplates/vscode/reusable-settings/core.json", ".chezmoitemplates/vscode/profile-settings/nix.json"]
 extension_sets = ["core", "containers"]
 extensions = [
   "jnoortheen.nix-ide",  # Nix language server
@@ -76,7 +76,7 @@ extensions = [
 [[vscode.profiles]]
 name = "PowerShell"
 icon = "terminal"
-settings_files = [".chezmoitemplates/vscode/reusable_settings/core.json", ".chezmoitemplates/vscode/profile_settings/powershell.json"]
+settings_files = [".chezmoitemplates/vscode/reusable-settings/core.json", ".chezmoitemplates/vscode/profile-settings/powershell.json"]
 extension_sets = ["core"]
 extensions = [
   "ms-vscode.powershell",  # PowerShell extension
@@ -85,14 +85,14 @@ extensions = [
 [[vscode.profiles]]
 name = "Python"
 icon = "snake"
-settings_files = [".chezmoitemplates/vscode/reusable_settings/core.json", ".chezmoitemplates/vscode/profile_settings/python.json"]
+settings_files = [".chezmoitemplates/vscode/reusable-settings/core.json", ".chezmoitemplates/vscode/profile-settings/python.json"]
 extension_sets = ["core", "python", "jupyter"]
 extensions = []
 
 [[vscode.profiles]]
 name = "Terraform"
 icon = "paintcan"
-settings_files = [".chezmoitemplates/vscode/reusable_settings/core.json", ".chezmoitemplates/vscode/profile_settings/python.json", ".chezmoitemplates/vscode/profile_settings/terraform.json"]
+settings_files = [".chezmoitemplates/vscode/reusable-settings/core.json", ".chezmoitemplates/vscode/profile-settings/python.json", ".chezmoitemplates/vscode/profile-settings/terraform.json"]
 extension_sets = ["core", "python"]
 extensions =  [
   "hashicorp.terraform",
@@ -101,7 +101,7 @@ extensions =  [
 [[vscode.profiles]]
 name = "Web"
 icon = "compass"
-settings_files = [".chezmoitemplates/vscode/reusable_settings/core.json", ".chezmoitemplates/vscode/profile_settings/web.json"]
+settings_files = [".chezmoitemplates/vscode/reusable-settings/core.json", ".chezmoitemplates/vscode/profile-settings/web.json"]
 extension_sets = ["core"]
 extensions = [
   "biomejs.biome",

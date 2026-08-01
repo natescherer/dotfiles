@@ -19,11 +19,11 @@ dot_wslconfig
 ## Windows scripts
 .chezmoiscripts/40-windows/
 .chezmoiscripts/40-windows/**
-.chezmoiscripts/41-windows_late/
-.chezmoiscripts/41-windows_late/**
-.chezmoiscripts/01_all_early/mise_checker.ps1
+.chezmoiscripts/41-windows-late/
+.chezmoiscripts/41-windows-late/**
+.chezmoiscripts/01-all-early/mise-checker.ps1
 ## Windows data
-.chezmoidata/windows_ini_key_patches.toml
+.chezmoidata/windows-ini-patches.toml
 {{- end }}
 
 {{- if eq .chezmoi.os "darwin" }}
@@ -39,11 +39,11 @@ dot_wslconfig
 ## Windows scripts
 .chezmoiscripts/40-windows/
 .chezmoiscripts/40-windows/**
-.chezmoiscripts/41-windows_late/
-.chezmoiscripts/41-windows_late/**
-.chezmoiscripts/01_all_early/mise_checker.ps1
+.chezmoiscripts/41-windows-late/
+.chezmoiscripts/41-windows-late/**
+.chezmoiscripts/01-all-early/mise-checker.ps1
 ## Windows data
-.chezmoidata/windows_ini_key_patches.toml
+.chezmoidata/windows-ini-patches.toml
 {{- end }}
 
 {{- if eq .chezmoi.os "windows" }}
@@ -60,11 +60,11 @@ dot_wslconfig
 ## Linux/macOS scripts
 .chezmoiscripts/10-linux/
 .chezmoiscripts/10-linux/**
-.chezmoiscripts/20-linux_and_macos/
-.chezmoiscripts/20-linux_and_macos/**
+.chezmoiscripts/20-linux-and-macos/
+.chezmoiscripts/20-linux-and-macos/**
 .chezmoiscripts/30-macos/
 .chezmoiscripts/30-macos/**
-.chezmoiscripts/01_all_early/mise_checker.sh
+.chezmoiscripts/01-all-early/mise-checker.sh
 ## macOS folders
 Library/
 Library/**

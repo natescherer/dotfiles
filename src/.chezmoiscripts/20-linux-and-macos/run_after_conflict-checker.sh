@@ -3,7 +3,7 @@
 declare -a badpaths=(
     "~/.gitconfig"
     "~/.nanorc"
-    "~/.zsh_aliases"
+    "~/.zsh-aliases"
     "~/.zlogin"
     "~/.zprofile"
     "~/.zshrc"

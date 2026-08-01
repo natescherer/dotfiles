@@ -7,9 +7,9 @@
 # script wrote it (tracked via a settings.json.chezmoi-hash sidecar file), so local customizations
 # never get clobbered; if drift is detected, it warns instead of overwriting.
 
-# Why is this in a folder called '99-all_late' instead of one of the OS-specific script folders?
+# Why is this in a folder called '99-all-late' instead of one of the OS-specific script folders?
 # Directory order is what determines script execution order, and 99 is higher than every OS-specific
-# folder (10-linux, 20-linux_and_macos, 30-macos, 40-windows, 41-windows_late), so this always runs
+# folder (10-linux, 20-linux-and-macos, 30-macos, 40-windows, 41-windows-late), so this always runs
 # last across every platform, after whatever those installed.
 
 import hashlib
