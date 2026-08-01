@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>PayloadContent</key>
+    <array>
+        <dict>
+            <key>PayloadType</key>
+            <string>com.apple.notificationsettings</string>
+            <key>PayloadVersion</key>
+            <integer>1</integer>
+            <key>PayloadIdentifier</key>
+            <string>com.example.notificationsettings.ghostty</string>
+            <key>PayloadUUID</key>
+            <string>D9B34526-0345-4FCC-831C-CBCF462DA33B</string>
+            <key>PayloadEnabled</key>
+            <true/>
+            <key>PayloadDisplayName</key>
+            <string>Ghostty Notification Settings</string>
+            <key>NotificationSettings</key>
+            <array>
+                <dict>
+                    <key>BundleIdentifier</key>
+                    <string>com.mitchellh.ghostty</string>
+                    <key>NotificationsEnabled</key>
+                    <true/>
+                </dict>
+            </array>
+        </dict>
+    </array>
+    <key>PayloadDisplayName</key>
+    <string>Ghostty Notifications</string>
+    <key>PayloadIdentifier</key>
+    <string>com.example.profile.ghostty-notifications</string>
+    <key>PayloadRemovalDisallowed</key>
+    <false/>
+    <key>PayloadType</key>
+    <string>Configuration</string>
+    <key>PayloadUUID</key>
+    <string>99C3A952-5D56-46D0-A391-F9CD37EE1857</string>
+    <key>PayloadVersion</key>
+    <integer>1</integer>
+</dict>
+</plist>

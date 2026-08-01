@@ -30,6 +30,7 @@ Currently managed:
 - [Ghostty](https://ghostty.org/) 🐧 🍎
   - Config Files
     - [src/dot_config/ghostty/config.tmpl](src/dot_config/ghostty/config.tmpl)
+    - [src/.scriptdata/macos-profiles/com.mitchellh.ghostty.mobileconfig](src/.scriptdata/macos-profiles/com.mitchellh.ghostty.mobileconfig)
 - [Git](https://git-scm.com/) 🐧 🍎 🪟
   - Config Files
     - [src/dot_config/git/config.tmpl](src/dot_config/git/config.tmpl)
