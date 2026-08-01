@@ -93,7 +93,7 @@ git/gh/**
 {{- end }}
 {{- end }}
 
-{{- if eq .isVM false }}
+{{- if eq .isVM true }}
 {{- if eq .chezmoi.os "windows" }}
 # Skip non-VM-specific WinGet Configuration file
 AppData/Local/winget-configuration-chezmoi/4.optional-features-vm.configuration.winget
