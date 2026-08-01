@@ -6,6 +6,7 @@
     "*.json.tmpl": "jsonc",
     "*.sh.tmpl": "shellscript",
     "*.ps1.tmpl": "powershell",
+    "*.py.tmpl": "python",
     "*.toml.tmpl": "toml",
     "*.winget.tmpl": "yaml",
     "*.yaml.tmpl": "go-template",
@@ -15,6 +16,9 @@
     "dot_zshrc.tmpl": "shellscript",
   },
   "git.branchProtection": [],
+  "python.analysis.ignore": [
+    "**/*.py.tmpl"
+  ],
   "go-template.patterns": [
     "**/*.tmpl",
     "**/.chezmoitemplates/**"

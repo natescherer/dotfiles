@@ -86,6 +86,7 @@ CLOBBER_COMMAND = (
 )
 
 CYAN_TERM_COLOR = "\033[0;36m"
+BRIGHT_GREEN_TERM_COLOR = "\033[1;32m"
 RED_TERM_COLOR = "\033[0;31m"
 YELLOW_TERM_COLOR = "\033[1;33m"
 RESET_TERM_STYLE = "\033[0m"
@@ -260,6 +261,8 @@ def write_profile_settings(profile_name, profile_dir, settings_content):
 
 
 def main():
+    print(f"{BRIGHT_GREEN_TERM_COLOR}Starting VS Code profile sync...{RESET_TERM_STYLE}\n")
+
     if shutil.which("code") is None:
         # Exiting non-zero (not just returning) is deliberate: chezmoi only records a
         # run_onchange_ script as applied when it exits 0, so a non-zero exit here means chezmoi
@@ -300,6 +303,8 @@ def main():
 
         sync_extensions(name, profile["extensions"])
         write_profile_settings(name, profile_dir, profile["settings"])
+
+    print(f"{BRIGHT_GREEN_TERM_COLOR}VS Code profile sync complete!{RESET_TERM_STYLE}\n")
 
 
 if __name__ == "__main__":
