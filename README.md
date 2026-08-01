@@ -121,20 +121,24 @@ Currently managed:
     - [src/dot_config/zsh/dot_zshrc.tmpl](src/dot_config/zsh/dot_zshrc.tmpl)
     - [src/dot_zshenv.tmpl](src/dot_zshenv.tmpl)
 
-## Prerequisites
+## Loading this Config
 
 ### macOS
-
-Now easy run available via:
-
-```shell
-curl -fS https://raw.githubusercontent.com/natescherer/dotfiles/main/init-macos.sh | bash
-```
 
 #### Preflight
 
 1. Install macOS, logging into Apple Account (unless a VM)
 1. Set hostname
+
+#### Automatic Installation
+
+macOS prerequisites can be automatically installed by running the below:
+
+```shell
+curl -fS https://raw.githubusercontent.com/natescherer/dotfiles/main/init-macos.sh | bash
+```
+
+#### Manual Installation
 
 ```shell
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
@@ -143,6 +147,7 @@ brew install chezmoi
 brew install mise
 mise use -g python@latest
 eval "$(mise env -s zsh)"
+chezmoi init --apply natescherer
 ```
 
 ### Linux
@@ -154,25 +159,36 @@ Install the following tools however is appropriate for your distro:
 - Mise
 - Zsh (make sure to set as default shell)
 
-Then run the below to set up Python and put it the path:
+Then run the below:
 
 ```Shell
 mise use -g python@latest
 eval "$(mise env -s zsh)"
+chezmoi init --apply natescherer
 ```
 
 ### Windows
 
-NOTE: If you are running Windows 11 25H2 and get a certificate error on any of
-the below steps, run the following in Admin Terminal to fix, then reopen a
-non-Admin Terminal and rerun the failed command.
+#### Automatic Installation
+
+Windows prerequisites can be automatically installed by running the below:
 
 ```PowerShell
-winget settings --enable BypassCertificatePinningForMicrosoftStore
-winget upgrade Microsoft.AppInstaller --accept-source-agreements --accept-package-agreements
-winget settings --disable BypassCertificatePinningForMicrosoftStore
-winget source reset --force
+irm https://raw.githubusercontent.com/natescherer/dotfiles/main/init-windows.ps1 | iex
 ```
+
+#### Manual Installation
+
+> NOTE: If you are running Windows 11 25H2 and get a certificate error on any of
+> the below steps, run the following in Admin Terminal to fix, then reopen a
+> non-Admin Terminal and rerun the failed command.
+>
+> ```PowerShell
+> winget settings --enable BypassCertificatePinningForMicrosoftStore
+> winget upgrade Microsoft.AppInstaller --accept-source-agreements --accept-package-agreements
+> winget settings --disable BypassCertificatePinningForMicrosoftStore
+> winget source reset --force
+> ```
 
 Install the latest PowerShell using this command SPECIFICALLY, as the default
 MSIX install has sandboxing issues, see
@@ -186,8 +202,8 @@ Once PowerShell is installed, reopen Windows Terminal and launch a PowerShell
 tab instead of Windows PowerShell.
 
 ```PowerShell
-winget install --id jdx.mise -e
 winget install --id twpayne.chezmoi -e
+winget install --id jdx.mise -e
 ```
 
 Restart the shell, then run the below:
@@ -195,10 +211,5 @@ Restart the shell, then run the below:
 ```PowerShell
 mise use -g python@latest
 mise env -s pwsh | iex
-```
-
-## Activating
-
-```shell
 chezmoi init --apply natescherer
 ```
