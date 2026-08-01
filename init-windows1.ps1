@@ -1,15 +1,37 @@
 #Requires -Version 5.1
 
 $currentPrincipal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
-if (-not $currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
-    throw "This script must be run as Administrator."
+if ($currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
+    throw "This script must NOT be run as Administrator. Re-run in a non-admin Terminal."
 }
 
-Write-Host "`nEnsuring Microsoft.AppInstaller is up-to-date..." -ForegroundColor Green
+Write-Host "`nInstalling PowerShell 7+..." -ForegroundColor Green
 
-winget settings --enable BypassCertificatePinningForMicrosoftStore
-winget upgrade Microsoft.AppInstaller --accept-source-agreements --accept-package-agreements
-winget settings --disable BypassCertificatePinningForMicrosoftStore
-winget source reset --force
+winget install --id Microsoft.PowerShell --source winget --installer-type wix
 
-Write-Host "`nMicrosoft.AppInstaller updated! Continue with  init-windows2.ps1 in a non-admin Terminal." -ForegroundColor Green
+Write-Host "`nSetting Windows Terminal default profile to PowerShell..." -ForegroundColor Green
+
+# Well-known GUID Windows Terminal assigns to the generated PowerShell 7 (pwsh) profile.
+$pwshProfileGuid = "{574e775e-4f2a-5b96-ac1e-a2962a402336}"
+
+$settingsPath = "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json"
+
+if (-not (Test-Path $settingsPath)) {
+    Write-Host "`nCould not find Windows Terminal settings.json. Skipping default profile change." -ForegroundColor Yellow
+}
+else {
+    $settingsContent = Get-Content -Path $settingsPath -Raw
+
+    if ($settingsContent -match '"defaultProfile"\s*:\s*"[^"]*"') {
+        $settingsContent = $settingsContent -replace '"defaultProfile"\s*:\s*"[^"]*"', "`"defaultProfile`": `"$pwshProfileGuid`""
+    }
+    else {
+        $settingsContent = $settingsContent -replace '\{', "{`n    `"defaultProfile`": `"$pwshProfileGuid`",", 1
+    }
+
+    Set-Content -Path $settingsPath -Value $settingsContent -NoNewline
+}
+
+Write-Host "`nPowerShell 7+ installed and Windows Terminal default profile updated! Continue with init-windows3.ps1 after relaunching Windows Terminal." -ForegroundColor Green
+Write-Host "`nClose and reopen Windows Terminal, then run the following:" -ForegroundColor Yellow
+Write-Host "    irm https://raw.githubusercontent.com/natescherer/dotfiles/main/init-windows2.ps1 | iex" -ForegroundColor Yellow

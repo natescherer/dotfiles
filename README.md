@@ -179,6 +179,7 @@ chezmoi init --apply natescherer
 
 1. Install drivers/VMware Tools/etc
 1. Ensure all Windows Updates are installed
+1. Open the Microsoft Store, click `Library`, then click `Get updates`
 
 #### Automatic Installation
 
