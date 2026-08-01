@@ -26,13 +26,12 @@ $MachinePath = [System.Environment]::GetEnvironmentVariable('Path', 'Machine')
 $UserPath = [System.Environment]::GetEnvironmentVariable('Path', 'User')
 $env:Path = "$MachinePath;$UserPath"
 
-$Mise = Get-Command mise -ErrorAction SilentlyContinue
-if (-not $Mise) {
+if (-not (Get-Command mise -ErrorAction SilentlyContinue)) {
     Write-Host "Warning: 'mise' is not found; skipping mise tool install. It should be installed later in this apply run - re-run 'chezmoi apply' afterward to install mise-managed tools.`n" -ForegroundColor Yellow
     exit 0
 }
 
-$Missing = & $Mise.Source ls --missing 2>$null
+$Missing = mise ls --missing 2>$null
 $MissingStatus = $LASTEXITCODE
 
 if ($MissingStatus -eq 0 -and [string]::IsNullOrWhiteSpace(($Missing -join "`n"))) {
@@ -46,7 +45,7 @@ if ($MissingStatus -ne 0) {
     $Missing | Write-Host
 }
 
-& $Mise.Source install
+mise install
 if ($LASTEXITCODE -ne 0) {
     Write-Host "Warning: 'mise install' exited with code $LASTEXITCODE. It will be retried on the next 'chezmoi apply'.`n" -ForegroundColor Yellow
 }
