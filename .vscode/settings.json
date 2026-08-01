@@ -4,6 +4,7 @@
     "**/git/*": "plaintext",
     "**/src/.chezmoitemplates/vscode/**/*.json": "jsonc",
     "*.json.tmpl": "jsonc",
+    "*.mobileconfig": "xml",
     "*.sh.tmpl": "shellscript",
     "*.ps1.tmpl": "powershell",
     "*.py.tmpl": "python",

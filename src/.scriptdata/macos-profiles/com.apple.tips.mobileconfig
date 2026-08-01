@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>PayloadContent</key>
+    <array>
+        <dict>
+            <key>PayloadType</key>
+            <string>com.apple.notificationsettings</string>
+            <key>PayloadVersion</key>
+            <integer>1</integer>
+            <key>PayloadIdentifier</key>
+            <string>com.example.notificationsettings.tips</string>
+            <key>PayloadUUID</key>
+            <string>6839507F-3C18-49CC-9A6F-6857EC66A5F5</string>
+            <key>PayloadEnabled</key>
+            <true/>
+            <key>PayloadDisplayName</key>
+            <string>Tips Notification Settings</string>
+            <key>NotificationSettings</key>
+            <array>
+                <dict>
+                    <key>BundleIdentifier</key>
+                    <string>com.apple.tips</string>
+                    <key>NotificationsEnabled</key>
+                    <false/>
+                </dict>
+            </array>
+        </dict>
+    </array>
+    <key>PayloadDisplayName</key>
+    <string>Tips Notifications</string>
+    <key>PayloadIdentifier</key>
+    <string>com.example.profile.tips-notifications</string>
+    <key>PayloadRemovalDisallowed</key>
+    <false/>
+    <key>PayloadType</key>
+    <string>Configuration</string>
+    <key>PayloadUUID</key>
+    <string>B3C0C951-4172-41F8-9A40-AE5294B31D76</string>
+    <key>PayloadVersion</key>
+    <integer>1</integer>
+</dict>
+</plist>
