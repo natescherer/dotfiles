@@ -169,9 +169,14 @@ chezmoi init --apply natescherer
 
 ### Windows
 
+#### Preflight
+
+1. Install drivers/VMware Tools/etc
+1. Ensure all Windows Updates are installed
+
 #### Automatic Installation
 
-Windows prerequisites can be automatically installed by running the below:
+Windows prerequisites can be automatically installed by running the below in an Admin Windows Terminal:
 
 ```PowerShell
 irm https://raw.githubusercontent.com/natescherer/dotfiles/main/init-windows.ps1 | iex
