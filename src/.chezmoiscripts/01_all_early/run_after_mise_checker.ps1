@@ -41,8 +41,7 @@ if ($MissingStatus -eq 0 -and [string]::IsNullOrWhiteSpace(($Missing -join "`n")
 if ($MissingStatus -ne 0) {
     Write-Host "Warning: 'mise ls --missing' failed; running 'mise install' anyway.`n" -ForegroundColor Yellow
 } else {
-    Write-Host "mise tools missing; running 'mise install'...`n" -ForegroundColor Cyan
-    $Missing | Write-Host
+    Write-Host "`nmise tools missing; running 'mise install'..." -ForegroundColor Cyan
 }
 
 mise install
