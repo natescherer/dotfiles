@@ -5,7 +5,7 @@ if ($currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administ
     throw "This script must NOT be run as Administrator. Re-run in a non-admin Terminal."
 }
 
-Write-Host "`nInstalling configuration prereqs..." -ForegroundColor BrightGreen
+Write-Host "`nInstalling configuration prereqs..." -ForegroundColor Green
 
 Write-Host "`nInstalling mise..." -ForegroundColor Cyan
 winget install --id jdx.mise -e
@@ -20,6 +20,6 @@ $env:Path = [System.Environment]::GetEnvironmentVariable('Path','Machine') + ';'
 Write-Host "`nInstalling Python via mise..." -ForegroundColor Cyan
 mise use -g python@latest
 
-Write-Host "`nConfiguration prereqs installed!" -ForegroundColor BrightGreen
+Write-Host "`nConfiguration prereqs installed!" -ForegroundColor Green
 Write-Host "`nRun the following to load your shell environment and finish configuration:" -ForegroundColor Yellow
 Write-Host "    mise env -s pwsh | iex && chezmoi init --apply natescherer" -ForegroundColor Yellow

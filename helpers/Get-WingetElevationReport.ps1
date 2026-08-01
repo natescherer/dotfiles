@@ -30,11 +30,11 @@ function Get-WingetPackageResources {
   function Flush {
     if ($null -ne $Current -and $Current.Type -eq 'Microsoft.WinGet/Package') {
       $Resources.Add([PSCustomObject]@{
-        Name            = $Current.Name
-        Id              = $Current.Id
-        Source          = $Current.Source
-        SecurityContext = $($Current.SecurityContext ? $Current.SecurityContext : 'default')
-      })
+          Name            = $Current.Name
+          Id              = $Current.Id
+          Source          = $Current.Source
+          SecurityContext = $($Current.SecurityContext ? $Current.SecurityContext : 'default')
+        })
     }
   }
 
@@ -146,12 +146,12 @@ foreach ($Package in $Packages) {
   }
 
   $Report.Add([PSCustomObject]@{
-    Name              = $Package.Name
-    Id                = $Package.Id
-    Declared          = $Package.SecurityContext
-    ActualElevation   = $Category
-    Detail            = $Detail
-  })
+      Name            = $Package.Name
+      Id              = $Package.Id
+      Declared        = $Package.SecurityContext
+      ActualElevation = $Category
+      Detail          = $Detail
+    })
 }
 
 Write-Host ""
@@ -175,7 +175,7 @@ $Flagged = $Report | Where-Object {
 }
 
 if ($Flagged.Count -eq 0) {
-  Write-Host "All $($Report.Count) packages' declared securityContext matches their actual elevation requirement." -ForegroundColor Green
+  Write-Host "All $($Report.Count) packages' declared securityContext matches their actual elevation requirement." -ForegroundColor DarkGreen
 } else {
   Write-Host "Declared securityContext disagrees with (or can't be confirmed against) the real manifest:" -ForegroundColor Yellow
   $Flagged | Format-Table -Property Name, Id, Declared, ActualElevation, Detail -AutoSize

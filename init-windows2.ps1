@@ -5,11 +5,11 @@ if ($currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administ
     throw "This script must NOT be run as Administrator. Re-run in a non-admin Terminal."
 }
 
-Write-Host "`nInstalling PowerShell 7+..." -ForegroundColor BrightGreen
+Write-Host "`nInstalling PowerShell 7+..." -ForegroundColor Green
 
 winget install --id Microsoft.PowerShell --source winget --installer-type wix
 
-Write-Host "`nSetting Windows Terminal default profile to PowerShell..." -ForegroundColor BrightGreen
+Write-Host "`nSetting Windows Terminal default profile to PowerShell..." -ForegroundColor Green
 
 # Well-known GUID Windows Terminal assigns to the generated PowerShell 7 (pwsh) profile.
 $pwshProfileGuid = "{574e775e-4f2a-5b96-ac1e-a2962a402336}"
@@ -32,4 +32,4 @@ else {
     Set-Content -Path $settingsPath -Value $settingsContent -NoNewline
 }
 
-Write-Host "`nPowerShell 7+ installed and Windows Terminal default profile updated! Continue with init-windows3.ps1 after relaunching Windows Terminal." -ForegroundColor BrightGreen
+Write-Host "`nPowerShell 7+ installed and Windows Terminal default profile updated! Continue with init-windows3.ps1 after relaunching Windows Terminal." -ForegroundColor Green

@@ -20,7 +20,7 @@
 
 # chezmoi apply runs many scripts back to back with no indication which is running -- announce
 # this one, since it can take a while.
-Write-Host "`nApplying Windows configuration via winget configure..." -ForegroundColor BrightGreen
+Write-Host "`nApplying Windows configuration via winget configure..." -ForegroundColor Green
 
 #region Paths and logging
 
@@ -412,7 +412,7 @@ foreach ($File in $ConfigFiles) {
 
 #endregion
 
-Write-Host "`nWindows configuration applied -- no reboot needed." -ForegroundColor BrightGreen
+Write-Host "`nWindows configuration applied -- no reboot needed." -ForegroundColor Green
 
 # winget's exit code isn't reliable even on success (e.g. benign "module not provided" warnings)
 # -- real failures are already visible above and logged to $LogPath.

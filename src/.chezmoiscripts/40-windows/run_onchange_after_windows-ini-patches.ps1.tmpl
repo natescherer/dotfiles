@@ -48,7 +48,7 @@ function Test-FileConditions {
   return $true
 }
 
-Write-Host "`nApplying Windows INI patches..." -ForegroundColor Green
+Write-Host "`nApplying Windows INI patches..." -ForegroundColor DarkGreen
 
 $AnyMissing = $false
 
@@ -111,4 +111,4 @@ if ($AnyMissing) {
   exit 1
 }
 
-Write-Host "`nWindows INI patches applied." -ForegroundColor Green
+Write-Host "`nWindows INI patches applied." -ForegroundColor DarkGreen
