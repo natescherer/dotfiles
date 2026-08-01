@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-echo -e "\033[1;92m\nSetting up macOS machine...\033[0m"
+echo -e "\033[1;92m\nSetting up macOS configuration prereqs...\033[0m"
 
 echo -e "\033[1;36m\nInstalling Homebrew...\033[0m"
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" < /dev/tty
@@ -16,7 +16,6 @@ echo -e "\033[1;36m\nLoading mise environment...\033[0m"
 eval "$(mise env -s zsh)"
 echo -e "\033[1;36m\nSetting up Python via mise...\033[0m"
 mise use -g python@latest
-echo -e "\033[1;36m\nInitializing chezmoi...\033[0m"
-chezmoi init --apply natescherer < /dev/tty
 
-echo -e "\033[1;92m\nmacOS machine set up successfully!\033[0m"
+echo -e "\033[1;92m\nmacOS configuration prereqs set up successfully!\033[0m"
+echo -e "\033[1;33m\nRun 'chezmoi init --apply natescherer' to continue configuration.\033[0m"
