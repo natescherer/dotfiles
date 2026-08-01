@@ -179,7 +179,7 @@ chezmoi init --apply natescherer
 Windows prerequisites can be automatically installed by running the below in an Admin Windows Terminal:
 
 ```PowerShell
-irm https://raw.githubusercontent.com/natescherer/dotfiles/main/init-windows.ps1 | iex
+irm https://raw.githubusercontent.com/natescherer/dotfiles/main/init-windows1.ps1 | iex
 ```
 
 #### Manual Installation
