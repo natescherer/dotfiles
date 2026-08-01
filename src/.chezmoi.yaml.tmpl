@@ -19,6 +19,11 @@
 {{- $applyOSConfig = promptBoolOnce . "applyOSConfig" $applyOSConfigPrompt false }}
 {{- end }}
 
+{{- $isVM := false }}
+{{- if eq .chezmoi.os "windows" }}
+{{- $isVM = promptBoolOnce . "isVM" "Is this a VM? (Enter for default)" false }}
+{{- end }}
+
 {{- if eq .chezmoi.os "windows" }}
 cd:
     command: pwsh
@@ -33,6 +38,7 @@ data:
     applyOSConfig: {{ $applyOSConfig }}
     isPersonal: {{ $isPersonal }}
     adminRights: {{ $adminRights }}
+    isVM: {{ $isVM }}
 diff:
     command: "code"
     args:

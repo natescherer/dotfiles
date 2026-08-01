@@ -14,13 +14,7 @@ resources:
         securityContext: elevated
     properties:
       features:
-        - featureName: Containers
-          state: Installed
         - featureName: NetFx3
-          state: Installed
-        - featureName: HypervisorPlatform
-          state: Installed
-        - featureName: Containers-DisposableClientVM
           state: Installed
         - featureName: SimpleTCP
           state: Installed

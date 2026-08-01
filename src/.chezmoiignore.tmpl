@@ -92,3 +92,10 @@ git/gh/**
 .chezmoiscripts/40-windows/run_onchange_after_winget-configure.ps1.tmpl
 {{- end }}
 {{- end }}
+
+{{- if eq .isVM false }}
+{{- if eq .chezmoi.os "windows" }}
+# Skip non-VM-specific WinGet Configuration file
+AppData/Local/winget-configuration-chezmoi/4.optional-features-vm.configuration.winget
+{{- end }}
+{{- end }}
