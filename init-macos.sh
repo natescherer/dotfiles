@@ -5,7 +5,7 @@ set -euo pipefail
 echo -e "\033[1;92m\nSetting up macOS machine...\033[0m"
 
 echo -e "\033[1;36m\nInstalling Homebrew...\033[0m"
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" < /dev/tty
 echo -e "\033[1;36m\nLoading Homebrew environment...\033[0m"
 eval "$(/opt/homebrew/bin/brew shellenv zsh)"
 echo -e "\033[1;36m\nInstalling chezmoi...\033[0m"
