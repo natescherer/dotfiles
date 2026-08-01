@@ -21,7 +21,7 @@
             <array>
                 <dict>
                     <key>BundleIdentifier</key>
-                    <string>com.github.domt4.homebrew-autoupdate</string>
+                    <string>com.github.domt4.homebrew-autoupdate.autoupdater</string>
                     <key>NotificationsEnabled</key>
                     <true/>
                     <key>ShowInNotificationCenter</key>
