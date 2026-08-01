@@ -54,18 +54,54 @@
 # here (unlike upstream Chromium/Chrome, which hardcodes "Chrome Apps" per
 # its source — this fork apparently derives it from the product name
 # instead). If a future build ever changes this, the task will just retry
-# for a minute and move on (failed_when: false below) rather than blocking
-# the whole run on it.
-- name: Wait for Chromium to install the forced PWAs
+# for a couple of minutes and move on (failed_when: false below) rather
+# than blocking the whole run on it.
+- name: Wait for Chromium's initial install attempt to finish
   ansible.builtin.find:
     paths: "{{ ansible_facts.env.HOME }}/Applications/Chromium Apps.localized"
     patterns: "*.app"
     file_type: directory
   register: chromium_installed_pwas
   until: chromium_installed_pwas.matched | default(0) >= (chromium_web_apps | length)
-  retries: 12
+  retries: 24
   delay: 5
   when: chromium_policy is changed
+  failed_when: false
+
+# When the hidden background page load behind a forced install fails
+# (timeout, redirect, or the browser being quit mid-load), Chromium falls
+# back to installing a "placeholder" app named after the install URL (e.g.
+# `https/www.youtube.com.app`), with no manifest name or icon. Chromium
+# replaces a placeholder with the real manifest-derived app as soon as any
+# tab successfully navigates to the placeholder's install URL — the same
+# fully-rendered path a manual "Install" click uses. See
+# https://chromium.googlesource.com/chromium/src/+/main/docs/webapps/concepts.md
+# So: detect URL-named bundles, and if any exist, open every install URL in
+# a background tab to trigger that replacement.
+- name: Check for placeholder PWA installs
+  ansible.builtin.find:
+    paths: "{{ ansible_facts.env.HOME }}/Applications/Chromium Apps.localized"
+    patterns: "http*.app"
+    file_type: directory
+  register: chromium_placeholder_pwas
+  when: chromium_policy is changed
+
+- name: Open install URLs in tabs so Chromium replaces the placeholders
+  ansible.builtin.command:
+    argv: "{{ ['open', '-g', '-a', 'Chromium'] + (chromium_web_apps | map(attribute='url') | list) }}"
+  when: chromium_policy is changed and chromium_placeholder_pwas.matched | default(0) > 0
+  changed_when: true
+
+- name: Wait for placeholders to be replaced by real apps
+  ansible.builtin.find:
+    paths: "{{ ansible_facts.env.HOME }}/Applications/Chromium Apps.localized"
+    patterns: "http*.app"
+    file_type: directory
+  register: chromium_remaining_placeholders
+  until: chromium_remaining_placeholders.matched | default(0) == 0
+  retries: 24
+  delay: 5
+  when: chromium_policy is changed and chromium_placeholder_pwas.matched | default(0) > 0
   failed_when: false
 
 - name: Quit Chromium

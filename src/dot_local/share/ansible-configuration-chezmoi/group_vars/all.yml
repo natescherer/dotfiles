@@ -93,19 +93,12 @@ mac_app_store_apps:
 # Each entry accepts any key WebAppInstallForceList supports — see
 # https://chromeenterprise.google/policies/#WebAppInstallForceList
 #
-# custom_name/custom_icon are set explicitly below rather than left for
-# Chromium to auto-detect from the site's manifest: the forced/background
-# install path doesn't fully render the page the way a manual "Install"
-# click does, so manifest (and even favicon/title) detection can silently
-# fail — that's what produced an app named `https/www.youtube.com.app`
-# with no icon. custom_icon.hash is the SHA256 of the icon file itself
-# (Chromium validates it against the downloaded bytes at install time);
-# recompute it if you ever change the icon URL, e.g.:
-#   curl -sL '<icon url>' | shasum -a 256
+# Name and icon come from the site's web app manifest — don't set
+# custom_name/custom_icon here. If Chromium's hidden background install
+# can't load the page, it installs a URL-named placeholder app (that's
+# what once produced `https/www.youtube.com.app` with no icon); the
+# chromium_pwas role detects placeholders and navigates a real tab to the
+# install URL, which makes Chromium swap in the real manifest-derived app.
 chromium_web_apps:
   - url: "https://www.youtube.com"
     default_launch_container: window
-    custom_name: "YouTube"
-    custom_icon:
-      url: "https://www.google.com/s2/favicons?sz=256&domain=youtube.com"
-      hash: "cb6adb19843b645bc227181f52746f01e9a8fda6c11338cac23c5977c7d2386c"
