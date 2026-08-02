@@ -40,7 +40,11 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
     # child's command line) so this doesn't get flagged as a malware download cradle.
     $continueScriptPath = Join-Path $env:TEMP "init-windows.ps1"
     Invoke-RestMethod -Uri "https://raw.githubusercontent.com/natescherer/dotfiles/main/init-windows.ps1" -OutFile $continueScriptPath
-    Start-Process wt.exe -ArgumentList "pwsh", "-NoExit", "-File", $continueScriptPath
+
+    # Use pwsh's full path rather than relying on PATH: the installer updated the
+    # registry, but this process's inherited PATH doesn't have pwsh's directory yet.
+    $pwshPath = Join-Path $env:ProgramFiles "PowerShell\7\pwsh.exe"
+    Start-Process wt.exe -ArgumentList "`"$pwshPath`"", "-NoExit", "-File", $continueScriptPath
 
     Write-Host "`nSetup is continuing in the new window; this Windows PowerShell window can be closed." -ForegroundColor Yellow
 
