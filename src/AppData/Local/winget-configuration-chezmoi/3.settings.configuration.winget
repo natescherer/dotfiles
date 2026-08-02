@@ -355,3 +355,11 @@ resources:
       valueData:
         DWord: 0
       _exist: true
+  - type: Microsoft.Windows/Registry
+    name: UniGetUILaunchAtStartup
+    properties:
+      keyPath: HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run
+      valueName: WingetUI
+      valueData:
+        ExpandString: '"%LocalAppData%\Programs\UniGetUI\UniGetUI.exe" --daemon'
+      _exist: true
