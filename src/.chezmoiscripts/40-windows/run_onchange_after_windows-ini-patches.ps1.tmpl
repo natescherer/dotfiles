@@ -48,13 +48,15 @@ function Test-FileConditions {
   return $true
 }
 
-Write-Host "`nApplying Windows INI patches..." -ForegroundColor DarkGreen
-
+# Messages are buffered instead of written as each file is processed, because whether anything
+# gets printed at all depends on whether any file ends up needing actual work -- files skipped by
+# whenTrue/whenFalse or already up to date are no-ops and shouldn't produce console noise.
 $AnyMissing = $false
+$AnyChanged = $false
+$Messages = @()
 
 foreach ($File in $Files) {
   if (-not (Test-FileConditions -File $File)) {
-    Write-Host "Skipping $($File.name) -- whenTrue/whenFalse conditions not met" -ForegroundColor DarkGray
     continue
   }
 
@@ -68,7 +70,10 @@ foreach ($File in $Files) {
   # the next `chezmoi apply` even though nothing else changed -- same trick
   # Stop-ForPendingReboot uses in run_onchange_after_winget-configure.ps1.tmpl.
   if (-not (Test-Path $Path)) {
-    Write-Host "Skipping $($File.name) -- $Path doesn't exist yet (the app has probably never been run); will retry on the next chezmoi apply" -ForegroundColor Yellow
+    $Messages += [PSCustomObject]@{
+      Text  = "Skipping $($File.name) -- $Path doesn't exist yet (the app has probably never been run); will retry on the next chezmoi apply"
+      Color = 'Yellow'
+    }
     $AnyMissing = $true
     continue
   }
@@ -100,10 +105,19 @@ foreach ($File in $Files) {
 
   if ($Changed) {
     Set-Content -Path $Path -Value $Lines
-    Write-Host "Patched $($File.name) keys in $Path" -ForegroundColor Cyan
-  } else {
-    Write-Host "$($File.name) keys already up to date in $Path" -ForegroundColor DarkGray
+    $Messages += [PSCustomObject]@{ Text = "Patched $($File.name) keys in $Path"; Color = 'Cyan' }
+    $AnyChanged = $true
   }
+}
+
+if (-not $AnyChanged -and -not $AnyMissing) {
+  exit 0
+}
+
+Write-Host "`nApplying Windows INI patches..." -ForegroundColor DarkGreen
+
+foreach ($Message in $Messages) {
+  Write-Host $Message.Text -ForegroundColor $Message.Color
 }
 
 if ($AnyMissing) {
