@@ -72,6 +72,20 @@ function Get-InstalledPwaCount {
     return (Get-ChildItem -Path $WebAppsDir -Directory -ErrorAction SilentlyContinue | Measure-Object).Count
 }
 
+# When the hidden background page load behind a forced install fails (timeout, redirect, or the
+# browser being quit mid-load), Chromium falls back to installing a manifest-less, iconless
+# placeholder app literally named after the install URL (e.g. a "https www.youtube.com" shortcut
+# for https://www.youtube.com -- confirmed on-device) -- the Windows equivalent of macOS's
+# URL-named `https/www.youtube.com.app` placeholder bundles. Its folder under Web Applications
+# looks identical to a real install (opaque app-id name either way), but the Start Menu shortcut
+# it creates is not: a real manifest-derived name is never going to start with "http(s) ".
+function Get-PlaceholderShortcutCount {
+    $StartMenuDir = Join-Path $env:APPDATA 'Microsoft\Windows\Start Menu\Programs'
+    if (-not (Test-Path $StartMenuDir)) { return 0 }
+    return (Get-ChildItem -Path $StartMenuDir -Filter '*.lnk' -File -Recurse -ErrorAction SilentlyContinue |
+        Where-Object { $_.BaseName -match '^https?\s' } | Measure-Object).Count
+}
+
 # Launch minimized rather than bringing it to the foreground -- same non-disruptive intent as
 # `open -g -a Chromium` on macOS. Chromium only actually acts on WebAppInstallForceList --
 # downloading each app's manifest/icon and creating the installed web app -- once it's running.
@@ -85,31 +99,32 @@ Start-Process -FilePath $ChromiumExe -ArgumentList '--no-first-run' -WindowStyle
 # for here.
 $Retries = 120
 $DelaySeconds = 5
-for ($i = 0; $i -lt $Retries; $i++) {
-    $Count = Get-InstalledPwaCount
-    if ($Count -ge $PwaEntries.Count) { break }
-    if ($i % 12 -eq 0) {
-        Write-Host "Waiting for PWAs to install ($Count/$($PwaEntries.Count) so far, $($i * $DelaySeconds)s elapsed)..." -ForegroundColor DarkGray
+function Wait-ForCondition {
+    param([Parameter(Mandatory)] [scriptblock] $Condition, [string] $ProgressLabel)
+    for ($i = 0; $i -lt $Retries; $i++) {
+        if (& $Condition) { return }
+        if ($i % 12 -eq 0) {
+            Write-Host "$ProgressLabel ($($i * $DelaySeconds)s elapsed)..." -ForegroundColor DarkGray
+        }
+        Start-Sleep -Seconds $DelaySeconds
     }
-    Start-Sleep -Seconds $DelaySeconds
 }
 
-# When the hidden background page load behind a forced install fails (timeout, redirect, or the
-# browser being quit mid-load), Chromium falls back to a manifest-less placeholder install and
-# only replaces it with the real one once some tab successfully navigates to the install URL --
-# the same behavior the macOS role works around by re-opening every install URL in a tab. Windows
-# app-folder names are opaque hashes (unlike macOS's URL-named .app bundles), so a real placeholder
-# can't be distinguished from a good install by name alone here -- reopening every URL regardless
-# is cheap and idempotent, so just always do it as a reinforcement pass.
-foreach ($Entry in $PwaEntries) {
-    Start-Process -FilePath $ChromiumExe -ArgumentList '--no-first-run', $Entry.url -WindowStyle Minimized
-    Start-Sleep -Seconds 1
-}
-for ($i = 0; $i -lt 12; $i++) {
-    if ((Get-InstalledPwaCount) -ge $PwaEntries.Count) { break }
-    Start-Sleep -Seconds $DelaySeconds
+Wait-ForCondition -Condition { (Get-InstalledPwaCount) -ge $PwaEntries.Count } -ProgressLabel "Waiting for Chromium's initial install attempt to finish"
+
+# See the placeholder comment above -- re-navigating a tab to the install URL is what makes
+# Chromium swap a placeholder for the real manifest-derived app, the same remedy the macOS role
+# uses. Re-opening every URL regardless of which one(s) are actually placeholders is cheap and
+# idempotent, so there's no need to map a placeholder shortcut back to a specific entry.
+if ((Get-PlaceholderShortcutCount) -gt 0) {
+    foreach ($Entry in $PwaEntries) {
+        Start-Process -FilePath $ChromiumExe -ArgumentList '--no-first-run', $Entry.url -WindowStyle Minimized
+        Start-Sleep -Seconds 1
+    }
+    Wait-ForCondition -Condition { (Get-PlaceholderShortcutCount) -eq 0 } -ProgressLabel "Waiting for placeholder installs to be replaced by real apps"
 }
 
 Get-Process -Name chrome -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
 
-Write-Host "PWA install pass complete ($(Get-InstalledPwaCount)/$($PwaEntries.Count) found under $WebAppsDir)." -ForegroundColor Green
+$PlaceholderCount = Get-PlaceholderShortcutCount
+Write-Host "PWA install pass complete ($(Get-InstalledPwaCount)/$($PwaEntries.Count) found under $WebAppsDir, $PlaceholderCount still placeholder)." -ForegroundColor Green
