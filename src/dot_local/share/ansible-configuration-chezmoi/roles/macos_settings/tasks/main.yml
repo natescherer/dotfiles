@@ -19,7 +19,7 @@
     value: "{{ item.value }}"
     state: present
   loop:
-    - { key: tilesize, type: int, value: 44 }
+    - { key: tilesize, type: float, value: 44.0 }
     - { key: mineffect, type: string, value: genie }
     - { key: minimize-to-application, type: bool, value: true }
     - { key: autohide, type: bool, value: false }
