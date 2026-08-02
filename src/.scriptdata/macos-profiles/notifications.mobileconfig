@@ -10,15 +10,21 @@
             <key>PayloadVersion</key>
             <integer>1</integer>
             <key>PayloadIdentifier</key>
-            <string>com.example.notificationsettings.homebrew-autoupdate</string>
+            <string>com.example.notificationsettings.combined</string>
             <key>PayloadUUID</key>
-            <string>661A5D2D-0684-4BAE-9D5E-E32A4F5FFCEC</string>
+            <string>AF442A89-D5F6-441D-B657-BAA3E120EB28</string>
             <key>PayloadEnabled</key>
             <true/>
             <key>PayloadDisplayName</key>
-            <string>Homebrew Autoupdate Notification Settings</string>
+            <string>Notification Settings</string>
             <key>NotificationSettings</key>
             <array>
+                <dict>
+                    <key>BundleIdentifier</key>
+                    <string>com.apple.tips</string>
+                    <key>NotificationsEnabled</key>
+                    <false/>
+                </dict>
                 <dict>
                     <key>BundleIdentifier</key>
                     <string>com.github.domt4.homebrew-autoupdate.autoupdater</string>
@@ -35,19 +41,31 @@
                     <key>CriticalAlertEnabled</key>
                     <false/>
                 </dict>
+                <dict>
+                    <key>BundleIdentifier</key>
+                    <string>com.mitchellh.ghostty</string>
+                    <key>NotificationsEnabled</key>
+                    <true/>
+                </dict>
+                <dict>
+                    <key>BundleIdentifier</key>
+                    <string>org.chromium.Chromium</string>
+                    <key>NotificationsEnabled</key>
+                    <true/>
+                </dict>
             </array>
         </dict>
     </array>
     <key>PayloadDisplayName</key>
-    <string>Homebrew Autoupdate Notifications</string>
+    <string>Notifications</string>
     <key>PayloadIdentifier</key>
-    <string>com.example.profile.homebrew-autoupdate-notifications</string>
+    <string>com.example.profile.notifications</string>
     <key>PayloadRemovalDisallowed</key>
     <false/>
     <key>PayloadType</key>
     <string>Configuration</string>
     <key>PayloadUUID</key>
-    <string>23C2021F-1E50-4FE4-8FB4-D5FC2F5CB59C</string>
+    <string>492BF6D7-A1BC-41EB-9A1E-0FA615FDC1DD</string>
     <key>PayloadVersion</key>
     <integer>1</integer>
 </dict>

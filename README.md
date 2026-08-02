@@ -28,9 +28,11 @@ Currently managed:
   - Config Files
     - [src/dot_config/zsh/dot_zshrc.tmpl](src/dot_config/zsh/dot_zshrc.tmpl)
 - [Ghostty](https://ghostty.org/) 🐧 🍎
+  - Notes
+    - Notification permissions are pre-granted via a configuration profile, since macOS has no supported way to grant them silently. Installed via script [src/.chezmoiscripts/30-macos/run_onchange_profiles-importer.sh.tmpl](src/.chezmoiscripts/30-macos/run_onchange_profiles-importer.sh.tmpl)
   - Config Files
     - [src/dot_config/ghostty/config.tmpl](src/dot_config/ghostty/config.tmpl)
-    - [src/.scriptdata/macos-profiles/com.mitchellh.ghostty.mobileconfig](src/.scriptdata/macos-profiles/com.mitchellh.ghostty.mobileconfig)
+    - [src/.scriptdata/macos-profiles/notifications.mobileconfig](src/.scriptdata/macos-profiles/notifications.mobileconfig)
 - [Git](https://git-scm.com/) 🐧 🍎 🪟
   - Config Files
     - [src/dot_config/git/config.tmpl](src/dot_config/git/config.tmpl)
@@ -48,7 +50,7 @@ Currently managed:
   - Notes
     - Notification permissions are pre-granted via a configuration profile, since macOS has no supported way to grant them silently. Installed via script [src/.chezmoiscripts/30-macos/run_onchange_profiles-importer.sh.tmpl](src/.chezmoiscripts/30-macos/run_onchange_profiles-importer.sh.tmpl)
   - Config Files
-    - [src/.scriptdata/macos-profiles/com.github.domt4.homebrew-autoupdate.mobileconfig](src/.scriptdata/macos-profiles/com.github.domt4.homebrew-autoupdate.mobileconfig)
+    - [src/.scriptdata/macos-profiles/notifications.mobileconfig](src/.scriptdata/macos-profiles/notifications.mobileconfig)
 - [k9s](https://github.com/derailed/k9s) 🐧 🍎 🪟
   - Config Files
     - [src/dot_config/k9s/config.yaml.tmpl](src/dot_config/k9s/config.yaml.tmpl)
@@ -93,6 +95,11 @@ Currently managed:
   - Config Files
     - [src/.scriptdata/macos-defaults/eu.exelban.Stats.plist](src/.scriptdata/macos-defaults/eu.exelban.Stats.plist)
       - Note this is a non-editable binary file, made via `defaults export eu.exelban.Stats eu.exelban.Stats.plist`
+- [Ungoogled Chromium](https://github.com/ungoogled-software/ungoogled-chromium) 🍎
+  - Notes
+    - Notification permissions are pre-granted via a configuration profile, since macOS has no supported way to grant them silently. Installed via script [src/.chezmoiscripts/30-macos/run_onchange_profiles-importer.sh.tmpl](src/.chezmoiscripts/30-macos/run_onchange_profiles-importer.sh.tmpl)
+  - Config Files
+    - [src/.scriptdata/macos-profiles/notifications.mobileconfig](src/.scriptdata/macos-profiles/notifications.mobileconfig)
 - [UniGetUI](https://www.marticliment.com/unigetui/) 🪟
   - Notes
     - Uses an unusual model of one-file-per-setting, there are many files under the below directory
