@@ -95,6 +95,23 @@ function Get-PlaceholderShortcutCount {
         Where-Object { $_.BaseName -match '^https?\s' } | Measure-Object).Count
 }
 
+# Registry policy is only guaranteed to be read fresh at process *startup* -- a running instance
+# reloading WebAppInstallForceList live isn't reliable. Since Chromium is single-instance
+# (launching chrome.exe while one is already running just forwards the args via IPC to it rather
+# than starting a new process), any already-running instance -- left over from an earlier run of
+# this very script, from manual testing, or from the user's own regular browsing, since Chromium
+# is also this machine's general backup browser now -- would silently swallow every Start-Process
+# call below into its own stale in-memory policy instead of actually picking up the new one. Force
+# a truly fresh process by killing anything already running first, not just cleaning up after.
+function Stop-ChromiumProcesses {
+    $ChromiumDir = Split-Path $ChromiumExe
+    Get-Process -Name 'chrome*' -ErrorAction SilentlyContinue |
+        Where-Object { $_.Path -and $_.Path.StartsWith($ChromiumDir, [StringComparison]::OrdinalIgnoreCase) } |
+        Stop-Process -Force -ErrorAction SilentlyContinue
+}
+Stop-ChromiumProcesses
+Start-Sleep -Seconds 2  # let Windows release the profile's singleton lock before relaunching
+
 # Launch minimized rather than bringing it to the foreground -- same non-disruptive intent as
 # `open -g -a Chromium` on macOS. Chromium only actually acts on WebAppInstallForceList --
 # downloading each app's manifest/icon and creating the installed web app -- once it's running.
@@ -103,9 +120,10 @@ Start-Process -FilePath $ChromiumExe -ArgumentList '--no-first-run' -WindowStyle
 # The very first launch of a brand new profile is much slower than a warm one -- first-run
 # component/cert-store setup, and (confirmed via the presence of vk_swiftshader.dll/libEGL.dll in
 # the install dir) software-rendered GPU fallback on VMs with no passthrough GPU, which is
-# considerably slower than hardware rendering. 10 minutes covers that cold-start case; a warm
-# rerun (nothing changed, so this script wouldn't even run again) isn't the case being budgeted
-# for here.
+# considerably slower than hardware rendering. 10 minutes covers that cold-start case. This script
+# can rerun for reasons other than the PWA list actually changing (e.g. an edit to this script's
+# own content, which is also what its run_onchange_ gate keys off of) -- so a "warm" rerun where
+# everything is already installed is a real case, not a hypothetical one, and is handled below.
 $Retries = 120
 $DelaySeconds = 5
 function Wait-ForCondition {
@@ -119,7 +137,12 @@ function Wait-ForCondition {
     }
 }
 
-Wait-ForCondition -Condition { (Get-NewPwaCount) -ge $PwaEntries.Count } -ProgressLabel "Waiting for Chromium's initial install attempt to finish"
+# Get-NewPwaCount only ever counts folders that appeared *after* this run's baseline snapshot, so
+# on a warm rerun where everything was already installed by an earlier run, it correctly stays 0
+# forever -- that's not a failure, it's nothing left to do. $BaselineFolders.Count already meeting
+# the target up front is exactly that case, and is checked first so it short-circuits immediately
+# instead of waiting out the full retry budget for installs that were never going to happen.
+Wait-ForCondition -Condition { ($BaselineFolders.Count -ge $PwaEntries.Count) -or ((Get-NewPwaCount) -ge $PwaEntries.Count) } -ProgressLabel "Waiting for Chromium's initial install attempt to finish"
 
 # See the placeholder comment above -- re-navigating a tab to the install URL is what makes
 # Chromium swap a placeholder for the real manifest-derived app, the same remedy the macOS role
@@ -133,7 +156,11 @@ if ((Get-PlaceholderShortcutCount) -gt 0) {
     Wait-ForCondition -Condition { (Get-PlaceholderShortcutCount) -eq 0 } -ProgressLabel "Waiting for placeholder installs to be replaced by real apps"
 }
 
-Get-Process -Name chrome -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+Stop-ChromiumProcesses
 
 $PlaceholderCount = Get-PlaceholderShortcutCount
-Write-Host "PWA install pass complete ($(Get-NewPwaCount)/$($PwaEntries.Count) newly installed under $WebAppsDir, $PlaceholderCount still placeholder)." -ForegroundColor Green
+# Capped at $PwaEntries.Count so this doesn't reintroduce the earlier "3/1" confusion from
+# unrelated pre-existing folders (the browser is also a general daily-use browser now) -- this is
+# still just an estimate, not per-URL verification, since folder names are opaque app ids.
+$AccountedForCount = [Math]::Min($PwaEntries.Count, $BaselineFolders.Count + (Get-NewPwaCount))
+Write-Host "PWA install pass complete ($AccountedForCount/$($PwaEntries.Count) accounted for under $WebAppsDir -- $(Get-NewPwaCount) newly installed this run, $PlaceholderCount still placeholder)." -ForegroundColor Green
