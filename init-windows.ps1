@@ -8,7 +8,7 @@ if ($currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administ
 if ($PSVersionTable.PSVersion.Major -lt 7) {
     Write-Host "`nInstalling PowerShell 7+..." -ForegroundColor Green
 
-    winget install --id Microsoft.PowerShell --source winget --installer-type wix
+    winget install --id Microsoft.PowerShell --source winget --installer-type wix --accept-source-agreements --accept-package-agreements
 
     Write-Host "`nSetting Windows Terminal default profile to PowerShell..." -ForegroundColor Green
 
@@ -54,10 +54,10 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
 Write-Host "`nInstalling configuration prereqs..." -ForegroundColor Green
 
 Write-Host "`nInstalling mise..." -ForegroundColor Cyan
-winget install --id jdx.mise -e
+winget install --id jdx.mise -e --accept-source-agreements --accept-package-agreements
 
 Write-Host "`nInstalling chezmoi..." -ForegroundColor Cyan
-winget install --id twpayne.chezmoi -e
+winget install --id twpayne.chezmoi -e --accept-source-agreements --accept-package-agreements
 
 Write-Host "`nRefreshing Path..." -ForegroundColor Cyan
 $env:Path = [System.Environment]::GetEnvironmentVariable('Path','Machine') + ';' +
