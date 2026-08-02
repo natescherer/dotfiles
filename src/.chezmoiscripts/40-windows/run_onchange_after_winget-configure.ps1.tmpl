@@ -346,18 +346,25 @@ foreach ($File in $ConfigFiles) {
 if ($MsstoreIds.Count -eq 0) {
   Write-Log "=== no changed *.configuration.winget files reference msstore ids, skipping pre-install pass ==="
 }
-if ($MsstoreIds.Count -gt 0) {
-  Write-Host "`nPre-installing Store apps referenced in configuration files..." -ForegroundColor Cyan
-  Write-Log "=== Pre-installing Store apps referenced in configuration files: $($MsstoreIds -join ', ') ==="
-}
+
+# Already-installed Store apps make winget install fail with 0x8A15002B (no applicable update) --
+# not a real failure, just an upgrade check against a current package. Filter them out first so
+# the header below only announces a pre-install pass when one will actually happen.
+$MsstoreIdsToInstall = [System.Collections.Generic.List[string]]::new()
 foreach ($Id in $MsstoreIds) {
-  # Already-installed Store apps make winget install fail with 0x8A15002B (no applicable update)
-  # -- not a real failure, just an upgrade check against a current package. Check first to skip it.
   winget list --id $Id -e --accept-source-agreements 2>&1 | Write-Log
   if ($LASTEXITCODE -eq 0) {
     Write-Log "=== $Id already installed, skipping pre-install ==="
     continue
   }
+  $MsstoreIdsToInstall.Add($Id)
+}
+
+if ($MsstoreIdsToInstall.Count -gt 0) {
+  Write-Host "`nPre-installing Store apps referenced in configuration files..." -ForegroundColor Cyan
+  Write-Log "=== Pre-installing Store apps referenced in configuration files: $($MsstoreIdsToInstall -join ', ') ==="
+}
+foreach ($Id in $MsstoreIdsToInstall) {
   Write-Host "Pre-installing Store app $Id..." -ForegroundColor Cyan
   Write-Log "=== winget install $Id (msstore pre-install) ==="
   Invoke-WithRetry -Name "msstore pre-install: $Id" -ScriptBlock {
