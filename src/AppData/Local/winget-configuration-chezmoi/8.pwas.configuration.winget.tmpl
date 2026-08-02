@@ -12,6 +12,7 @@ resources:
   # policies like WebAppInstallForceList are stored as a single REG_SZ JSON-array string.
   # Sourced from .chezmoidata/pwas.toml, shared with the macOS ansible chromium_pwas role so
   # both platforms force-install the same PWAs into the same browser.
+  # {{ $pwas := list }}{{ range .pwas.entries }}{{ if not (has "windows" (index . "ignore_on" | default list)) }}{{ $pwas = append $pwas (omit . "ignore_on") }}{{ end }}{{ end }}
   - type: Microsoft.Windows/Registry
     name: ChromiumWebAppInstallForceList
     metadata:
@@ -21,5 +22,5 @@ resources:
       keyPath: HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Chromium
       valueName: WebAppInstallForceList
       valueData:
-        String: {{ .pwas.entries | toJson | quote }}
+        String: {{ $pwas | toJson | quote }}
       _exist: true

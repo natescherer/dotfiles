@@ -65,21 +65,9 @@ resources:
       source: winget
       installMode: silent
   - type: Microsoft.WinGet/Package
-    name: DisneyPlus
-    properties:
-      id: 9NXQXXLFST89
-      source: msstore
-      installMode: silent
-  - type: Microsoft.WinGet/Package
     name: DolbyAccess
     properties:
       id: 9N0866FS04W8
-      source: msstore
-      installMode: silent
-  - type: Microsoft.WinGet/Package
-    name: Hulu
-    properties:
-      id: 9WZDNCRFJ3L1
       source: msstore
       installMode: silent
   - type: Microsoft.WinGet/Package
@@ -104,12 +92,6 @@ resources:
       source: winget
       installMode: silent
   - type: Microsoft.WinGet/Package
-    name: Netflix
-    properties:
-      id: 9WZDNCRFJ3TJ
-      source: msstore
-      installMode: silent
-  - type: Microsoft.WinGet/Package
     name: Obsidian
     metadata:
       winget:
@@ -117,12 +99,6 @@ resources:
     properties:
       id: Obsidian.Obsidian
       source: winget
-      installMode: silent
-  - type: Microsoft.WinGet/Package
-    name: PrimeVideo
-    properties:
-      id: 9P6RC76MSMMJ
-      source: msstore
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: ProtonDrive

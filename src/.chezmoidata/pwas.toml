@@ -8,10 +8,39 @@
 # If the hidden background install can't load the page, Chromium installs a URL-named placeholder
 # app with no icon; the macOS chromium_pwas role and the Windows pwa-install script both detect
 # placeholders and navigate a real tab to the install URL to force the manifest-derived app in.
+#
+# ignore_on is an optional array of .chezmoi.os values ("darwin", "windows"); the templates that
+# consume this data filter out entries on a matching OS (and strip the key before it reaches the
+# actual WebAppInstallForceList payload -- Chromium doesn't know about it).
 [[pwas.entries]]
-url = "https://www.youtube.com"
+url = "https://www.appletv.com"
+default_launch_container = "window"
+ignore_on = ["darwin", "windows"]
+
+[[pwas.entries]]
+url = "https://www.disneyplus.com"
+default_launch_container = "window"
+
+[[pwas.entries]]
+url = "https://www.nebula.tv"
+default_launch_container = "window"
+
+[[pwas.entries]]
+url = "https://www.netflix.com"
 default_launch_container = "window"
 
 [[pwas.entries]]
 url = "https://www.paramountplus.com"
+default_launch_container = "window"
+
+[[pwas.entries]]
+url = "https://www.peacocktv.com"
+default_launch_container = "window"
+
+[[pwas.entries]]
+url = "https://www.primevideo.com"
+default_launch_container = "window"
+
+[[pwas.entries]]
+url = "https://www.youtube.com"
 default_launch_container = "window"

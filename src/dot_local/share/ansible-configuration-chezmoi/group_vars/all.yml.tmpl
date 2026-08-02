@@ -102,5 +102,6 @@ mac_app_store_apps:
 # what once produced `https/www.youtube.com.app` with no icon); the
 # chromium_pwas role detects placeholders and navigates a real tab to the
 # install URL, which makes Chromium swap in the real manifest-derived app.
+# {{ $pwas := list }}{{ range .pwas.entries }}{{ if not (has "darwin" (index . "ignore_on" | default list)) }}{{ $pwas = append $pwas (omit . "ignore_on") }}{{ end }}{{ end }}
 chromium_web_apps:
-{{ .pwas.entries | toYaml | trimSuffix "\n" | indent 2 }}
+{{ $pwas | toYaml | trimSuffix "\n" | indent 2 }}
