@@ -77,10 +77,20 @@ function Get-InstalledPwaCount {
 # downloading each app's manifest/icon and creating the installed web app -- once it's running.
 Start-Process -FilePath $ChromiumExe -ArgumentList '--no-first-run' -WindowStyle Minimized
 
-$Retries = 24
+# The very first launch of a brand new profile is much slower than a warm one -- first-run
+# component/cert-store setup, and (confirmed via the presence of vk_swiftshader.dll/libEGL.dll in
+# the install dir) software-rendered GPU fallback on VMs with no passthrough GPU, which is
+# considerably slower than hardware rendering. 10 minutes covers that cold-start case; a warm
+# rerun (nothing changed, so this script wouldn't even run again) isn't the case being budgeted
+# for here.
+$Retries = 120
 $DelaySeconds = 5
 for ($i = 0; $i -lt $Retries; $i++) {
-    if ((Get-InstalledPwaCount) -ge $PwaEntries.Count) { break }
+    $Count = Get-InstalledPwaCount
+    if ($Count -ge $PwaEntries.Count) { break }
+    if ($i % 12 -eq 0) {
+        Write-Host "Waiting for PWAs to install ($Count/$($PwaEntries.Count) so far, $($i * $DelaySeconds)s elapsed)..." -ForegroundColor DarkGray
+    }
     Start-Sleep -Seconds $DelaySeconds
 }
 
@@ -95,7 +105,10 @@ foreach ($Entry in $PwaEntries) {
     Start-Process -FilePath $ChromiumExe -ArgumentList '--no-first-run', $Entry.url -WindowStyle Minimized
     Start-Sleep -Seconds 1
 }
-Start-Sleep -Seconds $DelaySeconds
+for ($i = 0; $i -lt 12; $i++) {
+    if ((Get-InstalledPwaCount) -ge $PwaEntries.Count) { break }
+    Start-Sleep -Seconds $DelaySeconds
+}
 
 Get-Process -Name chrome -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
 
