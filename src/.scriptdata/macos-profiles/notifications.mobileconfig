@@ -53,6 +53,30 @@
                     <key>NotificationsEnabled</key>
                     <true/>
                 </dict>
+                <dict>
+                    <key>BundleIdentifier</key>
+                    <string>org.chromium.Chromium.framework.AlertNotificationService</string>
+                    <key>NotificationsEnabled</key>
+                    <true/>
+                </dict>
+                <dict>
+                    <key>BundleIdentifier</key>
+                    <string>com.hnc.Discord</string>
+                    <key>NotificationsEnabled</key>
+                    <true/>
+                </dict>
+                <dict>
+                    <key>BundleIdentifier</key>
+                    <string>com.anthropic.claudefordesktop</string>
+                    <key>NotificationsEnabled</key>
+                    <true/>
+                </dict>
+                <dict>
+                    <key>BundleIdentifier</key>
+                    <string>com.anthropic.claudefordesktop.helper</string>
+                    <key>NotificationsEnabled</key>
+                    <true/>
+                </dict>
             </array>
         </dict>
     </array>
