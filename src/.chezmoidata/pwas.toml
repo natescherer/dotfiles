@@ -22,7 +22,7 @@ url = "https://www.disneyplus.com"
 default_launch_container = "window"
 
 [[pwas.entries]]
-url = "https://www.nebula.tv"
+url = "https://nebula.tv"
 default_launch_container = "window"
 
 [[pwas.entries]]
