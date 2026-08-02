@@ -4,10 +4,16 @@
 # this) via the WebAppInstallForceList enterprise policy. Each entry accepts any key
 # WebAppInstallForceList supports -- see https://chromeenterprise.google/policies/#WebAppInstallForceList
 #
-# Name and icon come from the site's web app manifest -- don't set custom_name/custom_icon here.
-# If the hidden background install can't load the page, Chromium installs a URL-named placeholder
-# app with no icon; the macOS chromium_pwas role and the Windows pwa-install script both detect
-# placeholders and navigate a real tab to the install URL to force the manifest-derived app in.
+# Name and icon come from the site's web app manifest -- don't set custom_name/custom_icon unless
+# the site has no manifest at all (some streaming sites deliberately omit one to push their native
+# app instead). Without a manifest, WebAppInstallForceList still force-installs, but falls back to
+# the page's <title> as the name (verbose SEO text, not the short branded name) -- custom_name is
+# the documented override for exactly that case. If the hidden background install can't load the
+# page at all (redirect, timeout, or the browser quitting mid-load), Chromium installs a URL-named
+# placeholder app with no icon instead; the macOS chromium_pwas role and the Windows pwa-install
+# script both detect placeholders and navigate a real tab to the install URL to force the
+# manifest-derived app in -- that repair doesn't apply to the no-manifest custom_name case above,
+# since there's no manifest name for it to ever recover.
 #
 # ignore_on is an optional array of .chezmoi.os values ("darwin", "windows"); the templates that
 # consume this data filter out entries on a matching OS (and strip the key before it reaches the
@@ -28,6 +34,7 @@ default_launch_container = "window"
 [[pwas.entries]]
 url = "https://www.netflix.com"
 default_launch_container = "window"
+custom_name = "Netflix"
 
 [[pwas.entries]]
 url = "https://www.paramountplus.com"
@@ -36,10 +43,12 @@ default_launch_container = "window"
 [[pwas.entries]]
 url = "https://www.peacocktv.com"
 default_launch_container = "window"
+custom_name = "Peacock"
 
 [[pwas.entries]]
 url = "https://www.primevideo.com"
 default_launch_container = "window"
+custom_name = "Prime Video"
 
 [[pwas.entries]]
 url = "https://www.youtube.com"

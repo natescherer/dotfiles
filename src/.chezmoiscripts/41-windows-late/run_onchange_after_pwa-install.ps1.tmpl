@@ -125,14 +125,11 @@ Start-Sleep -Seconds 2  # let Windows release the profile's singleton lock befor
 # downloading each app's manifest/icon and creating the installed web app -- once it's running.
 Start-Process -FilePath $ChromiumExe -ArgumentList '--no-first-run' -WindowStyle Minimized
 
-# The very first launch of a brand new profile is much slower than a warm one -- first-run
-# component/cert-store setup, and (confirmed via the presence of vk_swiftshader.dll/libEGL.dll in
-# the install dir) software-rendered GPU fallback on VMs with no passthrough GPU, which is
-# considerably slower than hardware rendering. 10 minutes covers that cold-start case. This script
-# can rerun for reasons other than the PWA list actually changing (e.g. an edit to this script's
-# own content, which is also what its run_onchange_ gate keys off of) -- so a "warm" rerun where
-# everything is already installed is a real case, not a hypothetical one, and is handled below.
-$Retries = 120
+# This script can rerun for reasons other than the PWA list actually changing (e.g. an edit to
+# this script's own content, which is also what its run_onchange_ gate keys off of) -- so a "warm"
+# rerun where everything is already installed is a real case, not a hypothetical one, and is
+# handled below.
+$Retries = 12
 $DelaySeconds = 5
 function Wait-ForCondition {
     param([Parameter(Mandatory)] [scriptblock] $Condition, [string] $ProgressLabel)
