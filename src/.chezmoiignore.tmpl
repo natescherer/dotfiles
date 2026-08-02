@@ -110,10 +110,3 @@ git/gh/**
 .chezmoiscripts/30-macos/run_onchange_profiles-importer.sh.tmpl
 {{- end }}
 {{- end }}
-
-{{- if eq .isVM true }}
-{{- if eq .chezmoi.os "windows" }}
-# Skip bare metal WinGet Configuration file
-AppData/Local/winget-configuration-chezmoi/4.optional-features-baremetal.configuration.winget
-{{- end }}
-{{- end }}

@@ -26,7 +26,6 @@
 #      renders from .chezmoidata/pwas.toml, so that file is hashed explicitly below too -- add
 #      another line here for any future templated config file's own external data dependency. */}}
 # {{ "\n" }}{{ range $wingetConfigFiles }}## {{ base . }} hash: {{ include . | sha256sum }}{{ "\n" }}{{ end -}}
-## optional-features-list.ps1 hash: {{ joinPath $wingetConfigSourceDir "optional-features-list.ps1" | include | sha256sum }}
 ## pwas.toml hash: {{ joinPath .chezmoi.sourceDir ".chezmoidata/pwas.toml" | include | sha256sum }}
 
 # chezmoi apply runs many scripts back to back with no indication which is running -- announce

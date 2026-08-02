@@ -25,9 +25,9 @@ resources:
         longer needs to be a template at all. The registry value name is read
         from each font's own name table (family + style), matching what right-click "Install"
         does, rather than derived from the filename. Runs via PowerShellScript (pwsh), not
-        WindowsPowerShellScript -- unlike optional-features.configuration.winget, nothing here (Add-Type
-        -AssemblyName PresentationCore/GlyphTypeface, registry cmdlets, Copy-Item) requires
-        Windows PowerShell 5.1; verified PresentationCore loads identically under both hosts.
+        WindowsPowerShellScript -- nothing here (Add-Type -AssemblyName PresentationCore/GlyphTypeface,
+        registry cmdlets, Copy-Item) requires Windows PowerShell 5.1; verified PresentationCore
+        loads identically under both hosts.
     properties:
       getScript: |
         $FontsDir = Join-Path $HOME '.local' 'share' 'chezmoifonts'
