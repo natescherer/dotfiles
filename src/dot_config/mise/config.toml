@@ -1,6 +1,6 @@
 ## WARNING: This file is chezmoi-managed and should not be manually edited!
 
 [tools]
-"pipx:apprise" = "1.9.2"
-python = "3.13.3"
-uv = "0.7.12" # Used by pipx tools
+"pipx:apprise" = "latest"
+python = "latest"
+uv = "latest"
