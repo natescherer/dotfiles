@@ -32,6 +32,6 @@ else {
     Set-Content -Path $settingsPath -Value $settingsContent -NoNewline
 }
 
-Write-Host "`nPowerShell 7+ installed and Windows Terminal default profile updated! Continue with init-windows3.ps1 after relaunching Windows Terminal." -ForegroundColor Green
+Write-Host "`nPowerShell 7+ installed and Windows Terminal default profile updated!." -ForegroundColor Green
 Write-Host "`nClose and reopen Windows Terminal, then run the following:" -ForegroundColor Yellow
-Write-Host "    irm https://raw.githubusercontent.com/natescherer/dotfiles/main/init-windows2.ps1 | iex" -ForegroundColor Yellow
+Write-Host "irm https://raw.githubusercontent.com/natescherer/dotfiles/main/init-windows2.ps1 | iex" -ForegroundColor Yellow
