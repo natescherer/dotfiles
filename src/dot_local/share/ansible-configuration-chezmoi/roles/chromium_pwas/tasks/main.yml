@@ -49,10 +49,11 @@
 # chain. Counting actual installed bundles and re-attempting whenever
 # there are fewer than expected means a slow/failed entry keeps getting
 # retried on future runs instead of going silently stale.
-- name: Count already-installed PWAs
+- name: Count already-installed (non-placeholder) PWAs
   ansible.builtin.find:
     paths: "{{ ansible_facts.env.HOME }}/Applications/Chromium Apps.localized"
     patterns: "*.app"
+    excludes: "http*.app"
     file_type: directory
   register: chromium_existing_pwas
   when: chromium_app.stat.exists and chromium_web_apps | length > 0
@@ -101,32 +102,33 @@
 # tab successfully navigates to the placeholder's install URL — the same
 # fully-rendered path a manual "Install" click uses. See
 # https://chromium.googlesource.com/chromium/src/+/main/docs/webapps/concepts.md
-# So: detect URL-named bundles, and if any exist, open every install URL in
-# a background tab to trigger that replacement.
-- name: Check for placeholder PWA installs
-  ansible.builtin.find:
-    paths: "{{ ansible_facts.env.HOME }}/Applications/Chromium Apps.localized"
-    patterns: "http*.app"
-    file_type: directory
-  register: chromium_placeholder_pwas
-  when: chromium_pwas_need_attempt | default(false) | bool
-
-- name: Open install URLs in tabs so Chromium replaces the placeholders
+#
+# Confirmed on-device with paramountplus.com: some sites never resolve the
+# hidden install to either success or failure at all -- the site loads and
+# installs fine in a normal tab, but the forced install's fully offscreen
+# WebContents just hangs indefinitely, so Chromium's own placeholder
+# fallback (which only fires once that hidden load actually fails) never
+# kicks in either, and the app is left permanently missing with no
+# placeholder to detect. So don't gate the repair on a placeholder having
+# appeared -- do it for anything still short of installed after the wait
+# above, placeholder or not.
+- name: Open install URLs in tabs so Chromium finishes installing any still-missing PWAs
   ansible.builtin.command:
     argv: "{{ ['open', '-g', '-a', 'Chromium'] + (chromium_web_apps | map(attribute='url') | list) }}"
-  when: (chromium_pwas_need_attempt | default(false) | bool) and (chromium_placeholder_pwas.matched | default(0) > 0)
+  when: (chromium_pwas_need_attempt | default(false) | bool) and ((chromium_installed_pwas.matched | default(0)) < (chromium_web_apps | length))
   changed_when: true
 
-- name: Wait for placeholders to be replaced by real apps
+- name: Wait for all PWAs to finish installing
   ansible.builtin.find:
     paths: "{{ ansible_facts.env.HOME }}/Applications/Chromium Apps.localized"
-    patterns: "http*.app"
+    patterns: "*.app"
+    excludes: "http*.app"
     file_type: directory
-  register: chromium_remaining_placeholders
-  until: chromium_remaining_placeholders.matched | default(0) == 0
+  register: chromium_final_pwas
+  until: chromium_final_pwas.matched | default(0) >= (chromium_web_apps | length)
   retries: 24
   delay: 5
-  when: (chromium_pwas_need_attempt | default(false) | bool) and (chromium_placeholder_pwas.matched | default(0) > 0)
+  when: (chromium_pwas_need_attempt | default(false) | bool) and ((chromium_installed_pwas.matched | default(0)) < (chromium_web_apps | length))
   failed_when: false
 
 - name: Quit Chromium
