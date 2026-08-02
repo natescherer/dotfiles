@@ -404,7 +404,7 @@ foreach ($File in $ConfigFiles) {
   Invoke-WithRetry -Name $File -ScriptBlock {
     # If https://github.com/microsoft/winget-cli/issues/6419) is ever implemented, we'll want to add its flag here
     # When https://github.com/PowerShell/DSC/issues/1653 is fixed, remove the --processor-path argument and the DSC ZIP workaround above
-    winget configure -f $Path --processor-path $DscZipExe --accept-configuration-agreements --disable-interactivity --suppress-initial-details --verbose-logs
+    winget configure -f $Path --processor-path $DscZipExe --accept-configuration-agreements --disable-interactivity --suppress-initial-details --verbose-logs --ignore-warnings
   }
   Write-Log "--- exit code: $LASTEXITCODE ---"
   if ($LASTEXITCODE -ne 0) {
