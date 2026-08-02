@@ -94,6 +94,16 @@ AppData/Local/1Password
 AppData/Local/1Password/**
 git/gh
 git/gh/**
+AppData/Local/winget-configuration-chezmoi/7.apps-personal.configuration.winget
+## PWAs are only force-installed into ungoogled-chromium for personal setups (Chromium itself is
+## now in 7.apps-personal.configuration.winget too)
+AppData/Local/winget-configuration-chezmoi/8.pwas.configuration.winget
+.chezmoiscripts/41-windows-late/run_onchange_after_pwa-install.ps1.tmpl
+{{- end }}
+
+{{- if eq .adminRights false }}
+# Skip WinGet Configuration resources that require elevation for accounts without admin rights
+AppData/Local/winget-configuration-chezmoi/7.apps-core-elevated.configuration.winget
 {{- end }}
 
 {{- if eq .applyOSConfig false }}

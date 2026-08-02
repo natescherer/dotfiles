@@ -1,0 +1,51 @@
+## WARNING: This file is chezmoi-managed and should not be manually edited!
+
+# yaml-language-server: $schema=https://aka.ms/configuration-dsc-schema/0.3
+$schema: https://raw.githubusercontent.com/PowerShell/DSC/main/schemas/2023/08/config/document.json
+metadata:
+  winget:
+    processor:
+      identifier: dscv3
+resources:
+  - type: Microsoft.WinGet/Package
+    name: Brave
+    properties:
+      id: Brave.Brave
+      source: winget
+      installMode: silent
+  - type: Microsoft.WinGet/Package
+    name: chezmoi
+    properties:
+      id: twpayne.chezmoi
+      source: winget
+      installMode: silent
+  - type: Microsoft.WinGet/Package
+    name: fzf
+    properties:
+      id: junegunn.fzf
+      source: winget
+      installMode: silent
+  - type: Microsoft.WinGet/Package
+    name: micro
+    properties:
+      id: zyedidia.micro
+      source: winget
+      installMode: silent
+  - type: Microsoft.WinGet/Package
+    name: mise
+    properties:
+      id: jdx.mise
+      source: winget
+      installMode: silent
+  - type: Microsoft.WinGet/Package
+    name: VSCode
+    properties:
+      id: Microsoft.VisualStudioCode
+      source: winget
+      installMode: silent
+  - type: Microsoft.WinGet/Package
+    name: WindowsApp
+    properties:
+      id: Microsoft.WindowsApp
+      source: winget
+      installMode: silent

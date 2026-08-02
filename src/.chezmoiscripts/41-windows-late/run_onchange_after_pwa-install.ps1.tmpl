@@ -68,7 +68,7 @@ $ProfileDir = Join-Path $env:LOCALAPPDATA 'Chromium\User Data\Default'
 $WebAppsDir = Join-Path $ProfileDir 'Web Applications'
 
 # Chromium is now also this machine's general-purpose backup browser (installed in
-# 7.apps.configuration.winget), not a headless PWA host dedicated to just this list -- so
+# 7.apps-personal.configuration.winget), not a headless PWA host dedicated to just this list -- so
 # Web Applications can accumulate folders for apps the user installed by hand, from a URL that
 # later got removed from .chezmoidata/pwas.toml, or (during iterative testing of this very
 # script) from earlier runs. An absolute folder count conflates all of that with genuinely new

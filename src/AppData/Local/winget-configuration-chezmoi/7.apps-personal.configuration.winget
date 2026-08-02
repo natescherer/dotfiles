@@ -44,33 +44,9 @@ resources:
       source: msstore
       installMode: silent
   - type: Microsoft.WinGet/Package
-    name: Brave
-    metadata:
-      winget:
-        securityContext: elevated
-    properties:
-      id: Brave.Brave
-      source: winget
-      installMode: silent
-  - type: Microsoft.WinGet/Package
-    name: chezmoi
-    properties:
-      id: twpayne.chezmoi
-      source: winget
-      installMode: silent
-  - type: Microsoft.WinGet/Package
     name: Claude
     properties:
       id: Anthropic.Claude
-      source: winget
-      installMode: silent
-  - type: Microsoft.WinGet/Package
-    name: Coreutils
-    metadata:
-      winget:
-        securityContext: elevated
-    properties:
-      id: Microsoft.Coreutils
       source: winget
       installMode: silent
   - type: Microsoft.WinGet/Package
@@ -101,30 +77,6 @@ resources:
       source: msstore
       installMode: silent
   - type: Microsoft.WinGet/Package
-    name: DotNetDesktopRuntime10
-    metadata:
-      winget:
-        securityContext: elevated
-    properties:
-      id: Microsoft.DotNet.DesktopRuntime.10
-      source: winget
-      installMode: silent
-  - type: Microsoft.WinGet/Package
-    name: Firefox
-    metadata:
-      winget:
-        securityContext: elevated
-    properties:
-      id: Mozilla.Firefox
-      source: winget
-      installMode: silent
-  - type: Microsoft.WinGet/Package
-    name: fzf
-    properties:
-      id: junegunn.fzf
-      source: winget
-      installMode: silent
-  - type: Microsoft.WinGet/Package
     name: Hulu
     properties:
       id: 9WZDNCRFJ3L1
@@ -140,18 +92,6 @@ resources:
     name: LocalSend
     properties:
       id: LocalSend.LocalSend
-      source: winget
-      installMode: silent
-  - type: Microsoft.WinGet/Package
-    name: micro
-    properties:
-      id: zyedidia.micro
-      source: winget
-      installMode: silent
-  - type: Microsoft.WinGet/Package
-    name: mise
-    properties:
-      id: jdx.mise
       source: winget
       installMode: silent
   - type: Microsoft.WinGet/Package
@@ -179,24 +119,6 @@ resources:
       source: winget
       installMode: silent
   - type: Microsoft.WinGet/Package
-    name: PowerToys
-    metadata:
-      winget:
-        securityContext: elevated
-    properties:
-      id: Microsoft.PowerToys
-      source: winget
-      installMode: silent
-  - type: Microsoft.WinGet/Package
-    name: PowerShell
-    metadata:
-      winget:
-        securityContext: elevated
-    properties:
-      id: Microsoft.PowerShell
-      source: winget
-      installMode: silent
-  - type: Microsoft.WinGet/Package
     name: PrimeVideo
     properties:
       id: 9P6RC76MSMMJ
@@ -215,24 +137,6 @@ resources:
       source: winget
       installMode: silent
   - type: Microsoft.WinGet/Package
-    name: Speedtest
-    metadata:
-      winget:
-        securityContext: elevated
-    properties:
-      id: Ookla.Speedtest.Desktop
-      source: winget
-      installMode: silent
-  - type: Microsoft.WinGet/Package
-    name: Starship
-    metadata:
-      winget:
-        securityContext: elevated
-    properties:
-      id: Starship.Starship
-      source: winget
-      installMode: silent
-  - type: Microsoft.WinGet/Package
     name: TickTick
     metadata:
       winget:
@@ -243,41 +147,8 @@ resources:
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: UngoogledChromium
-    metadata:
-      winget:
-        securityContext: elevated
     properties:
       id: eloston.ungoogled-chromium
-      source: winget
-      installMode: silent
-  - type: Microsoft.WinGet/Package
-    name: UniGetUI
-    metadata:
-      winget:
-        securityContext: elevated
-    properties:
-      id: Devolutions.UniGetUI
-      source: winget
-      installMode: silent
-  - type: Microsoft.WinGet/Package
-    name: VLC
-    metadata:
-      winget:
-        securityContext: elevated
-    properties:
-      id: VideoLAN.VLC
-      source: winget
-      installMode: silent
-  - type: Microsoft.WinGet/Package
-    name: VSCode
-    properties:
-      id: Microsoft.VisualStudioCode
-      source: winget
-      installMode: silent
-  - type: Microsoft.WinGet/Package
-    name: WindowsApp
-    properties:
-      id: Microsoft.WindowsApp
       source: winget
       installMode: silent
   - type: Microsoft.WinGet/Package
