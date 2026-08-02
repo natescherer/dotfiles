@@ -7,16 +7,27 @@
 
 # {{ $wingetConfigDirName := "winget-configuration-chezmoi" }}
 # {{ $wingetConfigSourceDir := joinPath .chezmoi.sourceDir "AppData/Local" $wingetConfigDirName }}
-# {{/* sortAlpha keeps the hash list below stable across renders -- glob's match order isn't guaranteed */}}
-# {{ $wingetConfigFiles := joinPath $wingetConfigSourceDir "*.configuration.winget" | glob | sortAlpha }}
+# {{/* Two globs, not one: templated config files (e.g. 8.pwas.configuration.winget.tmpl) live in
+#      the source tree with a .tmpl suffix that glob's literal "*.configuration.winget" pattern
+#      won't match, and would otherwise silently never trigger a rerun when their *source*
+#      content changes (chezmoi still keeps the applied target file itself in sync either way --
+#      only this script's own rerun-on-change gate would miss it). sortAlpha keeps the hash list
+#      below stable across renders -- glob's match order isn't guaranteed. */}}
+# {{ $wingetConfigFiles := concat (joinPath $wingetConfigSourceDir "*.configuration.winget" | glob) (joinPath $wingetConfigSourceDir "*.configuration.winget.tmpl" | glob) | sortAlpha }}
 
-# {{/* Hashes below make this run_onchange_ script rerun when any *.configuration.winget file
+# {{/* Hashes below make this run_onchange_ script rerun when any *.configuration.winget[.tmpl] file
 #      changes. Squeezed onto one line (literal "\n"s instead of real line breaks) so a single
 #      leading "#" comments out the whole range/end for PowerShell -- a bare {{ end }} on its own
 #      line is a parse error, and text before a same-line {{ end }} repeats every iteration
-#      instead of trailing once. */}}
+#      instead of trailing once.
+#      IMPORTANT: `include` returns a file's raw, unrendered source -- for a .tmpl file that's the
+#      literal "{{ ... }}" template text, not its evaluated output, so hashing a .tmpl file's own
+#      bytes alone does NOT change when the *data it renders from* changes. 8.pwas.configuration.winget.tmpl
+#      renders from .chezmoidata/pwas.toml, so that file is hashed explicitly below too -- add
+#      another line here for any future templated config file's own external data dependency. */}}
 # {{ "\n" }}{{ range $wingetConfigFiles }}## {{ base . }} hash: {{ include . | sha256sum }}{{ "\n" }}{{ end -}}
 ## optional-features-list.ps1 hash: {{ joinPath $wingetConfigSourceDir "optional-features-list.ps1" | include | sha256sum }}
+## pwas.toml hash: {{ joinPath .chezmoi.sourceDir ".chezmoidata/pwas.toml" | include | sha256sum }}
 
 # chezmoi apply runs many scripts back to back with no indication which is running -- announce
 # this one, since it can take a while.
