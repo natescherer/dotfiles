@@ -11,12 +11,13 @@
 # is undocumented and could break in a future Windows update, same caveat as the taskbar-pins
 # script. Verified by hand against the live registry on this machine before writing this script.
 #
-# Depends on run_onchange_after_winget-configure.ps1.tmpl (installs ProtonDrive and
-# AdobeCreativeCloud via 7.apps-personal, UniGetUI and PowerToys via 7.apps-core-elevated) in
-# 40-windows/ -- sorts before this script and so already ran earlier in this same `chezmoi apply`.
-# ASUS DriverHub isn't installed via winget -- it's OEM-bundled software this machine already has
-# preinstalled. PowerToys Awake needs no separate enablement step -- confirmed on a fresh VM that
-# its module (and tray icon) ships enabled by default, unlike some other PowerToys utilities.
+# Depends on run_onchange_after_winget-configure.ps1.tmpl (installs ProtonDrive, AdobeCreativeCloud,
+# DockerDesktop, iCloud, and Claude via 7.apps-personal, UniGetUI and PowerToys via
+# 7.apps-core-elevated) in 40-windows/ -- sorts before this script and so already ran earlier in
+# this same `chezmoi apply`. ASUS DriverHub and VMware Workstation aren't installed via winget --
+# they're preinstalled/manually-installed software this machine already has. PowerToys Awake needs
+# no separate enablement step -- confirmed on a fresh VM that its module (and tray icon) ships
+# enabled by default, unlike some other PowerToys utilities.
 #
 # Runs after run_onchange_after_taskbar-pins.ps1 (alphabetically later) and, like that script,
 # ends by restarting Explorer so the promotions are visible immediately rather than only after the
@@ -38,6 +39,17 @@ $Targets = @(
   # PowerToys.Awake.exe (a separate process, hence the different ProcessName) since the Awake
   # module ships enabled by default.
   @{ Label = 'PowerToys Awake'; StartAppName = 'PowerToys (Preview)'; ProcessName = 'PowerToys.Awake'; IconPathLike = '*\PowerToys\PowerToys.Awake.exe'; LaunchProcessName = 'PowerToys' }
+  @{ Label = 'Docker Desktop'; StartAppName = 'Docker Desktop'; ProcessName = 'Docker Desktop'; IconPathLike = '*\Docker\Docker\frontend\Docker Desktop.exe' }
+  # VMware's Start Menu tile ("VMware Workstation Pro") launches the full VM manager UI, not the
+  # background helper that actually owns the tray icon -- vmware-tray.exe is a separate process
+  # Windows launches directly at every login via its own HKLM Run key entry, confirmed against
+  # this machine. RunKeyName below reuses that same entry to launch it here instead of going
+  # through Get-StartApps/shell:AppsFolder like every other target.
+  @{ Label = 'VMware Workstation'; RunKeyName = 'vmware-tray.exe'; ProcessName = 'vmware-tray'; IconPathLike = '*\VMware\VMware Workstation\vmware-tray.exe' }
+  @{ Label = 'iCloud'; StartAppName = 'iCloud'; ProcessName = 'iCloudHome'; IconPathLike = '*\WindowsApps\AppleInc.iCloud_*\iCloud\iCloudHome.exe' }
+  # IconPathLike has a wildcard version segment ("Claude_1.24012.9.0_...") since the Windows Store
+  # package folder name changes on every app update.
+  @{ Label = 'Claude'; StartAppName = 'Claude'; ProcessName = 'claude'; IconPathLike = '*\WindowsApps\Claude_*\app\claude.exe' }
 )
 
 # Finds the NotifyIconSettings subkey (if any) matching a predicate, returning its PSPath and
@@ -67,13 +79,24 @@ foreach ($Target in $Targets) {
   if (-not $Entry) {
     $LaunchProcessName = if ($Target.LaunchProcessName) { $Target.LaunchProcessName } else { $Target.ProcessName }
     if (-not (Get-Process -Name $LaunchProcessName -ErrorAction SilentlyContinue)) {
-      $StartApp = Get-StartApps | Where-Object { $_.Name -eq $Target.StartAppName } | Select-Object -First 1
-      if (-not $StartApp) {
-        Write-Host "  Warning: could not find '$($Target.StartAppName)' in the Start Menu -- skipping (it may not be installed yet)." -ForegroundColor Yellow
-        continue
+      if ($Target.RunKeyName) {
+        $RunCommand = (Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run' -ErrorAction SilentlyContinue).($Target.RunKeyName)
+        if (-not $RunCommand) {
+          Write-Host "  Warning: no '$($Target.RunKeyName)' autostart entry found -- skipping (it may not be installed yet)." -ForegroundColor Yellow
+          continue
+        }
+        Write-Host "  Launching to register its tray icon..." -ForegroundColor DarkGray
+        # Just the bare quoted path in every case seen so far -- not general command-line parsing.
+        Start-Process -FilePath $RunCommand.Trim('"')
+      } else {
+        $StartApp = Get-StartApps | Where-Object { $_.Name -eq $Target.StartAppName } | Select-Object -First 1
+        if (-not $StartApp) {
+          Write-Host "  Warning: could not find '$($Target.StartAppName)' in the Start Menu -- skipping (it may not be installed yet)." -ForegroundColor Yellow
+          continue
+        }
+        Write-Host "  Launching to register its tray icon..." -ForegroundColor DarkGray
+        Start-Process "shell:AppsFolder\$($StartApp.AppID)"
       }
-      Write-Host "  Launching to register its tray icon..." -ForegroundColor DarkGray
-      Start-Process "shell:AppsFolder\$($StartApp.AppID)"
     }
 
     # Poll rather than a fixed sleep -- first-ever launch of a freshly-installed app can take a
