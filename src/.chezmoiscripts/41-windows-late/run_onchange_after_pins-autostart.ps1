@@ -39,11 +39,6 @@
 
 Write-Host "`nRegistering tray/taskbar pin scripts for login autostart..." -ForegroundColor Green
 
-# Cleans up the custom AUMID shortcut created by the earlier (abandoned) approach above --
-# harmless to leave, but there's no reason to since nothing references it anymore.
-$OrphanedShortcut = Join-Path ([Environment]::GetFolderPath('StartMenu')) 'Programs\WindowsWorkstationDSC.lnk'
-Remove-Item -Path $OrphanedShortcut -Force -ErrorAction SilentlyContinue
-
 $PwshExe = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
 if (-not $PwshExe) {
   throw "Could not resolve pwsh.exe on PATH -- cannot register the login autostart entry."
@@ -64,14 +59,5 @@ $Command = "`"$PwshExe`" -NoProfile -WindowStyle Hidden -EncodedCommand $Encoded
 
 $RunKeyName = 'WindowsWorkstationDSC'
 Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run' -Name $RunKeyName -Value $Command
-
-# Cleans up the even-older chezmoi-apply-based Run key entry and state folder from before this
-# script was rewritten to be chezmoi-independent -- harmless to leave, but there's no reason to.
-Remove-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run' -Name 'ChezmoiPins' -ErrorAction SilentlyContinue
-$OldStateDir = Join-Path $env:LOCALAPPDATA 'chezmoi-pins'
-if (Test-Path $OldStateDir) {
-  Move-Item -Path (Join-Path $OldStateDir 'taskbar-pins.state') -Destination (Join-Path $StableDir 'taskbar-pins.state') -Force -ErrorAction SilentlyContinue
-  Remove-Item -Path $OldStateDir -Recurse -Force -ErrorAction SilentlyContinue
-}
 
 Write-Host "Registered -- pin scripts will rerun quietly at every login from now on." -ForegroundColor Green
