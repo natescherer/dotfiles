@@ -2,27 +2,32 @@
 
 # Promotes ("always show", never collapsed into the overflow flyout) the system tray icons for
 # apps that are meant to live in the tray permanently. There is no supported way to pre-seed this
-# the way LayoutModification.xml pre-seeds taskbar pins in run_onchange_after_taskbar-pins.ps1 --
-# the per-icon state lives in registry subkeys under HKCU:\Control Panel\NotifyIconSettings, keyed
-# by an opaque ID that Windows only creates once an app has actually registered a tray icon at
-# least once. So this script launches each target app first (if it isn't already running), waits
-# for its NotifyIconSettings entry to show up, then flips that entry's IsPromoted value to 1 --
-# the same value the "Select which icons appear on the taskbar" Settings page itself edits. This
-# is undocumented and could break in a future Windows update, same caveat as the taskbar-pins
-# script. Verified by hand against the live registry on this machine before writing this script.
+# the way LayoutModification.xml pre-seeds taskbar pins in taskbar-pins.ps1 -- the per-icon state
+# lives in registry subkeys under HKCU:\Control Panel\NotifyIconSettings, keyed by an opaque ID
+# that Windows only creates once an app has actually registered a tray icon at least once. So this
+# script launches each target app first (if it isn't already running), waits for its
+# NotifyIconSettings entry to show up, then flips that entry's IsPromoted value to 1 -- the same
+# value the "Select which icons appear on the taskbar" Settings page itself edits. This is
+# undocumented and could break in a future Windows update, same caveat as the taskbar-pins script.
+# Verified by hand against the live registry on this machine before writing this script.
 #
-# Depends on run_onchange_after_winget-configure.ps1.tmpl (installs ProtonDrive, AdobeCreativeCloud,
-# DockerDesktop, iCloud, and Claude via 7.apps-personal, UniGetUI and PowerToys via
-# 7.apps-core-elevated) in 40-windows/ -- sorts before this script and so already ran earlier in
-# this same `chezmoi apply`. ASUS DriverHub and VMware Workstation aren't installed via winget --
-# they're preinstalled/manually-installed software this machine already has. PowerToys Awake needs
-# no separate enablement step -- confirmed on a fresh VM that its module (and tray icon) ships
-# enabled by default, unlike some other PowerToys utilities.
+# A standalone, self-contained script -- no chezmoi-specific assumptions (no `chezmoi apply`
+# invocations, no chezmoi source-dir references). It's installed at a stable path
+# (%LOCALAPPDATA%\WindowsWorkstationDSC\tray-pins.ps1) and invoked identically two ways: a thin
+# wrapper in .chezmoiscripts/ during `chezmoi apply`, and directly by the login-autostart Run key
+# registered by pins-autostart.ps1 (which has no chezmoi available at login time). This is also
+# the seed of a planned standalone WindowsWorkstationDSC DSC module, hence the self-contained
+# design even though only chezmoi consumes it today.
 #
-# Runs after run_onchange_after_taskbar-pins.ps1 (alphabetically later) and, like that script,
-# ends by restarting Explorer so the promotions are visible immediately rather than only after the
-# next logon -- meaning a `chezmoi apply` that touches both pin scripts flickers Explorer twice.
-# Accepted as a minor cost of keeping the two scripts independently correct and rerunnable.
+# Runs unconditionally every time it's invoked: some targets here (VMware Workstation, ASUS
+# DriverHub) are installed manually rather than by anything chezmoi controls, so there's nothing
+# whose change could gate a rerun when one of them shows up later -- and even for the rest, a
+# target can go from unresolved to resolved without this script's own content ever changing (e.g.
+# the user finally signs into an app that was previously only running unauthenticated). This is
+# safe/cheap to run every time: resolved targets are a fast registry read, genuinely-absent apps
+# fail fast (see the Get-StartApps/RunKeyName checks below -- neither one waits out the 20s poll),
+# and Explorer is only restarted when something was actually newly promoted this run (see
+# $NewlyPromotedCount below), not merely confirmed as already done.
 
 Write-Host "`nSetting system tray pins..." -ForegroundColor Green
 
@@ -79,7 +84,9 @@ function Set-NotifyIconPromoted {
   New-ItemProperty -Path $PSPath -Name 'IsPromoted' -Value 1 -PropertyType DWord -Force | Out-Null
 }
 
-$PromotedCount = 0
+$ResolvedCount = 0
+$NewlyPromotedCount = 0
+$NewlyPromotedLabels = [System.Collections.Generic.List[string]]::new()
 
 foreach ($Target in $Targets) {
   Write-Host "`n$($Target.Label):" -ForegroundColor Cyan
@@ -119,7 +126,7 @@ foreach ($Target in $Targets) {
   }
 
   if (-not $Entry) {
-    Write-Host "  Warning: no tray icon appeared within 20s -- skipping. Rerun 'chezmoi apply' after using the app once by hand." -ForegroundColor Yellow
+    Write-Host "  Warning: no tray icon appeared within 20s -- skipping. It'll be picked up automatically next time this runs." -ForegroundColor Yellow
     continue
   }
 
@@ -128,8 +135,10 @@ foreach ($Target in $Targets) {
   } else {
     Set-NotifyIconPromoted -PSPath $Entry.PSPath
     Write-Host "  Promoted to always-shown." -ForegroundColor Green
+    $NewlyPromotedCount++
+    $NewlyPromotedLabels.Add($Target.Label)
   }
-  $PromotedCount++
+  $ResolvedCount++
 }
 
 # Safely Remove Hardware isn't an installable app -- it's a built-in icon that explorer.exe itself
@@ -142,22 +151,27 @@ Write-Host "`nSafely Remove Hardware:" -ForegroundColor Cyan
 $HardwareRemovalGuid = '{7820AE78-23E3-4229-82C1-E41CB67D5B9C}'
 $HardwareEntry = Find-NotifyIconEntry -Predicate { param($p) $p.IconGuid -eq $HardwareRemovalGuid }
 if (-not $HardwareEntry) {
-  Write-Host "  Warning: no registry entry for this icon yet -- Windows only creates one after removable/quick-removal hardware has been connected at least once. Connect a USB drive (or similar) once, then rerun 'chezmoi apply'." -ForegroundColor Yellow
+  Write-Host "  Warning: no registry entry for this icon yet -- Windows only creates one after removable/quick-removal hardware has been connected at least once. It'll be picked up automatically once that happens." -ForegroundColor Yellow
 } elseif ($HardwareEntry.IsPromoted -eq 1) {
   Write-Host "  Already always-shown." -ForegroundColor DarkGray
-  $PromotedCount++
+  $ResolvedCount++
 } else {
   Set-NotifyIconPromoted -PSPath $HardwareEntry.PSPath
   Write-Host "  Promoted to always-shown." -ForegroundColor Green
-  $PromotedCount++
+  $NewlyPromotedCount++
+  $NewlyPromotedLabels.Add('Safely Remove Hardware')
+  $ResolvedCount++
 }
 
 $TotalCount = $Targets.Count + 1
 
-if ($PromotedCount -gt 0) {
+if ($NewlyPromotedCount -gt 0) {
   # Registry-only edits here aren't picked up by the already-running tray host until Explorer
   # restarts, the same reason taskbar-pins.ps1 restarts it -- this closes every open File
-  # Explorer window and flickers the desktop/taskbar for a few seconds.
+  # Explorer window and flickers the desktop/taskbar for a few seconds. Gated on
+  # $NewlyPromotedCount (not $ResolvedCount) since this script runs unconditionally every time --
+  # restarting Explorer every single run, even when everything was already promoted from a prior
+  # run, would be needless disruption.
   Write-Host "`nRestarting Explorer to apply tray icon changes..." -ForegroundColor Cyan
   Get-Process -Name explorer -ErrorAction SilentlyContinue | Stop-Process -Force
   Start-Sleep -Seconds 2
@@ -165,15 +179,13 @@ if ($PromotedCount -gt 0) {
     Start-Process explorer.exe
   }
   Start-Sleep -Seconds 3
+
+  . (Join-Path $PSScriptRoot 'Send-Toast.ps1')
+  Send-WindowsWorkstationDSCToast -Text 'System tray pins updated', "Promoted: $($NewlyPromotedLabels -join ', ')"
 }
 
-Write-Host "Tray pins applied ($PromotedCount/$TotalCount resolved)." -ForegroundColor Green
+Write-Host "Tray pins applied ($ResolvedCount/$TotalCount resolved)." -ForegroundColor Green
 
-if ($PromotedCount -lt $TotalCount) {
-  # A "rerun chezmoi apply" warning above is only true if this actually happens: run_onchange_
-  # scripts are gated on this script's own content hash, not on any external state, so chezmoi
-  # won't rerun it just because the user reran `chezmoi apply` -- exiting non-zero is what makes
-  # chezmoi retry it on the next apply regardless of hash, the same technique
-  # run_onchange_after_winget-configure.ps1.tmpl uses (see Stop-ForPendingReboot there).
+if ($ResolvedCount -lt $TotalCount) {
   exit 1
 }

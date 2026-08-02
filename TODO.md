@@ -3,7 +3,9 @@
 ## Winget Configuration
 
 - Wallpaper
+- Stop program installations from making desktop icons
 - Manual TODO list
+- Re-enable Proton Drive install after testing is done
 
 ## macOS Ansible Configuration
 

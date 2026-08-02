@@ -1,0 +1,78 @@
+## WARNING: This file is chezmoi-managed and should not be manually edited!
+
+# yaml-language-server: $schema=https://aka.ms/configuration-dsc-schema/0.3
+$schema: https://raw.githubusercontent.com/PowerShell/DSC/main/schemas/2023/08/config/document.json
+metadata:
+  winget:
+    processor:
+      identifier: dscv3
+resources:
+  # Used by WindowsWorkstationDSC/Send-Toast.ps1 (dot-sourced from the taskbar-pins/tray-pins
+  # scripts) to fire "something changed" notifications. No TrustPSGallery/dependsOn here --
+  # 1.requirements.configuration.winget already trusts PSGallery, and sorts/applies before this
+  # file in the same winget-configure run (see run_onchange_after_winget-configure.ps1.tmpl).
+  - type: Microsoft.PowerShell.PSResourceGet/PSResourceList
+    name: BurntToast
+    properties:
+      repositoryName: PSGallery
+      resources:
+        - name: BurntToast
+          version: "*"
+  # Points the "Start Layout" Group Policy setting at taskbar-pins.ps1's stable output file --
+  # HKCU:\SOFTWARE\Policies\* is locked down against unelevated writes even for the owning user
+  # (confirmed by hand: ACL grants ARES\nate ReadKey only there, full control is
+  # SYSTEM/Administrators-only), so this one-time pointer setup needs to be elevated even though
+  # everything else about the pin scripts is deliberately unprivileged. The actual XML file
+  # content at this path is written by taskbar-pins.ps1 (unelevated, runs on every login) --
+  # only the registry pointer itself, which never changes, needs to live here.
+  # ExpandString (not a literal path) so this isn't tied to this specific user profile.
+  #
+  # StartLayoutFile alone does nothing -- confirmed by hand (registry value correct, file valid,
+  # gpupdate /force, Explorer restart, and a full sign-out/sign-in all had zero effect). Per the
+  # actual ADMX shipped with Windows (PolicyDefinitions/StartMenu.admx), StartLayoutFile is a
+  # sub-element of a *different* policy, LockedStartLayout -- Windows never even looks at
+  # StartLayoutFile unless LockedStartLayout itself is set too. That policy's ADMX help text reads
+  # like unrevised Windows 10 tile-Start documentation ("prevents users from changing its
+  # configuration", expects Export-StartLayout-format XML) that predates the Windows 11-specific
+  # taskbar-only pinning capability documented at
+  # https://learn.microsoft.com/en-us/windows/configuration/taskbar/pinned-apps, which explicitly
+  # shows this same GPO path accepting the CustomTaskbarLayoutCollection/TaskbarPinList schema
+  # taskbar-pins.ps1 already generates -- kept that schema rather than switching to genuine
+  # Export-StartLayout output. Locking out manual taskbar customization in exchange for the
+  # layout actually being declared here is an accepted tradeoff, not an oversight.
+  - type: Microsoft.Windows/Registry
+    name: TaskbarStartLayoutFile
+    metadata:
+      winget:
+        securityContext: elevated
+    properties:
+      keyPath: HKEY_CURRENT_USER\SOFTWARE\Policies\Microsoft\Windows\Explorer
+      valueName: StartLayoutFile
+      valueData:
+        ExpandString: "%LOCALAPPDATA%\\WindowsWorkstationDSC\\TaskbarLayout.xml"
+      _exist: true
+  - type: Microsoft.Windows/Registry
+    name: TaskbarLockedStartLayout
+    metadata:
+      winget:
+        securityContext: elevated
+    properties:
+      keyPath: HKEY_CURRENT_USER\SOFTWARE\Policies\Microsoft\Windows\Explorer
+      valueName: LockedStartLayout
+      valueData:
+        DWord: 1
+      _exist: true
+  # Re-applies the layout at every logon rather than only when the XML file's timestamp changes --
+  # continuous enforcement instead of a one-time seed, matching "capture the desired state in
+  # code" over "seed once and allow drift".
+  - type: Microsoft.Windows/Registry
+    name: TaskbarReapplyStartLayoutEveryLogon
+    metadata:
+      winget:
+        securityContext: elevated
+    properties:
+      keyPath: HKEY_CURRENT_USER\SOFTWARE\Policies\Microsoft\Windows\Explorer
+      valueName: ReapplyStartLayoutEveryLogon
+      valueData:
+        DWord: 1
+      _exist: true
