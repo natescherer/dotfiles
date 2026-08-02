@@ -16,6 +16,10 @@
     "dot_zsh-aliases.tmpl": "shellscript",
     "dot_zshrc.tmpl": "shellscript",
   },
+  "[json]": {
+    "files.insertFinalNewline": false, // Windows Terminal is brittle about settings format
+    "files.trimFinalNewlines": false // Windows Terminal is brittle about settings format
+  },
   "git.branchProtection": [],
   "python.analysis.ignore": [
     "**/*.py.tmpl"
