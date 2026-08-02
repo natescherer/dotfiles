@@ -19,6 +19,7 @@ import platform
 import shutil
 import subprocess
 import sys
+import time
 
 {{/* The section below embeds the content of .chezmoiscript/vscode.toml as well as the files under
 .chezmoitemplates/vscode, ensuring changes to those files will cause the hash of this files to change,
@@ -158,9 +159,9 @@ def provision_profile(profile_name):
     # VS Code only registers a new profile in storage.json when it's opened as a real window, so
     # there's no way to create one headlessly. Open it ourselves and wait for the user to close it.
     print(
-        f"{YELLOW_TERM_COLOR}VS Code profile '{profile_name}' needs to be provisioned before chezmoi can manage "
+        f"\n{YELLOW_TERM_COLOR}VS Code profile '{profile_name}' needs to be provisioned before chezmoi can manage "
         f"it. After you press Enter, VS Code will open with this profile. Close it once it appears. "
-        f"This is a one-time process on this machine.{RESET_TERM_STYLE}\n"
+        f"This is a one-time process on this machine.{RESET_TERM_STYLE}"
     )
     input("Press Enter to continue... ")
     run_code("--profile", profile_name, "--wait")
@@ -303,7 +304,16 @@ def main():
             location = get_profile_location(user_dir, name)
             if location is None:
                 provision_profile(name)
-                location = get_profile_location(user_dir, name)
+                # On macOS, `code --wait` resolves to a shell script that polls for the Electron
+                # process to exit; it can return a moment before VS Code's debounced write of
+                # storage.json (where profile registration lands) actually reaches disk. Windows'
+                # wait mechanism blocks until the process fully exits, so it doesn't race this --
+                # empirically this retry is only ever needed on macOS, but it's harmless elsewhere.
+                for attempt in range(10):
+                    location = get_profile_location(user_dir, name)
+                    if location is not None:
+                        break
+                    time.sleep(1)
 
             if location is None:
                 print(
