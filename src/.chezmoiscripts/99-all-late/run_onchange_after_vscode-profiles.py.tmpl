@@ -17,6 +17,7 @@ import json
 import os
 import platform
 import shutil
+import signal
 import subprocess
 import sys
 import time
@@ -155,16 +156,98 @@ def hash_string(value):
     return hashlib.sha256(value.encode("utf-8")).hexdigest()
 
 
-def provision_profile(profile_name):
+def find_code_processes():
+    # Best-effort snapshot of every currently-running VS Code process (main window(s) plus
+    # helpers), used by provision_profile to decide whether auto-closing a provisioning window is
+    # safe. Returns None -- treated by callers the same as "VS Code is already running" -- if the
+    # platform's process-listing tool isn't available, since being wrong in that direction just
+    # means falling back to the manual prompt below, not risking killing something we shouldn't.
+    try:
+        if IS_WINDOWS:
+            result = subprocess.run(
+                ["tasklist", "/FO", "CSV", "/FI", "IMAGENAME eq Code.exe", "/NH"],
+                capture_output=True, text=True,
+            )
+            pids = set()
+            for line in result.stdout.splitlines():
+                # CSV row shape is "Image Name","PID","Session Name","Session#","Mem Usage" -- the
+                # Mem Usage field itself contains a comma (e.g. "123,456 K"), but that's past the
+                # PID we care about so a naive split still lands on the right field.
+                fields = line.strip().split(",")
+                if len(fields) >= 2 and fields[0].strip('"') == "Code.exe":
+                    pids.add(fields[1].strip('"'))
+            return pids
+
+        # On macOS every VS Code process -- main window and helpers alike -- has the .app bundle
+        # path somewhere in its full command line, even though their process names differ. Linux
+        # Electron helper processes re-exec the same "code" binary, so matching the bare name
+        # catches those too.
+        pattern = (
+            "Visual Studio Code.app/Contents/MacOS"
+            if platform.system() == "Darwin"
+            else r"/code(\s|$)"
+        )
+        result = subprocess.run(["pgrep", "-f", pattern], capture_output=True, text=True)
+        return {line.strip() for line in result.stdout.splitlines() if line.strip()}
+    except FileNotFoundError:
+        return None
+
+
+def kill_pids(pids):
+    if not pids:
+        return
+    for pid in pids:
+        try:
+            if IS_WINDOWS:
+                subprocess.run(["taskkill", "/PID", pid, "/F"], capture_output=True, text=True)
+            else:
+                os.kill(int(pid), signal.SIGKILL)
+        except (ProcessLookupError, ValueError, OSError):
+            pass
+
+
+def wait_for_profile_registration(user_dir, profile_name, retries=30, delay=2):
+    for attempt in range(retries):
+        if get_profile_location(user_dir, profile_name) is not None:
+            return True
+        if attempt and attempt % 10 == 0:
+            print(f"{CYAN_TERM_COLOR}Still waiting for VS Code profile '{profile_name}' to register "
+                  f"({attempt * delay}s elapsed)...{RESET_TERM_STYLE}")
+        time.sleep(delay)
+    return False
+
+
+def provision_profile(user_dir, profile_name):
     # VS Code only registers a new profile in storage.json when it's opened as a real window, so
-    # there's no way to create one headlessly. Open it ourselves and wait for the user to close it.
+    # there's no way to create one headlessly. If no VS Code window is open anywhere on the
+    # machine, we can launch one ourselves, wait for the registration to land, and close exactly
+    # what we opened -- the same launch/wait/close-it-ourselves pattern
+    # run_onchange_after_pwa-install.ps1.tmpl uses for Chromium. But if VS Code is already
+    # running (or we can't tell), a new profile just opens as another window inside that same
+    # instance -- there's no way to single out and close only our new window without risking the
+    # user's other open windows and unsaved work, so fall back to asking them to close it
+    # themselves.
+    preexisting_processes = find_code_processes()
+    if preexisting_processes is None or preexisting_processes:
+        print(
+            f"\n{YELLOW_TERM_COLOR}VS Code profile '{profile_name}' needs to be provisioned before chezmoi can manage "
+            f"it. After you press Enter, VS Code will open with this profile. Close it once it appears. "
+            f"This is a one-time process on this machine.{RESET_TERM_STYLE}"
+        )
+        input("Press Enter to continue... ")
+        run_code("--profile", profile_name, "--wait")
+        return
+
     print(
-        f"\n{YELLOW_TERM_COLOR}VS Code profile '{profile_name}' needs to be provisioned before chezmoi can manage "
-        f"it. After you press Enter, VS Code will open with this profile. Close it once it appears. "
-        f"This is a one-time process on this machine.{RESET_TERM_STYLE}"
+        f"\n{CYAN_TERM_COLOR}VS Code profile '{profile_name}' needs to be provisioned before chezmoi can manage "
+        f"it; no VS Code window is currently open, so provisioning it automatically (one-time process on this "
+        f"machine)...{RESET_TERM_STYLE}"
     )
-    input("Press Enter to continue... ")
-    run_code("--profile", profile_name, "--wait")
+    run_code("--profile", profile_name)
+    if not wait_for_profile_registration(user_dir, profile_name):
+        print(f"{YELLOW_TERM_COLOR}VS Code profile '{profile_name}' still hasn't registered after waiting; "
+              f"closing the window anyway and leaving the retry to the caller.{RESET_TERM_STYLE}")
+    kill_pids(find_code_processes())
 
 
 def get_profile_location(user_dir, profile_name):
@@ -303,12 +386,14 @@ def main():
         else:
             location = get_profile_location(user_dir, name)
             if location is None:
-                provision_profile(name)
+                provision_profile(user_dir, name)
                 # On macOS, `code --wait` resolves to a shell script that polls for the Electron
                 # process to exit; it can return a moment before VS Code's debounced write of
                 # storage.json (where profile registration lands) actually reaches disk. Windows'
                 # wait mechanism blocks until the process fully exits, so it doesn't race this --
                 # empirically this retry is only ever needed on macOS, but it's harmless elsewhere.
+                # The automatic path in provision_profile already polls for registration itself,
+                # so this loop mainly exists for that macOS lag on the manual-close fallback.
                 for attempt in range(10):
                     location = get_profile_location(user_dir, name)
                     if location is not None:
