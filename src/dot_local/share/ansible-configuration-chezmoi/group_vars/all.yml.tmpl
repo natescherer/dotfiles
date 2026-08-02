@@ -6,7 +6,9 @@ homebrew_taps:
 # homebrew-autoupdate schedule/flags — see https://github.com/DomT4/homebrew-autoupdate
 # Runs every 43200 seconds (12h), upgrading + cleaning up automatically.
 homebrew_autoupdate_args: "43200 --upgrade --cleanup --immediate --sudo"
-homebrew_autoupdate_plist: "{{ ansible_facts.env.HOME }}/Library/LaunchAgents/com.github.domt4.homebrew-autoupdate.plist"
+{{/* This value is Jinja2, evaluated by Ansible at playbook-run time -- the {{ "{{" }} / {{ "}}" }}
+     escapes stop chezmoi's Go templates (same {{ }} delimiters) from trying to parse it too. */}}
+homebrew_autoupdate_plist: "{{ "{{" }} ansible_facts.env.HOME {{ "}}" }}/Library/LaunchAgents/com.github.domt4.homebrew-autoupdate.plist"
 
 # Apps pinned to the Dock, left to right, as full paths to their .app
 # bundle. This replaces the Dock's whole pinned-app list (including
@@ -89,9 +91,9 @@ mac_app_store_apps:
   Xcode: 497799835
   "Yubico Authenticator": 1497506650
 
-# PWAs to install in ungoogled-chromium via WebAppInstallForceList policy.
-# Each entry accepts any key WebAppInstallForceList supports — see
-# https://chromeenterprise.google/policies/#WebAppInstallForceList
+# PWAs to install in ungoogled-chromium via WebAppInstallForceList policy. Sourced from
+# .chezmoidata/pwas.toml, shared with the Windows winget PWA provisioning (see
+# 8.pwas.configuration.winget.tmpl) so both platforms force-install the same list.
 #
 # Name and icon come from the site's web app manifest — don't set
 # custom_name/custom_icon here. If Chromium's hidden background install
@@ -100,5 +102,4 @@ mac_app_store_apps:
 # chromium_pwas role detects placeholders and navigates a real tab to the
 # install URL, which makes Chromium swap in the real manifest-derived app.
 chromium_web_apps:
-  - url: "https://www.youtube.com"
-    default_launch_container: window
+{{ .pwas.entries | toYaml | trimSuffix "\n" | indent 2 }}

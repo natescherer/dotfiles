@@ -245,6 +245,15 @@ resources:
       source: winget
       installMode: silent
   - type: Microsoft.WinGet/Package
+    name: UngoogledChromium
+    metadata:
+      winget:
+        securityContext: elevated
+    properties:
+      id: eloston.ungoogled-chromium
+      source: winget
+      installMode: silent
+  - type: Microsoft.WinGet/Package
     name: UniGetUI
     metadata:
       winget:

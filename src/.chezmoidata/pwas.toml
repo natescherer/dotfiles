@@ -1,0 +1,13 @@
+[pwas]
+
+# PWAs to force-install into ungoogled-chromium (macOS and Windows both use the same browser for
+# this) via the WebAppInstallForceList enterprise policy. Each entry accepts any key
+# WebAppInstallForceList supports -- see https://chromeenterprise.google/policies/#WebAppInstallForceList
+#
+# Name and icon come from the site's web app manifest -- don't set custom_name/custom_icon here.
+# If the hidden background install can't load the page, Chromium installs a URL-named placeholder
+# app with no icon; the macOS chromium_pwas role and the Windows pwa-install script both detect
+# placeholders and navigate a real tab to the install URL to force the manifest-derived app in.
+[[pwas.entries]]
+url = "https://www.youtube.com"
+default_launch_container = "window"

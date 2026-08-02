@@ -1,0 +1,25 @@
+## WARNING: This file is chezmoi-managed and should not be manually edited!
+
+# yaml-language-server: $schema=https://aka.ms/configuration-dsc-schema/0.3
+$schema: https://raw.githubusercontent.com/PowerShell/DSC/main/schemas/2023/08/config/document.json
+metadata:
+  winget:
+    processor:
+      identifier: dscv3
+resources:
+  # Chromium OSS builds (unlike Google-branded Chrome) read enterprise policy from
+  # SOFTWARE\Policies\Chromium rather than SOFTWARE\Policies\Google\Chrome. List-of-dict
+  # policies like WebAppInstallForceList are stored as a single REG_SZ JSON-array string.
+  # Sourced from .chezmoidata/pwas.toml, shared with the macOS ansible chromium_pwas role so
+  # both platforms force-install the same PWAs into the same browser.
+  - type: Microsoft.Windows/Registry
+    name: ChromiumWebAppInstallForceList
+    metadata:
+      winget:
+        securityContext: elevated
+    properties:
+      keyPath: HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Chromium
+      valueName: WebAppInstallForceList
+      valueData:
+        String: {{ .pwas.entries | toJson | quote }}
+      _exist: true

@@ -1,0 +1,102 @@
+#Requires -Version 7.0
+
+# Force-installs PWAs into ungoogled-chromium via the WebAppInstallForceList registry policy --
+# the Windows equivalent of the macOS chromium_pwas Ansible role. Setting the registry value (in
+# 8.pwas.configuration.winget.tmpl) doesn't install anything by itself: like on macOS, Chromium
+# only acts on WebAppInstallForceList once it actually runs, so this launches it, waits for the
+# installs to land, then quits it again.
+
+# Why is this in a folder called '41-windows-late' instead of '40-windows' with the other Windows
+# scripts? This needs to run after run_onchange_after_winget-configure.ps1.tmpl (in 40-windows/),
+# which is what applies the WebAppInstallForceList registry policy and installs ungoogled-chromium
+# in the first place.
+
+{{/* PWA entries are embedded directly below, so this run_onchange_ script's own rendered content
+     changes whenever .chezmoidata/pwas.toml changes -- no separate hash-embedding trick needed
+     (same reasoning as run_onchange_after_vscode-profiles.py.tmpl's embedded PROFILES data). */}}
+$PwaEntries = '{{ .pwas.entries | toJson | replace "'" "''" }}' | ConvertFrom-Json
+
+if ($PwaEntries.Count -eq 0) {
+    exit 0
+}
+
+Write-Host "`nInstalling PWAs into ungoogled-chromium..." -ForegroundColor Green
+
+# Installers write PATH changes to the registry, but this process's inherited $env:Path was
+# captured before those writes happened -- rebuild it so a chromium.exe installed moments ago in
+# this same apply run is actually resolvable (same trick as run_after_dependency-checker.ps1).
+$env:Path = [System.Environment]::GetEnvironmentVariable('Path', 'Machine') + ';' + [System.Environment]::GetEnvironmentVariable('Path', 'User')
+
+# ungoogled-chromium-windows deliberately keeps upstream Chromium's branding/paths (see its
+# project docs: "will not modify the Chromium browser outside of the project's goals"), so an
+# unbranded Chromium build's defaults apply: binary is chrome.exe, and -- since GOOGLE_CHROME_BUILD
+# isn't defined -- its user-data dir is "Chromium", not "Google\Chrome" or "Google\ungoogled-chromium".
+function Find-ChromiumExe {
+    $Cmd = Get-Command chrome.exe -ErrorAction SilentlyContinue
+    if ($Cmd) { return $Cmd.Source }
+
+    # Fall back to the winget/MSI uninstall registry entries, which record where the installer put it.
+    $UninstallRoots = @(
+        'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*',
+        'HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*',
+        'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*'
+    )
+    $Entry = Get-ItemProperty -Path $UninstallRoots -ErrorAction SilentlyContinue |
+        Where-Object { $_.DisplayName -like '*Chromium*' -and $_.InstallLocation } |
+        Select-Object -First 1
+    if ($Entry) {
+        $Candidate = Join-Path $Entry.InstallLocation 'chrome.exe'
+        if (Test-Path $Candidate) { return $Candidate }
+    }
+
+    foreach ($Root in @($env:ProgramFiles, ${env:ProgramFiles(x86)}, $env:LOCALAPPDATA)) {
+        if (-not $Root) { continue }
+        $Candidate = Join-Path $Root 'Chromium\Application\chrome.exe'
+        if (Test-Path $Candidate) { return $Candidate }
+    }
+
+    return $null
+}
+
+$ChromiumExe = Find-ChromiumExe
+if (-not $ChromiumExe) {
+    Write-Host "Warning: could not find ungoogled-chromium's chrome.exe -- skipping PWA install. It should have been installed by winget configure; rerun 'chezmoi apply' once it is." -ForegroundColor Yellow
+    exit 0
+}
+
+$ProfileDir = Join-Path $env:LOCALAPPDATA 'Chromium\User Data\Default'
+$WebAppsDir = Join-Path $ProfileDir 'Web Applications'
+
+function Get-InstalledPwaCount {
+    if (-not (Test-Path $WebAppsDir)) { return 0 }
+    return (Get-ChildItem -Path $WebAppsDir -Directory -ErrorAction SilentlyContinue | Measure-Object).Count
+}
+
+# Launch minimized rather than bringing it to the foreground -- same non-disruptive intent as
+# `open -g -a Chromium` on macOS. Chromium only actually acts on WebAppInstallForceList --
+# downloading each app's manifest/icon and creating the installed web app -- once it's running.
+Start-Process -FilePath $ChromiumExe -ArgumentList '--no-first-run' -WindowStyle Minimized
+
+$Retries = 24
+$DelaySeconds = 5
+for ($i = 0; $i -lt $Retries; $i++) {
+    if ((Get-InstalledPwaCount) -ge $PwaEntries.Count) { break }
+    Start-Sleep -Seconds $DelaySeconds
+}
+
+# When the hidden background page load behind a forced install fails (timeout, redirect, or the
+# browser being quit mid-load), Chromium falls back to a manifest-less placeholder install and
+# only replaces it with the real one once some tab successfully navigates to the install URL --
+# the same behavior the macOS role works around by re-opening every install URL in a tab. Windows
+# app-folder names are opaque hashes (unlike macOS's URL-named .app bundles), so a real placeholder
+# can't be distinguished from a good install by name alone here -- reopening every URL regardless
+# is cheap and idempotent, so just always do it as a reinforcement pass.
+foreach ($Entry in $PwaEntries) {
+    Start-Process -FilePath $ChromiumExe -ArgumentList '--no-first-run', $Entry.url -WindowStyle Minimized
+    Start-Sleep -Seconds 1
+}
+Start-Sleep -Seconds $DelaySeconds
+
+Get-Process -Name chrome -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+
+Write-Host "PWA install pass complete ($(Get-InstalledPwaCount)/$($PwaEntries.Count) found under $WebAppsDir)." -ForegroundColor Green
