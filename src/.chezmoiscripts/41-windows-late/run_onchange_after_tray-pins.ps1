@@ -29,27 +29,37 @@ Write-Host "`nSetting system tray pins..." -ForegroundColor Green
 # IconPathLike matches NotifyIconSettings' ExecutablePath, which is stored with a KNOWNFOLDERID
 # GUID prefix instead of a drive letter (e.g. "{6D809377-...}\Adobe\Adobe Creative
 # Cloud\ACC\Creative Cloud.exe" for Program Files) -- matching on the stable tail avoids having to
-# resolve which known folder each GUID means.
+# resolve which known folder each GUID means. "Already running" checks below match Get-Process's
+# .Path against this same pattern (drive-letter form, but the tail is identical) rather than a
+# bare process Name -- Claude's bare process name ("claude") collides with the Claude Code CLI's
+# own bundled native-binary claude.exe, which is also running throughout a chezmoi apply driven by
+# Claude Code itself and made the naive Name-only check think the desktop app was already running
+# when it wasn't (or vice versa). RunningCheckPathLike overrides this default only where the
+# process that indicates "no need to launch" genuinely differs from the icon's own owning process
+# (PowerToys' hub vs. its Awake child process, below).
 $Targets = @(
-  @{ Label = 'Proton Drive'; StartAppName = 'Proton Drive'; ProcessName = 'ProtonDrive'; IconPathLike = '*\Proton\Drive\ProtonDrive.exe' }
-  @{ Label = 'Creative Cloud'; StartAppName = 'Adobe Creative Cloud'; ProcessName = 'Creative Cloud'; IconPathLike = '*\Adobe Creative Cloud\ACC\Creative Cloud.exe' }
-  @{ Label = 'UniGetUI'; StartAppName = 'UniGetUI'; ProcessName = 'UniGetUI'; IconPathLike = '*\UniGetUI\UniGetUI.exe' }
-  @{ Label = 'ASUS DriverHub'; StartAppName = 'ASUS DriverHub'; ProcessName = 'ASUS DriverHub'; IconPathLike = '*\AsusDriverHub\ASUS DriverHub.exe' }
+  @{ Label = 'Proton Drive'; StartAppName = 'Proton Drive'; IconPathLike = '*\Proton\Drive\ProtonDrive.exe' }
+  @{ Label = 'Creative Cloud'; StartAppName = 'Adobe Creative Cloud'; IconPathLike = '*\Adobe Creative Cloud\ACC\Creative Cloud.exe' }
+  @{ Label = 'UniGetUI'; StartAppName = 'UniGetUI'; IconPathLike = '*\UniGetUI\UniGetUI.exe' }
+  @{ Label = 'ASUS DriverHub'; StartAppName = 'ASUS DriverHub'; IconPathLike = '*\AsusDriverHub\ASUS DriverHub.exe' }
   # Launching "PowerToys (Preview)" starts the main hub process; PowerToys itself spawns
-  # PowerToys.Awake.exe (a separate process, hence the different ProcessName) since the Awake
-  # module ships enabled by default.
-  @{ Label = 'PowerToys Awake'; StartAppName = 'PowerToys (Preview)'; ProcessName = 'PowerToys.Awake'; IconPathLike = '*\PowerToys\PowerToys.Awake.exe'; LaunchProcessName = 'PowerToys' }
-  @{ Label = 'Docker Desktop'; StartAppName = 'Docker Desktop'; ProcessName = 'Docker Desktop'; IconPathLike = '*\Docker\Docker\frontend\Docker Desktop.exe' }
+  # PowerToys.Awake.exe (a separate process) since the Awake module ships enabled by default.
+  @{ Label = 'PowerToys Awake'; StartAppName = 'PowerToys (Preview)'; IconPathLike = '*\PowerToys\PowerToys.Awake.exe'; RunningCheckPathLike = '*\PowerToys\PowerToys.exe' }
+  @{ Label = 'Docker Desktop'; StartAppName = 'Docker Desktop'; IconPathLike = '*\Docker\Docker\frontend\Docker Desktop.exe' }
   # VMware's Start Menu tile ("VMware Workstation Pro") launches the full VM manager UI, not the
   # background helper that actually owns the tray icon -- vmware-tray.exe is a separate process
   # Windows launches directly at every login via its own HKLM Run key entry, confirmed against
   # this machine. RunKeyName below reuses that same entry to launch it here instead of going
   # through Get-StartApps/shell:AppsFolder like every other target.
-  @{ Label = 'VMware Workstation'; RunKeyName = 'vmware-tray.exe'; ProcessName = 'vmware-tray'; IconPathLike = '*\VMware\VMware Workstation\vmware-tray.exe' }
-  @{ Label = 'iCloud'; StartAppName = 'iCloud'; ProcessName = 'iCloudHome'; IconPathLike = '*\WindowsApps\AppleInc.iCloud_*\iCloud\iCloudHome.exe' }
-  # IconPathLike has a wildcard version segment ("Claude_1.24012.9.0_...") since the Windows Store
-  # package folder name changes on every app update.
-  @{ Label = 'Claude'; StartAppName = 'Claude'; ProcessName = 'claude'; IconPathLike = '*\WindowsApps\Claude_*\app\claude.exe' }
+  @{ Label = 'VMware Workstation'; RunKeyName = 'vmware-tray.exe'; IconPathLike = '*\VMware\VMware Workstation\vmware-tray.exe' }
+  @{ Label = 'iCloud'; StartAppName = 'iCloud'; IconPathLike = '*\WindowsApps\AppleInc.iCloud_*\iCloud\iCloudHome.exe' }
+  # winget's Anthropic.Claude package is a per-user Squirrel-style installer (same pattern as
+  # Discord/Slack), not a Store/MSIX package -- confirmed against an actual winget-provisioned VM,
+  # after an earlier version of this pattern (based on this machine's own Claude install, which
+  # turned out to be a different, unrelated Store install) never matched and made the script
+  # falsely conclude Claude was never running. IconPathLike has a wildcard version segment
+  # ("app-1.24012.9") since that folder name changes on every app update.
+  @{ Label = 'Claude'; StartAppName = 'Claude'; IconPathLike = '*\AnthropicClaude\app-*\claude.exe' }
 )
 
 # Finds the NotifyIconSettings subkey (if any) matching a predicate, returning its PSPath and
@@ -77,8 +87,8 @@ foreach ($Target in $Targets) {
   $Entry = Find-NotifyIconEntry -Predicate { param($p) $p.ExecutablePath -like $Target.IconPathLike }
 
   if (-not $Entry) {
-    $LaunchProcessName = if ($Target.LaunchProcessName) { $Target.LaunchProcessName } else { $Target.ProcessName }
-    if (-not (Get-Process -Name $LaunchProcessName -ErrorAction SilentlyContinue)) {
+    $RunningCheckPathLike = if ($Target.RunningCheckPathLike) { $Target.RunningCheckPathLike } else { $Target.IconPathLike }
+    if (-not (Get-Process -ErrorAction SilentlyContinue | Where-Object { $_.Path -like $RunningCheckPathLike })) {
       if ($Target.RunKeyName) {
         $RunCommand = (Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run' -ErrorAction SilentlyContinue).($Target.RunKeyName)
         if (-not $RunCommand) {
@@ -142,20 +152,28 @@ if (-not $HardwareEntry) {
   $PromotedCount++
 }
 
-if ($PromotedCount -eq 0) {
-  Write-Host "`nWarning: none of the desired tray pins could be resolved -- skipping Explorer restart." -ForegroundColor Yellow
-  exit 0
+$TotalCount = $Targets.Count + 1
+
+if ($PromotedCount -gt 0) {
+  # Registry-only edits here aren't picked up by the already-running tray host until Explorer
+  # restarts, the same reason taskbar-pins.ps1 restarts it -- this closes every open File
+  # Explorer window and flickers the desktop/taskbar for a few seconds.
+  Write-Host "`nRestarting Explorer to apply tray icon changes..." -ForegroundColor Cyan
+  Get-Process -Name explorer -ErrorAction SilentlyContinue | Stop-Process -Force
+  Start-Sleep -Seconds 2
+  if (-not (Get-Process -Name explorer -ErrorAction SilentlyContinue)) {
+    Start-Process explorer.exe
+  }
+  Start-Sleep -Seconds 3
 }
 
-# Registry-only edits here aren't picked up by the already-running tray host until Explorer
-# restarts, the same reason taskbar-pins.ps1 restarts it -- this closes every open File Explorer
-# window and flickers the desktop/taskbar for a few seconds.
-Write-Host "`nRestarting Explorer to apply tray icon changes..." -ForegroundColor Cyan
-Get-Process -Name explorer -ErrorAction SilentlyContinue | Stop-Process -Force
-Start-Sleep -Seconds 2
-if (-not (Get-Process -Name explorer -ErrorAction SilentlyContinue)) {
-  Start-Process explorer.exe
-}
-Start-Sleep -Seconds 3
+Write-Host "Tray pins applied ($PromotedCount/$TotalCount resolved)." -ForegroundColor Green
 
-Write-Host "Tray pins applied ($PromotedCount/$($Targets.Count + 1) resolved)." -ForegroundColor Green
+if ($PromotedCount -lt $TotalCount) {
+  # A "rerun chezmoi apply" warning above is only true if this actually happens: run_onchange_
+  # scripts are gated on this script's own content hash, not on any external state, so chezmoi
+  # won't rerun it just because the user reran `chezmoi apply` -- exiting non-zero is what makes
+  # chezmoi retry it on the next apply regardless of hash, the same technique
+  # run_onchange_after_winget-configure.ps1.tmpl uses (see Stop-ForPendingReboot there).
+  exit 1
+}
