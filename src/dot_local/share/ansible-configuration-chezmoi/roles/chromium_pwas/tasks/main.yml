@@ -63,6 +63,27 @@
     chromium_pwas_need_attempt: "{{ chromium_policy is changed or (chromium_existing_pwas.matched | default(0)) < (chromium_web_apps | length) }}"
   when: chromium_app.stat.exists and chromium_web_apps | length > 0
 
+# cfprefsd (the daemon every app, including Chromium, actually queries for
+# preference values -- including the Managed Preferences domain) caches
+# values in memory and doesn't reliably notice a plist being overwritten by
+# a plain file write rather than through the normal preferences API.
+# Confirmed on-device: after adding paramountplus.com, the plist on disk
+# had the new entry (verified with `plutil -p`), but chrome://policy kept
+# showing only the old (youtube-only) list -- Chromium was reading
+# cfprefsd's stale cache, not the file. This isn't limited to the run that
+# actually wrote the change, either: a stale cache from an earlier run
+# stays stale forever since the plist's on-disk content won't change again
+# on its own -- so this is gated on chromium_pwas_need_attempt (not
+# `chromium_policy is changed`) to also cover exactly that already-stale
+# case. Killing cfprefsd forces it to reread from disk; it's relaunched on
+# demand automatically.
+- name: Restart cfprefsd so Chromium picks up the current policy
+  ansible.builtin.command: killall cfprefsd
+  become: true
+  when: chromium_pwas_need_attempt | default(false) | bool
+  changed_when: true
+  failed_when: false
+
 # Chromium only actually acts on WebAppInstallForceList — downloading each
 # app's manifest/icon and creating the installed web app — once it's
 # actually running. Launching it in the background, waiting for the
@@ -102,33 +123,32 @@
 # tab successfully navigates to the placeholder's install URL — the same
 # fully-rendered path a manual "Install" click uses. See
 # https://chromium.googlesource.com/chromium/src/+/main/docs/webapps/concepts.md
-#
-# Confirmed on-device with paramountplus.com: some sites never resolve the
-# hidden install to either success or failure at all -- the site loads and
-# installs fine in a normal tab, but the forced install's fully offscreen
-# WebContents just hangs indefinitely, so Chromium's own placeholder
-# fallback (which only fires once that hidden load actually fails) never
-# kicks in either, and the app is left permanently missing with no
-# placeholder to detect. So don't gate the repair on a placeholder having
-# appeared -- do it for anything still short of installed after the wait
-# above, placeholder or not.
-- name: Open install URLs in tabs so Chromium finishes installing any still-missing PWAs
-  ansible.builtin.command:
-    argv: "{{ ['open', '-g', '-a', 'Chromium'] + (chromium_web_apps | map(attribute='url') | list) }}"
-  when: (chromium_pwas_need_attempt | default(false) | bool) and ((chromium_installed_pwas.matched | default(0)) < (chromium_web_apps | length))
-  changed_when: true
-
-- name: Wait for all PWAs to finish installing
+# So: detect URL-named bundles, and if any exist, open every install URL in
+# a background tab to trigger that replacement.
+- name: Check for placeholder PWA installs
   ansible.builtin.find:
     paths: "{{ ansible_facts.env.HOME }}/Applications/Chromium Apps.localized"
-    patterns: "*.app"
-    excludes: "http*.app"
+    patterns: "http*.app"
     file_type: directory
-  register: chromium_final_pwas
-  until: chromium_final_pwas.matched | default(0) >= (chromium_web_apps | length)
+  register: chromium_placeholder_pwas
+  when: chromium_pwas_need_attempt | default(false) | bool
+
+- name: Open install URLs in tabs so Chromium replaces the placeholders
+  ansible.builtin.command:
+    argv: "{{ ['open', '-g', '-a', 'Chromium'] + (chromium_web_apps | map(attribute='url') | list) }}"
+  when: (chromium_pwas_need_attempt | default(false) | bool) and (chromium_placeholder_pwas.matched | default(0) > 0)
+  changed_when: true
+
+- name: Wait for placeholders to be replaced by real apps
+  ansible.builtin.find:
+    paths: "{{ ansible_facts.env.HOME }}/Applications/Chromium Apps.localized"
+    patterns: "http*.app"
+    file_type: directory
+  register: chromium_remaining_placeholders
+  until: chromium_remaining_placeholders.matched | default(0) == 0
   retries: 24
   delay: 5
-  when: (chromium_pwas_need_attempt | default(false) | bool) and ((chromium_installed_pwas.matched | default(0)) < (chromium_web_apps | length))
+  when: (chromium_pwas_need_attempt | default(false) | bool) and (chromium_placeholder_pwas.matched | default(0) > 0)
   failed_when: false
 
 - name: Quit Chromium
