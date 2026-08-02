@@ -44,6 +44,12 @@ resources:
       source: winget
       installMode: silent
   - type: Microsoft.WinGet/Package
+    name: VSCodium
+    properties:
+      id: VSCodium.VSCodium
+      source: winget
+      installMode: silent
+  - type: Microsoft.WinGet/Package
     name: WindowsApp
     properties:
       id: Microsoft.WindowsApp
