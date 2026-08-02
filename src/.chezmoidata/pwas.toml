@@ -11,3 +11,7 @@
 [[pwas.entries]]
 url = "https://www.youtube.com"
 default_launch_container = "window"
+
+[[pwas.entries]]
+url = "https://www.paramountplus.com"
+default_launch_container = "window"

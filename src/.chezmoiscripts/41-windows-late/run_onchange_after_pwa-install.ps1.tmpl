@@ -67,9 +67,18 @@ if (-not $ChromiumExe) {
 $ProfileDir = Join-Path $env:LOCALAPPDATA 'Chromium\User Data\Default'
 $WebAppsDir = Join-Path $ProfileDir 'Web Applications'
 
-function Get-InstalledPwaCount {
+# Chromium is now also this machine's general-purpose backup browser (installed in
+# 7.apps.configuration.winget), not a headless PWA host dedicated to just this list -- so
+# Web Applications can accumulate folders for apps the user installed by hand, from a URL that
+# later got removed from .chezmoidata/pwas.toml, or (during iterative testing of this very
+# script) from earlier runs. An absolute folder count conflates all of that with genuinely new
+# installs from *this* run, so snapshot what's there before launching and diff against it instead.
+$BaselineFolders = if (Test-Path $WebAppsDir) { @((Get-ChildItem -Path $WebAppsDir -Directory -ErrorAction SilentlyContinue).Name) } else { @() }
+
+function Get-NewPwaCount {
     if (-not (Test-Path $WebAppsDir)) { return 0 }
-    return (Get-ChildItem -Path $WebAppsDir -Directory -ErrorAction SilentlyContinue | Measure-Object).Count
+    return (Get-ChildItem -Path $WebAppsDir -Directory -ErrorAction SilentlyContinue |
+        Where-Object { $_.Name -notin $BaselineFolders } | Measure-Object).Count
 }
 
 # When the hidden background page load behind a forced install fails (timeout, redirect, or the
@@ -110,7 +119,7 @@ function Wait-ForCondition {
     }
 }
 
-Wait-ForCondition -Condition { (Get-InstalledPwaCount) -ge $PwaEntries.Count } -ProgressLabel "Waiting for Chromium's initial install attempt to finish"
+Wait-ForCondition -Condition { (Get-NewPwaCount) -ge $PwaEntries.Count } -ProgressLabel "Waiting for Chromium's initial install attempt to finish"
 
 # See the placeholder comment above -- re-navigating a tab to the install URL is what makes
 # Chromium swap a placeholder for the real manifest-derived app, the same remedy the macOS role
@@ -127,4 +136,4 @@ if ((Get-PlaceholderShortcutCount) -gt 0) {
 Get-Process -Name chrome -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
 
 $PlaceholderCount = Get-PlaceholderShortcutCount
-Write-Host "PWA install pass complete ($(Get-InstalledPwaCount)/$($PwaEntries.Count) found under $WebAppsDir, $PlaceholderCount still placeholder)." -ForegroundColor Green
+Write-Host "PWA install pass complete ($(Get-NewPwaCount)/$($PwaEntries.Count) newly installed under $WebAppsDir, $PlaceholderCount still placeholder)." -ForegroundColor Green
