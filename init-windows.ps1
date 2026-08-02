@@ -36,8 +36,11 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
     Write-Host "`nPowerShell 7+ installed and Windows Terminal default profile updated!" -ForegroundColor Green
     Write-Host "`nOpening a new Windows Terminal window running PowerShell 7 to continue setup..." -ForegroundColor Yellow
 
-    $continueCommand = "irm https://raw.githubusercontent.com/natescherer/dotfiles/main/init-windows.ps1 | iex"
-    Start-Process wt.exe -ArgumentList "pwsh", "-NoExit", "-Command", $continueCommand
+    # Downloaded to a file and run with -File (rather than spawning `irm | iex` on the
+    # child's command line) so this doesn't get flagged as a malware download cradle.
+    $continueScriptPath = Join-Path $env:TEMP "init-windows.ps1"
+    Invoke-RestMethod -Uri "https://raw.githubusercontent.com/natescherer/dotfiles/main/init-windows.ps1" -OutFile $continueScriptPath
+    Start-Process wt.exe -ArgumentList "pwsh", "-NoExit", "-File", $continueScriptPath
 
     Write-Host "`nSetup is continuing in the new window; this Windows PowerShell window can be closed." -ForegroundColor Yellow
 
