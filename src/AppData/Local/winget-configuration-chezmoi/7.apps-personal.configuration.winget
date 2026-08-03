@@ -100,12 +100,21 @@ resources:
       id: Obsidian.Obsidian
       source: winget
       installMode: silent
-  # - type: Microsoft.WinGet/Package
-  #   name: ProtonDrive
-  #   properties:
-  #     id: Proton.ProtonDrive
-  #     source: winget
-  #     installMode: silent
+  - type: Microsoft.WinGet/Package
+    name: Paprika
+    metadata:
+      winget:
+        securityContext: elevated
+    properties:
+      id: PaprikaApp.Paprika.3
+      source: winget
+      installMode: silent
+  - type: Microsoft.WinGet/Package
+    name: ProtonDrive
+    properties:
+      id: Proton.ProtonDrive
+      source: winget
+      installMode: silent
   - type: Microsoft.WinGet/Package
     name: Slack
     properties:

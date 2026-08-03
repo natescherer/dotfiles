@@ -184,10 +184,11 @@ chezmoi init --apply natescherer
 
 #### Preflight
 
-1. Install drivers/VMware Tools/etc
+1. Install core drivers/VMware Tools/etc
+   - See [docs/drivers] for known core driver configs for different machines
 1. Ensure all Windows Updates are installed
 1. Open the Microsoft Store, click `Downloads`, then click `Check for updates`, and install all
-  - Repeat this step until the store no longer shows any updates
+   - Repeat this step until the store no longer shows any updates
 
 #### Automatic Installation
 

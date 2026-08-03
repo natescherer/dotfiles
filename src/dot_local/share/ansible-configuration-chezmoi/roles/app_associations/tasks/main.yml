@@ -87,3 +87,47 @@
   when: outlook_app.stat.exists and current_ics_handler.stdout | trim != 'com.microsoft.Outlook'
   changed_when: true
   failed_when: false
+
+- name: Check whether Zettlr is installed
+  ansible.builtin.stat:
+    path: "/Applications/Zettlr.app"
+  register: zettlr_app
+
+# mdls reads the bundle identifier straight from the installed app's own Info.plist rather than
+# hardcoding it like Firefox/Outlook above -- unlike their long-stable IDs, Zettlr's isn't
+# independently confirmed and could differ across build tooling or versions.
+- name: Get Zettlr's bundle identifier
+  ansible.builtin.command: mdls -name kMDItemCFBundleIdentifier -raw /Applications/Zettlr.app
+  register: zettlr_bundle_id
+  when: zettlr_app.stat.exists
+  changed_when: false
+  failed_when: false
+
+- name: Get the UTI for .md files
+  ansible.builtin.command: utiluti get-uti md
+  environment:
+    PATH: "{{ homebrew_prefix }}/bin:{{ ansible_facts.env.PATH }}"
+  register: md_uti
+  when: zettlr_app.stat.exists and zettlr_bundle_id.stdout | default('') | trim != ''
+  changed_when: false
+  failed_when: false
+
+- name: Check current handler for .md files
+  ansible.builtin.command: "utiluti type {{ md_uti.stdout | trim }} --bundle-id"
+  environment:
+    PATH: "{{ homebrew_prefix }}/bin:{{ ansible_facts.env.PATH }}"
+  register: current_md_handler
+  when: zettlr_app.stat.exists and md_uti.stdout | default('') | trim != ''
+  changed_when: false
+  failed_when: false
+
+- name: Associate .md files with Zettlr
+  ansible.builtin.command: "utiluti type set extension:md {{ zettlr_bundle_id.stdout | trim }}"
+  environment:
+    PATH: "{{ homebrew_prefix }}/bin:{{ ansible_facts.env.PATH }}"
+  when: >
+    zettlr_app.stat.exists and
+    zettlr_bundle_id.stdout | default('') | trim != '' and
+    current_md_handler.stdout | default('') | trim != zettlr_bundle_id.stdout | trim
+  changed_when: true
+  failed_when: false

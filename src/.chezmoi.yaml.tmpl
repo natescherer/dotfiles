@@ -24,6 +24,11 @@
 {{- $isVM = promptBoolOnce . "isVM" "Is this a VM? (Enter for default)" false }}
 {{- end }}
 
+{{- $computerModel := "None" }}
+{{- if and (eq .chezmoi.os "windows") $isPersonal }}
+{{- $computerModel = promptChoiceOnce . "computerModel" "What model is this computer? (Enter for default)" (list "Late 2025 Gaming Desktop" "None") "None" }}
+{{- end }}
+
 {{- if eq .chezmoi.os "windows" }}
 cd:
     command: pwsh
@@ -39,6 +44,7 @@ data:
     isPersonal: {{ $isPersonal }}
     adminRights: {{ $adminRights }}
     isVM: {{ $isVM }}
+    computerModel: {{ $computerModel | quote }}
 diff:
     command: "code"
     args:

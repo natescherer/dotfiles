@@ -8,56 +8,83 @@ metadata:
       identifier: dscv3
 resources:
   - type: Microsoft.WinGet/Package
-    name: Brave
+    name: AutodeskFusion
+    metadata:
+      winget:
+        securityContext: elevated
     properties:
-      id: Brave.Brave
+      id: Autodesk.Fusion
       source: winget
       installMode: silent
   - type: Microsoft.WinGet/Package
-    name: chezmoi
+    name: EpicGamesLauncher
+    metadata:
+      winget:
+        securityContext: elevated
     properties:
-      id: twpayne.chezmoi
+      id: EpicGames.EpicGamesLauncher
       source: winget
       installMode: silent
   - type: Microsoft.WinGet/Package
-    name: fzf
+    name: LogitechGHUB
+    metadata:
+      winget:
+        securityContext: elevated
     properties:
-      id: junegunn.fzf
+      id: Logitech.GHUB
       source: winget
       installMode: silent
   - type: Microsoft.WinGet/Package
-    name: micro
+    name: LogitechOptionsPlus
+    metadata:
+      winget:
+        securityContext: elevated
     properties:
-      id: zyedidia.micro
+      id: Logitech.OptionsPlus
       source: winget
       installMode: silent
   - type: Microsoft.WinGet/Package
-    name: mise
+    name: NVIDIAApp
+    metadata:
+      winget:
+        securityContext: elevated
     properties:
-      id: jdx.mise
+      id: XP8CLZL93F5Z4P
+      source: msstore
+      installMode: silent
+  - type: Microsoft.WinGet/Package
+    name: OBSStudio
+    metadata:
+      winget:
+        securityContext: elevated
+    properties:
+      id: OBSProject.OBSStudio
       source: winget
       installMode: silent
   - type: Microsoft.WinGet/Package
-    name: VSCode
+    name: PrusaSlicer
+    metadata:
+      winget:
+        securityContext: elevated
     properties:
-      id: Microsoft.VisualStudioCode
+      id: Prusa3D.PrusaSlicer
       source: winget
       installMode: silent
   - type: Microsoft.WinGet/Package
-    name: VSCodium
+    name: SamsungMagician
+    metadata:
+      winget:
+        securityContext: elevated
     properties:
-      id: VSCodium.VSCodium
-      source: winget
+      id: XPDDT99J9GKB5C
+      source: msstore
       installMode: silent
   - type: Microsoft.WinGet/Package
-    name: WindowsApp
+    name: Steam
+    metadata:
+      winget:
+        securityContext: elevated
     properties:
-      id: Microsoft.WindowsApp
-      source: winget
-      installMode: silent
-  - type: Microsoft.WinGet/Package
-    name: Zettlr
-    properties:
-      id: Zettlr.Zettlr
+      id: Valve.Steam
       source: winget
       installMode: silent

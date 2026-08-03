@@ -1,0 +1,54 @@
+#Requires -Version 7.0
+
+# Drops a Markdown checklist of manual post-setup steps on the Desktop, opening it the first time
+# it's created. Plain run_after_ (not run_once_/run_onchange_) so it self-heals if the checklist
+# file is deleted -- same reasoning as run_after_desktop-icons.ps1 -- but idempotency for the file
+# write is handled inside this script (a Test-Path check), not via chezmoi's own once/onchange
+# hash tracking, since that hash would otherwise re-fire (and overwrite the user's checked-off
+# progress) the moment this script's own content changes in a future commit.
+#
+# Setting Zettlr as the default .md handler is a separate concern, handled by
+# run_after_windows-file-associations.ps1.tmpl -- see .chezmoidata/windows-file-associations.toml.
+
+$SourceChecklist = '{{ joinPath .chezmoi.sourceDir ".scriptdata/setup-checklist/windows.md" }}'
+$DesktopChecklist = Join-Path ([Environment]::GetFolderPath('Desktop')) 'SETUP-CHECKLIST.md'
+
+if (Test-Path $DesktopChecklist) {
+  Write-Host "`nSetup checklist already exists on Desktop -- leaving it (and any checked-off progress) alone." -ForegroundColor DarkGray
+  exit 0
+}
+
+Write-Host "`nCreating setup checklist on Desktop..." -ForegroundColor Green
+Copy-Item -Path $SourceChecklist -Destination $DesktopChecklist
+
+# Launches Zettlr directly with the checklist as an argument, rather than Start-Process on the
+# file itself, which would just assume run_after_windows-file-associations.ps1.tmpl's association
+# already took effect (e.g. it hasn't yet on a first-ever run, since 41-windows-late's scripts
+# have no ordering guarantee relative to each other -- see the comment at the top of this file).
+# The App Paths registry key is the standard place a well-behaved installer (electron-builder
+# included, which Zettlr uses) registers its own exe location for exactly this kind of lookup.
+function Get-ZettlrExePath {
+  foreach ($Key in @(
+    'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\Zettlr.exe'
+    'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\Zettlr.exe'
+  )) {
+    $Path = (Get-Item -Path $Key -ErrorAction SilentlyContinue).GetValue('')
+    if ($Path -and (Test-Path $Path)) { return $Path }
+  }
+  # Fallback: electron-builder's default per-user install location, in case App Paths wasn't
+  # registered for some reason.
+  $Fallback = Join-Path $env:LOCALAPPDATA 'Programs\zettlr\Zettlr.exe'
+  if (Test-Path $Fallback) { return $Fallback }
+  return $null
+}
+
+$ZettlrExe = Get-ZettlrExePath
+if ($ZettlrExe) {
+  Write-Host "`nOpening setup checklist in Zettlr..." -ForegroundColor Green
+  Start-Process -FilePath $ZettlrExe -ArgumentList "`"$DesktopChecklist`""
+} else {
+  Write-Host "`nCould not locate Zettlr.exe -- opening setup checklist with whatever app is currently associated with .md files instead." -ForegroundColor Yellow
+  Start-Process -FilePath $DesktopChecklist
+}
+
+exit 0

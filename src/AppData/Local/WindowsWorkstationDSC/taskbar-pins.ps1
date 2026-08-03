@@ -60,10 +60,6 @@ $Pins = @(
   @{ Label = 'VSCodium'; Name = 'VSCodium' }
   @{ Label = 'VSCode'; Name = 'Visual Studio Code' }
   @{ Label = 'YouTube'; Name = 'YouTube' }
-  # Not installed by anything in this repo -- added to manually test, inside the VM, whether an
-  # app installed *after* provisioning (rather than present at first boot) gets picked up and
-  # pinned correctly.
-  @{ Label = 'Autodesk Fusion'; Name = 'Autodesk Fusion' }
 )
 
 # Get-StartApps' AppID comes in three different shapes, not two -- confirmed by hand
