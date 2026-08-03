@@ -9,7 +9,6 @@
 - Implement PSFzf (after maybe removing PWSH support on macOS and Linux)
 - Test in a no-admin-rights scenario
 - Stop PowerToys AlwaysOnTop admin notifications
-- Add 1Password Edge Extension
 - Implement Browser Picker and set as default browser
 - Drop iCloud in favor of LocalSend
 - Set Control Panel to Small Icons
