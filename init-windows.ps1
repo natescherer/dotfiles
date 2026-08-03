@@ -69,3 +69,11 @@ mise use -g python@latest
 Write-Host "`nConfiguration prereqs installed!" -ForegroundColor Green
 Write-Host "`nRun the following to load your shell environment and finish configuration:" -ForegroundColor Yellow
 Write-Host "mise env -s pwsh | iex && chezmoi init --apply natescherer" -ForegroundColor Yellow
+
+# Clean up the temp copy downloaded by the PowerShell 5.1 branch above, if that's
+# what's running (deleting is safe here since the interpreter doesn't hold the
+# script file open once it's been parsed and started executing).
+$tempScriptPath = Join-Path $env:TEMP "init-windows.ps1"
+if ($PSCommandPath -eq $tempScriptPath) {
+    Remove-Item -Path $tempScriptPath -Force
+}
