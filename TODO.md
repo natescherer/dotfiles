@@ -2,7 +2,6 @@
 
 ## Winget Configuration
 
-- Wallpaper
 - Manual TODO list
 - Implement PSFzf (after maybe removing PWSH support on macOS and Linux)
 - Test in a no-admin-rights scenario
