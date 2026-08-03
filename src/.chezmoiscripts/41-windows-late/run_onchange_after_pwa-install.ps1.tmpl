@@ -134,38 +134,58 @@ $DelaySeconds = 5
 function Wait-ForCondition {
     param([Parameter(Mandatory)] [scriptblock] $Condition, [string] $ProgressLabel)
     for ($i = 0; $i -lt $Retries; $i++) {
-        if (& $Condition) { return }
+        if (& $Condition) { return $true }
         if ($i % 12 -eq 0) {
             Write-Host "$ProgressLabel ($($i * $DelaySeconds)s elapsed)..." -ForegroundColor DarkGray
         }
         Start-Sleep -Seconds $DelaySeconds
     }
+    return $false
 }
+
+# Capped at $PwaEntries.Count so this doesn't reintroduce the earlier "3/1" confusion from
+# unrelated pre-existing folders (the browser is also a general daily-use browser now) -- this is
+# still just an estimate, not per-URL verification, since folder names are opaque app ids.
+function Get-AccountedForCount { [Math]::Min($PwaEntries.Count, $BaselineFolders.Count + (Get-NewPwaCount)) }
+function Test-AllPwasRegistered { (Get-AccountedForCount) -ge $PwaEntries.Count -and (Get-PlaceholderShortcutCount) -eq 0 }
 
 # Get-NewPwaCount only ever counts folders that appeared *after* this run's baseline snapshot, so
 # on a warm rerun where everything was already installed by an earlier run, it correctly stays 0
 # forever -- that's not a failure, it's nothing left to do. $BaselineFolders.Count already meeting
 # the target up front is exactly that case, and is checked first so it short-circuits immediately
 # instead of waiting out the full retry budget for installs that were never going to happen.
-Wait-ForCondition -Condition { ($BaselineFolders.Count -ge $PwaEntries.Count) -or ((Get-NewPwaCount) -ge $PwaEntries.Count) } -ProgressLabel "Waiting for Chromium's initial install attempt to finish"
+Wait-ForCondition -Condition { Test-AllPwasRegistered } -ProgressLabel "Waiting for Chromium's initial install attempt to finish" | Out-Null
 
-# See the placeholder comment above -- re-navigating a tab to the install URL is what makes
-# Chromium swap a placeholder for the real manifest-derived app, the same remedy the macOS role
-# uses. Re-opening every URL regardless of which one(s) are actually placeholders is cheap and
-# idempotent, so there's no need to map a placeholder shortcut back to a specific entry.
-if ((Get-PlaceholderShortcutCount) -gt 0) {
+# A single fixed-length wait followed by an unconditional Stop-ChromiumProcesses used to kill
+# Chromium out from under whichever entries simply hadn't gotten a turn yet on a slower machine:
+# confirmed against a VM where, with pwas.toml's current Windows entry count, the *last* couple of
+# entries in the list (Chromium processes WebAppInstallForceList roughly in list order) were still
+# unstarted when the wait above timed out. Unlike a failed-manifest-fetch placeholder -- which at
+# least leaves a shortcut behind for the block below to find -- a never-started entry leaves no
+# folder and no placeholder shortcut at all, so the old single placeholder-only repair pass never
+# caught it and Chromium got killed before it ever got there. So keep nudging Chromium in bounded
+# rounds -- re-opening every install URL, which both retries never-started entries and swaps out
+# placeholders (the same remedy the macOS chromium_pwas role uses) -- and actually check every
+# entry is accounted for before killing it, instead of trusting one pass to have caught everything.
+$MaxRepairRounds = 5
+for ($Round = 1; $Round -le $MaxRepairRounds -and -not (Test-AllPwasRegistered); $Round++) {
+    Write-Host "Round $Round/$MaxRepairRounds -- $(Get-AccountedForCount)/$($PwaEntries.Count) accounted for, $(Get-PlaceholderShortcutCount) still placeholder. Re-opening every install URL..." -ForegroundColor DarkGray
     foreach ($Entry in $PwaEntries) {
         Start-Process -FilePath $ChromiumExe -ArgumentList '--no-first-run', $Entry.url -WindowStyle Minimized
         Start-Sleep -Seconds 1
     }
-    Wait-ForCondition -Condition { (Get-PlaceholderShortcutCount) -eq 0 } -ProgressLabel "Waiting for placeholder installs to be replaced by real apps"
+    Wait-ForCondition -Condition { Test-AllPwasRegistered } -ProgressLabel "Waiting for round $Round's installs to finish" | Out-Null
 }
 
 Stop-ChromiumProcesses
 
 $PlaceholderCount = Get-PlaceholderShortcutCount
-# Capped at $PwaEntries.Count so this doesn't reintroduce the earlier "3/1" confusion from
-# unrelated pre-existing folders (the browser is also a general daily-use browser now) -- this is
-# still just an estimate, not per-URL verification, since folder names are opaque app ids.
-$AccountedForCount = [Math]::Min($PwaEntries.Count, $BaselineFolders.Count + (Get-NewPwaCount))
+$AccountedForCount = Get-AccountedForCount
+if ($AccountedForCount -lt $PwaEntries.Count -or $PlaceholderCount -gt 0) {
+    # run_onchange_'s gate is keyed on this script's own rendered content, not on whether it
+    # actually succeeded last time -- so a leftover failure here won't be retried automatically
+    # on the next chezmoi apply unless pwas.toml (or this script) changes. Said explicitly since
+    # that's exactly what caused the still-missing entries to go unnoticed for a while.
+    Write-Host "Warning: still not all PWAs installed after $MaxRepairRounds repair round(s) -- this won't be retried automatically until pwas.toml or this script changes. Rerun this script directly (it's idempotent) or investigate manually." -ForegroundColor Yellow
+}
 Write-Host "PWA install pass complete ($AccountedForCount/$($PwaEntries.Count) accounted for under $WebAppsDir -- $(Get-NewPwaCount) newly installed this run, $PlaceholderCount still placeholder)." -ForegroundColor Green

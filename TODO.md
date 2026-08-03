@@ -9,6 +9,7 @@
 - Implement PSFzf (after maybe removing PWSH support on macOS and Linux)
 - Test in a no-admin-rights scenario
 - Clean up temp copy of init-windows.ps1 laid down by the same script
+- Stop PowerToys AlwaysOnTop admin notifications
 
 ## macOS Ansible Configuration
 
