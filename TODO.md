@@ -12,7 +12,6 @@
 - Add 1Password Edge Extension
 - Implement Browser Picker and set as default browser
 - Drop iCloud in favor of LocalSend
-- Add Microsoft 365
 - Set Control Panel to Small Icons
 
 ## macOS Ansible Configuration

@@ -184,6 +184,7 @@ chezmoi init --apply natescherer
 
 #### Preflight
 
+1. Sign into Windows (if you made a local account) (and if you want to)
 1. Install core drivers/VMware Tools/etc
    - See [docs/drivers] for known core driver configs for different machines
 1. Ensure all Windows Updates are installed

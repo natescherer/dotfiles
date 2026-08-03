@@ -83,6 +83,12 @@ resources:
       source: winget
       installMode: silent
   - type: Microsoft.WinGet/Package
+    name: Microsoft365
+    properties:
+      id: Microsoft.Office
+      source: winget
+      installMode: silent
+  - type: Microsoft.WinGet/Package
     name: MullvadVPN
     metadata:
       winget:
