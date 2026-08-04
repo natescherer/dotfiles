@@ -32,7 +32,9 @@ function Get-ZettlrExePath {
     'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\Zettlr.exe'
     'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\Zettlr.exe'
   )) {
-    $Path = (Get-Item -Path $Key -ErrorAction SilentlyContinue).GetValue('')
+    $Item = Get-Item -Path $Key -ErrorAction SilentlyContinue
+    if (-not $Item) { continue }
+    $Path = $Item.GetValue('')
     if ($Path -and (Test-Path $Path)) { return $Path }
   }
   # Fallback: electron-builder's default per-user install location, in case App Paths wasn't
