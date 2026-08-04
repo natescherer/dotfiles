@@ -57,7 +57,6 @@ $Targets = @(
   # this machine. RunKeyName below reuses that same entry to launch it here instead of going
   # through Get-StartApps/shell:AppsFolder like every other target.
   @{ Label = 'VMware Workstation'; RunKeyName = 'vmware-tray.exe'; IconPathLike = '*\VMware\VMware Workstation\vmware-tray.exe' }
-  @{ Label = 'iCloud'; StartAppName = 'iCloud'; IconPathLike = '*\WindowsApps\AppleInc.iCloud_*\iCloud\iCloudHome.exe' }
   # winget's Anthropic.Claude package is a per-user Squirrel-style installer (same pattern as
   # Discord/Slack), not a Store/MSIX package -- confirmed against an actual winget-provisioned VM,
   # after an earlier version of this pattern (based on this machine's own Claude install, which

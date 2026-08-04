@@ -74,12 +74,6 @@ resources:
       source: msstore
       installMode: silent
   - type: Microsoft.WinGet/Package
-    name: iCloud
-    properties:
-      id: 9PKTQ5699M62
-      source: msstore
-      installMode: silent
-  - type: Microsoft.WinGet/Package
     name: LocalSend
     properties:
       id: LocalSend.LocalSend
