@@ -13,12 +13,17 @@
 # to avoid resetting the user's other default apps), whereas this -- like SetUserFTA -- changes
 # just the current user's chosen extension immediately, no reboot or logon cycle required.
 #
-# Invoked by setup-checklist.ps1 as:
-#   & (Join-Path $env:LOCALAPPDATA 'WindowsWorkstationDSC\Set-FileAssoc.ps1') -Extension .md -ProgID $ZettlrProgId
+# Invoked by run_after_windows-file-associations.ps1.tmpl -- see
+# .chezmoidata/windows-file-associations.toml.
 #
-# Not modified from upstream below this line.
+# Not modified from upstream below this line, with one exception: the upstream source has a stray
+# U+FEFF (zero-width no-break space) sitting immediately before the `<#` that opens the
+# comment-based help block below. That character breaks PowerShell's parser -- the whole help
+# block gets tokenized as code instead of a comment, throwing it out with cascading syntax errors,
+# meaning the script has never actually been able to run as vendored. Removed that one character;
+# nothing else below this line differs from upstream.
 
-﻿<#
+<#
     .SYNOPSIS
 
         Sets Windows file associations on a per-user basis, bypassing the built-in protection.
