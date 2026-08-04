@@ -81,6 +81,9 @@ resources:
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: Microsoft365
+    metadata:
+      winget:
+        securityContext: elevated
     properties:
       id: Microsoft.Office
       source: winget
