@@ -141,6 +141,14 @@ function Stop-ForPendingReboot {
   } else {
     Write-Host "`n$Reason Reboot, then rerun 'chezmoi apply' to finish applying the configuration." -ForegroundColor Yellow
   }
+  # Best-effort: this can run unattended with no one watching the terminal, so make the pending
+  # reboot audible too. PlaySync (not Play) so the sound finishes before the process exits below.
+  # Swallowed on failure (e.g. no audio device on a headless/RDP session) -- silence isn't fatal.
+  try {
+    (New-Object System.Media.SoundPlayer 'C:\Windows\Media\Alarm01.wav').PlaySync()
+  } catch {
+    Write-Log "=== could not play reboot-pending sound: $($_.Exception.Message) ==="
+  }
   Write-Log $LogMessage
   exit 1
 }
