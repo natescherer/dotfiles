@@ -7,6 +7,11 @@ metadata:
     processor:
       identifier: dscv3
 resources:
+  - type: Microsoft.PowerToys/AppSettings
+    name: PowerToysDisableElevatedAppWarnings
+    properties:
+      settings:
+        enable_warnings_elevated_apps: false
   - type: Microsoft.Windows/Registry
     name: StickyKeys
     properties:

@@ -8,7 +8,6 @@
 
 - Implement PSFzf (after maybe removing PWSH support on macOS and Linux)
 - Test in a no-admin-rights scenario
-- Stop PowerToys AlwaysOnTop admin notifications
 - Set Control Panel to Small Icons
 
 ## macOS Ansible Configuration
