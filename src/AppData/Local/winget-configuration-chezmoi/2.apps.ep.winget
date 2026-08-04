@@ -3,6 +3,13 @@
 # There are some non-elevated apps in here, but I'm never going to have a personal computer where I
 # don't have admin rights, so there's no reason to split this into two files.
 
+# Microsoft 365 is deliberately NOT installed here via Microsoft.WinGet/Package. The winget-pkgs
+# manifest pins a SHA256 against officecdn.microsoft.com's setup.exe, which Microsoft rotates
+# independently of the manifest, so installs intermittently fail with "Package hash verification
+# failed" until the manifest catches up. It's installed instead by
+# .chezmoiscripts/40-windows/run_onchange_after_office-install.ps1, which drives the Office
+# Deployment Tool directly against that same setup.exe with no hash pinned against it.
+
 # yaml-language-server: $schema=https://aka.ms/configuration-dsc-schema/0.3
 $schema: https://raw.githubusercontent.com/PowerShell/DSC/main/schemas/2023/08/config/document.json
 metadata:
@@ -77,15 +84,6 @@ resources:
     name: LocalSend
     properties:
       id: LocalSend.LocalSend
-      source: winget
-      installMode: silent
-  - type: Microsoft.WinGet/Package
-    name: Microsoft365
-    metadata:
-      winget:
-        securityContext: elevated
-    properties:
-      id: Microsoft.Office
       source: winget
       installMode: silent
   - type: Microsoft.WinGet/Package
