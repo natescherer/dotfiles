@@ -11,7 +11,6 @@
 - Stop PowerToys AlwaysOnTop admin notifications
 - Implement Browser Picker and set as default browser
 - Set Control Panel to Small Icons
-- Try and make fonts install without elevation
 
 ## macOS Ansible Configuration
 
