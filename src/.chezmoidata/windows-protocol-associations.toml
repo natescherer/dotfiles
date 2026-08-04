@@ -1,0 +1,18 @@
+# Per-user default URL protocol-handler associations to set on Windows (e.g. the default browser).
+#
+# Applied by .chezmoiscripts/41-windows-late/run_after_windows-protocol-associations.ps1.tmpl via
+# Set-ProtocolAssoc.ps1 (a modified copy of Set-FileAssoc.ps1's no-admin-required reimplementation
+# of the UserChoice hash, adapted for protocols instead of file extensions -- see
+# AppData/Local/WindowsWorkstationDSC/Set-ProtocolAssoc.ps1 for what changed and why).
+#
+# Each entry's app is resolved to a ProgId at apply time via the app's own
+# RegisteredApplications\...\Capabilities\URLAssociations registry entry (not hardcoded here,
+# since a ProgId can drift between app versions) -- appNameMatch is matched (-match, so it's a
+# regex) against RegisteredApplications entry names and must match exactly one installed app.
+[[windows_protocol_associations]]
+protocol = "http"
+appNameMatch = "BrowserPicker"
+
+[[windows_protocol_associations]]
+protocol = "https"
+appNameMatch = "BrowserPicker"

@@ -8,6 +8,15 @@ metadata:
       identifier: dscv3
 resources:
   - type: Microsoft.WinGet/Package
+    name: BrowserPicker
+    metadata:
+      winget:
+        securityContext: elevated
+    properties:
+      id: mortenn.BrowserPicker
+      source: winget
+      installMode: silent
+  - type: Microsoft.WinGet/Package
     name: Coreutils
     metadata:
       winget:
