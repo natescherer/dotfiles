@@ -17,6 +17,7 @@
 # chezmoi apply runs many scripts back to back with no indication which is running -- announce
 # this one, since it can take a while.
 Write-Host "`nApplying Windows configuration via winget configure..." -ForegroundColor Green
+Write-Host "This may pause for an elevation prompt or a pending reboot, each announced with an audible alert -- turn your volume up so you don't miss one.`n" -ForegroundColor Green
 
 #region Paths and logging
 
@@ -104,6 +105,29 @@ function Test-RebootPending {
     -or ($null -ne (Get-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager' -Name PendingFileRenameOperations -ErrorAction SilentlyContinue))
 }
 
+# Plays a short built-in Windows sound so someone away from the screen notices when the script
+# needs them (a reboot, or an elevation prompt about to appear). PlaySync (not Play) so the sound
+# finishes before the script moves on. Best-effort: swallowed on failure (e.g. no audio device on
+# a headless/RDP session) -- silence isn't fatal.
+function Invoke-AlertSound {
+  try {
+    (New-Object System.Media.SoundPlayer 'C:\Windows\Media\Alarm01.wav').PlaySync()
+  } catch {
+    Write-Log "=== could not play alert sound: $($_.Exception.Message) ==="
+  }
+}
+
+# Config files are named "#.PURPOSE[-TAG].METADATA.winget" per the convention documented in
+# AppData/Local/winget-configuration-chezmoi/README.md -- METADATA is the dot-segment just before
+# the .winget extension, and an "e" in it (elevation required) means applying the file may pop a
+# UAC prompt that blocks unattended progress until someone approves it.
+function Test-ConfigFileRequiresElevation {
+  param([string] $FileName)
+  $Parts = $FileName -split '\.'
+  if ($Parts.Length -lt 2) { return $false }
+  return $Parts[-2] -match 'e'
+}
+
 # Queues `chezmoi apply` to rerun automatically at next logon, so applying the rest of the
 # configuration doesn't wait on remembering to rerun it by hand. HKCU RunOnce (not a Scheduled
 # Task) because it needs no elevation -- this script already runs unelevated -- and Windows
@@ -141,14 +165,7 @@ function Stop-ForPendingReboot {
   } else {
     Write-Host "`n$Reason Reboot, then rerun 'chezmoi apply' to finish applying the configuration." -ForegroundColor Yellow
   }
-  # Best-effort: this can run unattended with no one watching the terminal, so make the pending
-  # reboot audible too. PlaySync (not Play) so the sound finishes before the process exits below.
-  # Swallowed on failure (e.g. no audio device on a headless/RDP session) -- silence isn't fatal.
-  try {
-    (New-Object System.Media.SoundPlayer 'C:\Windows\Media\Alarm01.wav').PlaySync()
-  } catch {
-    Write-Log "=== could not play reboot-pending sound: $($_.Exception.Message) ==="
-  }
+  Invoke-AlertSound
   Write-Log $LogMessage
   exit 1
 }
@@ -391,6 +408,13 @@ foreach ($File in $ConfigFiles) {
     Write-Host "`nSkipping $File -- unchanged since last successful apply." -ForegroundColor DarkGray
     Write-Log "=== ${File}: unchanged, skipping ==="
     continue
+  }
+
+  if (Test-ConfigFileRequiresElevation -FileName $File) {
+    Write-Host "`n$File requires an elevated account and may show a UAC prompt." -ForegroundColor Yellow
+    Invoke-AlertSound
+    Write-Host "Press Enter once you're ready to approve it..." -ForegroundColor Yellow -NoNewline
+    Read-Host | Out-Null
   }
 
   Write-Host "`nApplying $File via 'winget configure'..." -ForegroundColor Cyan
