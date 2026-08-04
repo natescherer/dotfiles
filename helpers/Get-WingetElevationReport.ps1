@@ -1,6 +1,6 @@
 #Requires -Version 7.0
 
-# Reports which Microsoft.WinGet/Package resources in a *.configuration.winget file actually
+# Reports which Microsoft.WinGet/Package resources in a *.winget file actually
 # require elevation to install, based on the real upstream winget-pkgs manifest
 #
 # For each winget-sourced package this looks up the installed source's latest version (`winget
@@ -10,7 +10,7 @@
 # guessing from installer type, since those are the fields winget itself uses to decide.
 #
 # Usage:
-#   ./helpers/Get-WingetElevationReport.ps1 -Path path/to/configuration.winget
+#   ./helpers/Get-WingetElevationReport.ps1 -Path path/to/file.winget
 
 param(
   [string]$Path

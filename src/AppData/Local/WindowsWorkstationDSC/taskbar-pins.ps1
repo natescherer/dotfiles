@@ -11,7 +11,7 @@
 # still needs to be set by an elevated process even though it's under HKCU, though: confirmed by
 # hand that HKCU:\SOFTWARE\Policies\* is ACL'd to ReadKey-only for the owning user, full control
 # is SYSTEM/Administrators-only, on every Windows install regardless of whether any GPO is
-# actually configured. That one-time pointer is set by 9.taskbar-pins.configuration.winget's
+# actually configured. That one-time pointer is set by winget configuration's
 # TaskbarStartLayoutFile resource, not by this script, which only ever writes the XML file content
 # it points at (an unprivileged operation).
 #
@@ -168,13 +168,9 @@ foreach ($Target in $Resolved) {
 
 # Must persist indefinitely at this exact path -- unlike the old LayoutModification.xml file-drop
 # approach, HKCU:\SOFTWARE\Policies\Microsoft\Windows\Explorer\StartLayoutFile (set once, elevated,
-# by 9.taskbar-pins.configuration.winget's TaskbarStartLayoutFile resource -- not here, since
+# by winget configuration's TaskbarStartLayoutFile resource -- not here, since
 # HKCU:\SOFTWARE\Policies\* is locked down against unelevated writes even for the owning user,
 # confirmed by hand) is a standing pointer re-read on every policy refresh, not a one-shot trigger.
-# Only reachable at all on accounts with admin rights -- 9.taskbar-pins.configuration.winget is
-# entirely elevated resources, so it's skipped for non-admin accounts the same way
-# 3.settings-elevated.configuration.winget and 7.apps-core-elevated.configuration.winget are
-# (see .chezmoiignore's `.adminRights` block).
 New-Item -ItemType Directory -Path $StateDir -Force | Out-Null
 $LayoutPath = Join-Path $StateDir 'TaskbarLayout.xml'
 $Xml.Save($LayoutPath)

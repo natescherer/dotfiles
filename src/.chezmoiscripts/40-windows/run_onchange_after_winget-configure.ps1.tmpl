@@ -2,29 +2,15 @@
 
 # Applies the WinGet Configuration files that declaratively configure this Windows machine.
 # Flow: preflight checks (pending reboot, Group Policy), prerequisite installs and upstream-bug
-# workarounds, then one `winget configure` run per changed *.configuration.winget file, with
+# workarounds, then one `winget configure` run per changed *.winget file, with
 # applied-hash sidecars so unchanged files are skipped on later runs.
 
 # {{ $wingetConfigDirName := "winget-configuration-chezmoi" }}
 # {{ $wingetConfigSourceDir := joinPath .chezmoi.sourceDir "AppData/Local" $wingetConfigDirName }}
-# {{/* Two globs, not one: templated config files (e.g. 8.pwas.configuration.winget.tmpl) live in
-#      the source tree with a .tmpl suffix that glob's literal "*.configuration.winget" pattern
-#      won't match, and would otherwise silently never trigger a rerun when their *source*
-#      content changes (chezmoi still keeps the applied target file itself in sync either way --
-#      only this script's own rerun-on-change gate would miss it). sortAlpha keeps the hash list
-#      below stable across renders -- glob's match order isn't guaranteed. */}}
-# {{ $wingetConfigFiles := concat (joinPath $wingetConfigSourceDir "*.configuration.winget" | glob) (joinPath $wingetConfigSourceDir "*.configuration.winget.tmpl" | glob) | sortAlpha }}
+# {{ $wingetConfigFiles := concat (joinPath $wingetConfigSourceDir "*.winget" | glob) (joinPath $wingetConfigSourceDir "*.winget.tmpl" | glob) | sortAlpha }}
 
-# {{/* Hashes below make this run_onchange_ script rerun when any *.configuration.winget[.tmpl] file
-#      changes. Squeezed onto one line (literal "\n"s instead of real line breaks) so a single
-#      leading "#" comments out the whole range/end for PowerShell -- a bare {{ end }} on its own
-#      line is a parse error, and text before a same-line {{ end }} repeats every iteration
-#      instead of trailing once.
-#      IMPORTANT: `include` returns a file's raw, unrendered source -- for a .tmpl file that's the
-#      literal "{{ ... }}" template text, not its evaluated output, so hashing a .tmpl file's own
-#      bytes alone does NOT change when the *data it renders from* changes. 8.pwas.configuration.winget.tmpl
-#      renders from .chezmoidata/pwas.toml, so that file is hashed explicitly below too -- add
-#      another line here for any future templated config file's own external data dependency. */}}
+# {{/* Hashes below make this run_onchange_ script rerun when any *.winget[.tmpl] file
+#      changes. Squeezed onto one line so "#" it all out to avoid pwsh parser errors */}}
 # {{ "\n" }}{{ range $wingetConfigFiles }}## {{ base . }} hash: {{ include . | sha256sum }}{{ "\n" }}{{ end -}}
 ## pwas.toml hash: {{ joinPath .chezmoi.sourceDir ".chezmoidata/pwas.toml" | include | sha256sum }}
 
@@ -39,7 +25,7 @@ New-Item -ItemType Directory -Path $ConfigDir -Force | Out-Null
 
 # Discovered at runtime from the target dir -- the template block above hashes the *source*
 # copies only to trigger reruns.
-$ConfigFiles = (Get-ChildItem -Path $ConfigDir -Filter "*.configuration.winget" -File | Sort-Object Name).Name
+$ConfigFiles = (Get-ChildItem -Path $ConfigDir -Filter "*.winget" -File | Sort-Object Name).Name
 
 # winget's exit code isn't reliable (see bottom of script) and this runs unattended, so log
 # everything -- otherwise a real failure leaves no record once the terminal closes.
@@ -345,7 +331,7 @@ if (-not $AdminSettings.ConfigurationProcessorPath) {
 
 # Workaround for https://github.com/microsoft/winget-cli/issues/6091, which prevents winget
 # configure from installing Store apps for the first time: pre-install them here instead. Scans
-# every *.configuration.winget file
+# every *.winget file
 $MsstoreIds = [System.Collections.Generic.HashSet[string]]::new()
 foreach ($File in $ConfigFiles) {
   $Path = Join-Path $ConfigDir $File
@@ -354,7 +340,7 @@ foreach ($File in $ConfigFiles) {
   }
 }
 if ($MsstoreIds.Count -eq 0) {
-  Write-Log "=== no changed *.configuration.winget files reference msstore ids, skipping pre-install pass ==="
+  Write-Log "=== no changed *.winget files reference msstore ids, skipping pre-install pass ==="
 }
 
 # Already-installed Store apps make winget install fail with 0x8A15002B (no applicable update) --

@@ -1,30 +1,21 @@
 # Ignore files that are processed by scripts
-.scriptdata/
 .scriptdata/**
 
 {{- if eq .chezmoi.os "linux" }}
 # Ignore on Linux
 ## macOS folders
-Library/
 Library/**
 ## macOS Ansible configuration
-.local/share/ansible-configuration-chezmoi/
 .local/share/ansible-configuration-chezmoi/**
 ## macOS scripts
-.chezmoiscripts/30-macos/
 .chezmoiscripts/30-macos/**
-.chezmoiscripts/31-macos-late/
 .chezmoiscripts/31-macos-late/**
 ## Windows folders/files
-AppData/
 AppData/**
-Documents/
 Documents/**
 dot_wslconfig
 ## Windows scripts
-.chezmoiscripts/40-windows/
 .chezmoiscripts/40-windows/**
-.chezmoiscripts/41-windows-late/
 .chezmoiscripts/41-windows-late/**
 .chezmoiscripts/01-all-early/mise-checker.ps1
 ## Windows data
@@ -36,15 +27,11 @@ dot_wslconfig
 ## Linux scripts
 .chezmoiscripts/10-linux/**
 ## Windows folders/files
-AppData/
 AppData/**
-Documents/
 Documents/**
 dot_wslconfig
 ## Windows scripts
-.chezmoiscripts/40-windows/
 .chezmoiscripts/40-windows/**
-.chezmoiscripts/41-windows-late/
 .chezmoiscripts/41-windows-late/**
 .chezmoiscripts/01-all-early/mise-checker.ps1
 ## Windows data
@@ -54,69 +41,47 @@ dot_wslconfig
 {{- if eq .chezmoi.os "windows" }}
 # Ignore on Windows
 ## Ghostty
-.config/ghostty
 .config/ghostty/**
 ## Linux/macOS 1Password
-.config/1Password
 .config/1Password/**
 ## Linux/macOS PowerShell
-.config/powershell/
 .config/powershell/**
 ## Linux/macOS scripts
-.chezmoiscripts/10-linux/
 .chezmoiscripts/10-linux/**
-.chezmoiscripts/20-linux-and-macos/
 .chezmoiscripts/20-linux-and-macos/**
-.chezmoiscripts/30-macos/
 .chezmoiscripts/30-macos/**
-.chezmoiscripts/31-macos-late/
 .chezmoiscripts/31-macos-late/**
 .chezmoiscripts/01-all-early/mise-checker.sh
 ## macOS Ansible configuration
-.local/share/ansible-configuration-chezmoi/
 .local/share/ansible-configuration-chezmoi/**
 ## macOS folders
-Library/
 Library/**
 ## Sheldon config
-.config/sheldon/
 .config/sheldon/**
 ## SSH
-.ssh/
 .ssh/**
 ## Zsh
 .zshenv
-.config/zsh/
 .config/zsh/**
 {{- end }}
 
 {{- if eq .isPersonal false }}
 # Personal Configuration
-.config/1Password
 .config/1Password/**
-AppData/Local/1Password
 AppData/Local/1Password/**
-git/gh
 git/gh/**
-AppData/Local/winget-configuration-chezmoi/7.apps-personal.configuration.winget
-AppData/Local/winget-configuration-chezmoi/3.ele-per.browsers.configuration.winget
-## PWAs are only force-installed into ungoogled-chromium for personal setups (Chromium itself is
-## now in 7.apps-personal.configuration.winget too)
-AppData/Local/winget-configuration-chezmoi/8.pwas.configuration.winget
+## Skip winget configuration tagged as personal
+AppData/Local/winget-configuration-chezmoi/*.{p,ep}.winget*
 .chezmoiscripts/41-windows-late/run_onchange_after_pwa-install.ps1.tmpl
 {{- end }}
 
 {{- if eq .adminRights false }}
-# Skip WinGet Configuration resources that require elevation for accounts without admin rights
-AppData/Local/winget-configuration-chezmoi/3.settings-elevated.configuration.winget
-AppData/Local/winget-configuration-chezmoi/7.apps-core-elevated.configuration.winget
-AppData/Local/winget-configuration-chezmoi/9.taskbar-pins.configuration.winget
-AppData/Local/winget-configuration-chezmoi/3.ele-per.browsers.configuration.winget
+# Skip winget configuration tagged as needed elevation
+AppData/Local/winget-configuration-chezmoi/*.{e,ep}.winget*
 {{- end }}
 
 {{- if ne .computerModel "Late 2025 Gaming Desktop" }}
-# Skip WinGet Configuration resources specific to other computer models
-AppData/Local/winget-configuration-chezmoi/7.apps-late-2025-gaming-desktop.configuration.winget
+AppData/Local/winget-configuration-chezmoi/*late2025gamingdesktop.*.winget*
 {{- end }}
 
 {{- if eq .applyOSConfig false }}

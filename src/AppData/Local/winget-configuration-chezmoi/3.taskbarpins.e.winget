@@ -7,10 +7,7 @@ metadata:
     processor:
       identifier: dscv3
 resources:
-  # Used by WindowsWorkstationDSC/Send-Toast.ps1 (dot-sourced from the taskbar-pins/tray-pins
-  # scripts) to fire "something changed" notifications. No TrustPSGallery/dependsOn here --
-  # 1.requirements.configuration.winget already trusts PSGallery, and sorts/applies before this
-  # file in the same winget-configure run (see run_onchange_after_winget-configure.ps1.tmpl).
+  # Used by WindowsWorkstationDSC/Send-Toast.ps1
   - type: Microsoft.PowerShell.PSResourceGet/PSResourceList
     name: BurntToast
     properties:

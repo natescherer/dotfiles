@@ -12,6 +12,8 @@
 - Implement Browser Picker and set as default browser
 - Drop iCloud in favor of LocalSend
 - Set Control Panel to Small Icons
+- Play a sound when reboot is needed
+- Try and make fonts install without elevation
 
 ## macOS Ansible Configuration
 

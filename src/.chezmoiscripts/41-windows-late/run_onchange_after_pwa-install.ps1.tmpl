@@ -1,10 +1,7 @@
 #Requires -Version 7.0
 
 # Force-installs PWAs into ungoogled-chromium via the WebAppInstallForceList registry policy --
-# the Windows equivalent of the macOS chromium_pwas Ansible role. Setting the registry value (in
-# 8.pwas.configuration.winget.tmpl) doesn't install anything by itself: like on macOS, Chromium
-# only acts on WebAppInstallForceList once it actually runs, so this launches it, waits for the
-# installs to land, then quits it again.
+# the winget configuration sets installs chromium and sets the policy, this applies it
 
 # Why is this in a folder called '41-windows-late' instead of '40-windows' with the other Windows
 # scripts? This needs to run after run_onchange_after_winget-configure.ps1.tmpl (in 40-windows/),
@@ -75,8 +72,8 @@ if (-not $ChromiumExe) {
 $ProfileDir = Join-Path $env:LOCALAPPDATA 'Chromium\User Data\Default'
 $WebAppsDir = Join-Path $ProfileDir 'Web Applications'
 
-# Chromium is now also this machine's general-purpose backup browser (installed in
-# 7.apps-personal.configuration.winget), not a headless PWA host dedicated to just this list -- so
+# Chromium is now also this machine's general-purpose backup browser (installed via winget
+# configuration), not a headless PWA host dedicated to just this list -- so
 # Web Applications can accumulate folders for apps the user installed by hand, from a URL that
 # later got removed from .chezmoidata/pwas.toml, or (during iterative testing of this very
 # script) from earlier runs. An absolute folder count conflates all of that with genuinely new
