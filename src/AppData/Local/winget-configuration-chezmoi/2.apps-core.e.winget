@@ -71,6 +71,15 @@ resources:
       source: winget
       installMode: silent
   - type: Microsoft.WinGet/Package
+    name: Ubuntu
+    metadata:
+      winget:
+        securityContext: elevated
+    properties:
+      id: 9PDXGNCFSCZV
+      source: msstore
+      installMode: silent
+  - type: Microsoft.WinGet/Package
     name: UniGetUI
     metadata:
       winget:
@@ -88,4 +97,12 @@ resources:
       id: VideoLAN.VLC
       source: winget
       installMode: silent
-
+  - type: Microsoft.WinGet/Package
+    name: WindowsSubsystemForLinux
+    metadata:
+      winget:
+        securityContext: elevated
+    properties:
+      id: Microsoft.WSL
+      source: winget
+      installMode: silent

@@ -25,3 +25,5 @@ resources:
           state: Installed
         - featureName: TFTP
           state: Installed
+        - featureName: VirtualMachinePlatform # For WSL2
+          state: Installed
