@@ -19,6 +19,11 @@
 Write-Host "`nApplying Windows configuration via winget configure..." -ForegroundColor Green
 Write-Host "This may pause for an elevation prompt or a pending reboot, each announced with an audible alert -- turn your volume up so you don't miss one.`n" -ForegroundColor Green
 
+# winget writes UTF-8 to stdout, including the shield glyph that marks elevated resources in
+# `configure show` output (see Test-ConfigFileRequiresElevation below). Without this the
+# console's default OEM code page mangles multi-byte output into unusable bytes when captured.
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+
 #region Paths and logging
 
 $ConfigDir = Join-Path $env:LOCALAPPDATA "{{ $wingetConfigDirName }}"
@@ -117,15 +122,28 @@ function Invoke-AlertSound {
   }
 }
 
-# Config files are named "#.PURPOSE[-TAG].METADATA.winget" per the convention documented in
-# AppData/Local/winget-configuration-chezmoi/README.md -- METADATA is the dot-segment just before
-# the .winget extension, and an "e" in it (elevation required) means applying the file may pop a
-# UAC prompt that blocks unattended progress until someone approves it.
+# Asks winget itself whether applying a config file may prompt for elevation, rather than
+# trusting the filename's METADATA convention (AppData/Local/winget-configuration-chezmoi/
+# README.md) -- that's just a label a file's author sets, and it can drift out of sync with what
+# the file's resources actually declare (e.g. a "personal-only" file that still elevates one
+# registry write). `configure show` renders a file's resources without applying them, and winget
+# marks each elevated resource with a shield glyph (U+1F6E1) in that output; there's no
+# scriptable/JSON form of `show` to check instead. Defaults to $true (assume elevation, so the
+# pause below still happens) if the check itself fails -- an unnecessary pause is safer than
+# silently skipping the alert right before a UAC prompt.
 function Test-ConfigFileRequiresElevation {
-  param([string] $FileName)
-  $Parts = $FileName -split '\.'
-  if ($Parts.Length -lt 2) { return $false }
-  return $Parts[-2] -match 'e'
+  param([string] $Path)
+  try {
+    $Output = winget configure show -f $Path --disable-interactivity 2>&1 | Out-String
+    if ($LASTEXITCODE -ne 0) {
+      Write-Log "=== 'winget configure show' for $Path exited ${LASTEXITCODE}: $Output -- assuming elevation required ==="
+      return $true
+    }
+    return $Output.Contains([char]::ConvertFromUtf32(0x1F6E1))
+  } catch {
+    Write-Log "=== 'winget configure show' for $Path threw: $($_.Exception.Message) -- assuming elevation required ==="
+    return $true
+  }
 }
 
 # Queues `chezmoi apply` to rerun automatically at next logon, so applying the rest of the
@@ -410,7 +428,7 @@ foreach ($File in $ConfigFiles) {
     continue
   }
 
-  if (Test-ConfigFileRequiresElevation -FileName $File) {
+  if (Test-ConfigFileRequiresElevation -Path $Path) {
     Write-Host "`n$File requires an elevated account and may show a UAC prompt." -ForegroundColor Yellow
     Invoke-AlertSound
     Write-Host "Press Enter once you're ready to approve it..." -ForegroundColor Yellow -NoNewline
