@@ -38,6 +38,10 @@ $ConfigPath = Join-Path $WorkDir 'configuration.xml'
   <Add OfficeClientEdition="64" Channel="Current">
     <Product ID="O365HomePremRetail">
       <Language ID="en-us" />
+      <ExcludeApp ID="Access" />
+      <ExcludeApp ID="OneNote" />
+      <ExcludeApp ID="Outlook" />
+      <ExcludeApp ID="Publisher" />
     </Product>
   </Add>
   <Updates Enabled="TRUE" />
