@@ -9,8 +9,9 @@
 
 # Why is this in a folder called '90-all' instead of one of the OS-specific script folders?
 # Directory order is what determines script execution order, and 90 is higher than every OS-specific
-# folder (10-linux, 20-linux-and-macos, 30-macos, 39-macos, 40-windows, 41-windows, 49-windows),
-# so this always runs last across every platform, after whatever those installed.
+# install folder (10-linux, 20-linux-and-macos, 30-macos, 40-windows, 41-windows), so this runs
+# after whatever those installed -- except the setup checklist, which intentionally sorts after
+# this too, since it needs to be the definitive last thing `chezmoi apply` does.
 
 import hashlib
 import json

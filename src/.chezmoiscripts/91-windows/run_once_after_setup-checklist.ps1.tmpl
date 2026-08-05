@@ -1,0 +1,27 @@
+#Requires -Version 7.0
+
+# Drops a Markdown checklist of manual post-setup steps on the Desktop -- nothing opens it, since
+# anyone using this to deploy their own OS config can be trusted to know how to open a Markdown
+# file.
+#
+# run_once_ (not run_after_): chezmoi tracks completion in its own persistent state, so once this
+# has run it never runs again on this machine, even if the checklist file is later deleted -- no
+# self-healing. The Test-Path check below is just a defensive guard against ever clobbering an
+# existing file, not the idempotency mechanism.
+#
+# Lives in 91-windows, past every other OS-specific script folder and past 90-all (which holds every
+# cross-platform script), so directory sort order makes this the literal last thing `chezmoi apply`
+# does whenever the OS config gets applied at all.
+
+$SourceChecklist = '{{ joinPath .chezmoi.sourceDir ".scriptdata/setup-checklist/windows.md" }}'
+$DesktopChecklist = Join-Path ([Environment]::GetFolderPath('Desktop')) 'SETUP-CHECKLIST.md'
+
+if (Test-Path $DesktopChecklist) {
+  Write-Host "`nSetup checklist already exists on Desktop -- leaving it (and any checked-off progress) alone." -ForegroundColor DarkGray
+  exit 0
+}
+
+Write-Host "`nCreating setup checklist on Desktop..." -ForegroundColor Green
+Copy-Item -Path $SourceChecklist -Destination $DesktopChecklist
+
+exit 0

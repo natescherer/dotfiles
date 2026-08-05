@@ -9,7 +9,7 @@ Library/**
 .local/share/ansible-configuration-chezmoi/**
 ## macOS scripts
 .chezmoiscripts/30-macos/**
-.chezmoiscripts/39-macos/**
+.chezmoiscripts/91-macos/**
 ## Windows folders/files
 AppData/**
 Documents/**
@@ -17,7 +17,7 @@ dot_wslconfig
 ## Windows scripts
 .chezmoiscripts/40-windows/**
 .chezmoiscripts/41-windows/**
-.chezmoiscripts/49-windows/**
+.chezmoiscripts/91-windows/**
 .chezmoiscripts/00-all/mise-checker.ps1
 ## Windows data
 .chezmoidata/windows-ini-patches.toml
@@ -34,7 +34,7 @@ dot_wslconfig
 ## Windows scripts
 .chezmoiscripts/40-windows/**
 .chezmoiscripts/41-windows/**
-.chezmoiscripts/49-windows/**
+.chezmoiscripts/91-windows/**
 .chezmoiscripts/00-all/mise-checker.ps1
 ## Windows data
 .chezmoidata/windows-ini-patches.toml
@@ -52,7 +52,7 @@ dot_wslconfig
 .chezmoiscripts/10-linux/**
 .chezmoiscripts/20-linux-and-macos/**
 .chezmoiscripts/30-macos/**
-.chezmoiscripts/39-macos/**
+.chezmoiscripts/91-macos/**
 .chezmoiscripts/00-all/mise-checker.sh
 ## macOS Ansible configuration
 .local/share/ansible-configuration-chezmoi/**
@@ -92,15 +92,15 @@ AppData/Local/winget-configuration-chezmoi/*late2025gamingdesktop.*.winget*
 .chezmoiscripts/40-windows/run_onchange_after_winget-configure.ps1.tmpl
 # Skip installing PWAs (depends on WinGet Configuration having run)
 .chezmoiscripts/41-windows/run_onchange_after_pwa-install.ps1.tmpl
-# Skip the setup checklist (depends on Zettlr having been installed by WinGet Configuration)
-.chezmoiscripts/49-windows/run_after_setup-checklist.ps1.tmpl
+# Skip the setup checklist (its manual steps only apply once the rest of the OS config has run)
+.chezmoiscripts/91-windows/run_once_after_setup-checklist.ps1.tmpl
 {{- end }}
 {{- if eq .chezmoi.os "darwin" }}
 # Skip applying Ansible playbook
 .chezmoiscripts/30-macos/run_onchange_after_ansible-configure.sh.tmpl
 # Skip installing macOS configuration profiles
 .chezmoiscripts/30-macos/run_onchange_profiles-importer.sh.tmpl
-# Skip the setup checklist (depends on Zettlr having been installed by the Ansible playbook)
-.chezmoiscripts/39-macos/run_after_setup-checklist.sh.tmpl
+# Skip the setup checklist (its manual steps only apply once the rest of the OS config has run)
+.chezmoiscripts/91-macos/run_once_after_setup-checklist.sh.tmpl
 {{- end }}
 {{- end }}

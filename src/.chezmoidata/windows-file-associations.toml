@@ -10,5 +10,5 @@
 # since a ProgId can drift between app versions) -- appNameMatch is matched (-match, so it's a
 # regex) against RegisteredApplications entry names and must match exactly one installed app.
 [[windows_file_associations]]
-extension = ".md"
-appNameMatch = "Zettlr"
+extension = ".mp4"
+appNameMatch = "VLC"

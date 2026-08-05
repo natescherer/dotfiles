@@ -55,9 +55,3 @@ resources:
       id: Microsoft.WindowsApp
       source: winget
       installMode: silent
-  - type: Microsoft.WinGet/Package
-    name: Zettlr
-    properties:
-      id: Zettlr.Zettlr
-      source: winget
-      installMode: silent
