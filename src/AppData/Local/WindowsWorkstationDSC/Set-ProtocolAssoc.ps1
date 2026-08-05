@@ -6,12 +6,15 @@
 # https://github.com/default-username-was-already-taken/set-fileassoc, Unlicense) -- the
 # reverse-engineered UserChoice hash algorithm (the C# type below) is unchanged from that source.
 # Kept as a separate file, rather than editing Set-FileAssoc.ps1 in place, so that file remains a
-# verbatim vendor drop that can be diffed against upstream. The only substantive changes below are:
-# the -Extension parameter becoming -Protocol (no leading dot required, e.g. "http" not ".http"),
-# and the target registry key changing from
+# verbatim vendor drop that can be diffed against upstream. The substantive changes below are:
+# the -Extension parameter becoming -Protocol (no leading dot required, e.g. "http" not ".http");
+# the target registry key changing from
 # Explorer\FileExts\<extension>\UserChoice to Explorer\Associations\UrlAssociations\<protocol>\UserChoice
-# -- both key shapes are documented as using the same hash algorithm, just scoped to a different
-# association type.
+# (both key shapes are documented as using the same hash algorithm, just scoped to a different
+# association type); and Get-HKUKeyForUser creating that UserChoice key if it's missing rather than
+# failing, since -- unlike FileExts, which Windows pre-populates for essentially every known
+# extension -- a protocol's UserChoice key only gets created the first time its "choose an app"
+# flow has actually been used, which may be never on a fresh machine.
 #
 # Invoked by run_after_windows-protocol-associations.ps1.tmpl -- see
 # .chezmoidata/windows-protocol-associations.toml.
@@ -348,10 +351,18 @@ function Get-HKUKeyForUser($User) {
     try {
         $Key = "$($User.Root)\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Associations\UrlAssociations\$Protocol\UserChoice"
         if (!(Test-Path $Key)) {
-            throw "UserChoice subkey does not exist or is unavaliable"
-        } else {
-            return $Key
+            # Unlike Explorer\FileExts\<extension>\UserChoice (which Windows pre-populates for
+            # essentially every known extension out of the box), Explorer\Associations\
+            # UrlAssociations\<protocol>\UserChoice for a protocol like http/https is only created
+            # the first time the user has gone through the protocol's "choose an app" flow at least
+            # once -- on a fresh install/VM, it may never have been created at all. Since the whole
+            # point of Clear-UserChoice further down is just to bump the key's LastWriteTime to a
+            # known-fresh value before hashing, creating the key ourselves has the same effect for a
+            # protocol that has no prior UserChoice history.
+            New-Item -Path $Key -Force | Out-Null
         }
+
+        return $Key
     } catch {
         Write-Warning "Failed to retrieve UserChoice subkey for user `"$($User.Name)`": $_"
     }
@@ -464,7 +475,9 @@ function Clear-UserChoice($User) {
     }
 
     if ($PSCmdlet.ShouldProcess($User.Key, "Clear-ItemProperty")) {
-        Clear-ItemProperty -Path $User.Key -Name "Hash"
+        # SilentlyContinue: a UserChoice key Get-HKUKeyForUser just created from scratch (see there
+        # for why that can happen for a protocol) has no "Hash" property yet to clear.
+        Clear-ItemProperty -Path $User.Key -Name "Hash" -ErrorAction SilentlyContinue
     }
 }
 
