@@ -54,10 +54,12 @@ diff:
         - scripts
 edit:
     command: {{ $editor }}
-{{- if eq .chezmoi.os "windows" }}
 interpreters:
+{{- if eq .chezmoi.os "windows" }}
     ps1:
         command: pwsh
-    py:
-        command: python
 {{- end }}
+    py:
+        command: uv
+        args:
+        - run
