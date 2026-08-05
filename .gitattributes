@@ -1,1 +1,19 @@
 * text eol=lf
+
+# Binary files must never go through the line-ending normalization above: a JPEG or font file is
+# arbitrary binary data that can coincidentally contain byte pairs that look like CRLF, and the
+# `text` attribute forces git to "normalize" those on commit -- silently corrupting the file (this
+# is exactly what happened to Pictures/wallpaper-chezmoi/artemis.jpg: the committed blob ended up
+# 40 bytes smaller than the working-tree file, byte-for-byte identical apart from a handful of
+# coincidental CRLF-look-alikes that don't actually mean anything in JPEG's binary format).
+*.jpg binary
+*.jpeg binary
+*.png binary
+*.gif binary
+*.bmp binary
+*.ico binary
+*.ttf binary
+*.otf binary
+*.woff binary
+*.woff2 binary
+*.plist binary
