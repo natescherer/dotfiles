@@ -14,9 +14,10 @@
 # chezmoi itself ever runs (see README), so it's safe to assume here; a mise-installed
 # interpreter wouldn't be.
 #
-# This script never exits non-zero: a failing run_after_ script aborts the rest of the apply run,
-# and on a fresh machine mise itself isn't installed until winget-configure runs later in this
-# same apply. It warns and defers to the next apply instead.
+# mise itself is also a documented prerequisite (see README), installed before `chezmoi init
+# --apply` is ever run for the first time -- so a missing mise, or a failed `mise install`, is a
+# real environment problem rather than a bootstrapping race. This script exits non-zero in those
+# cases, which aborts the rest of the apply run.
 
 # Installs from earlier chezmoi runs (or a winget install done in another window) write PATH
 # changes straight to the registry, but this process inherits whatever PATH chezmoi's own process
@@ -27,8 +28,8 @@ $UserPath = [System.Environment]::GetEnvironmentVariable('Path', 'User')
 $env:Path = "$MachinePath;$UserPath"
 
 if (-not (Get-Command mise -ErrorAction SilentlyContinue)) {
-    Write-Host "Warning: 'mise' is not found; skipping mise tool install. It should be installed later in this apply run - re-run 'chezmoi apply' afterward to install mise-managed tools.`n" -ForegroundColor Yellow
-    exit 0
+    Write-Error "'mise' is not found on PATH. It is a required prerequisite (see README) and must be installed before running 'chezmoi apply'."
+    exit 1
 }
 
 $Missing = mise ls --missing 2>$null
@@ -46,7 +47,8 @@ if ($MissingStatus -ne 0) {
 
 mise install
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "Warning: 'mise install' exited with code $LASTEXITCODE. It will be retried on the next 'chezmoi apply'.`n" -ForegroundColor Yellow
+    Write-Error "'mise install' exited with code $LASTEXITCODE."
+    exit $LASTEXITCODE
 }
 
 exit 0
