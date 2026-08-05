@@ -81,6 +81,15 @@ resources:
         if (-not (Test-Path $UserFontsDir)) { New-Item -Path $UserFontsDir -ItemType Directory -Force | Out-Null }
         $Files = @(Get-ChildItem -Path $FontsDir -Include '*.otf', '*.ttf' -File -Recurse -ErrorAction SilentlyContinue)
         Add-Type -AssemblyName PresentationCore
+        # Copying the file and writing the registry value (what the rest of this loop does) is only
+        # half of what Explorer's right-click "Install" does -- that's enough for a *future* logon
+        # session to pick the font up, but the already-running session's in-memory GDI font table
+        # doesn't know about it until AddFontResourceW registers it there too, and already-open apps
+        # (which may have cached their font list at startup) won't re-check until they get a
+        # WM_FONTCHANGE broadcast. Without both, the file and registry entry are correct but the font
+        # stays invisible in every app's font picker until the next logon.
+        Add-Type -Language CSharp 'using System; using System.Runtime.InteropServices; public static class ChezmoiFontNotify { [DllImport("gdi32.dll", CharSet = CharSet.Unicode, SetLastError = true)] public static extern int AddFontResourceW(string lpFileName); [DllImport("user32.dll", CharSet = CharSet.Unicode, SetLastError = true)] public static extern IntPtr SendMessageTimeoutW(IntPtr hWnd, uint Msg, UIntPtr wParam, IntPtr lParam, uint fuFlags, uint uTimeout, out UIntPtr lpdwResult); }'
+        $AnyInstalled = $false
         foreach ($File in $Files) {
           $TypeLabel = if ($File.Extension -eq '.ttf') { 'TrueType' } else { 'OpenType' }
           $Glyph = New-Object System.Windows.Media.GlyphTypeface($File.FullName)
@@ -93,6 +102,15 @@ resources:
           $RegValue = (Get-ItemProperty -Path 'HKCU:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Fonts' -Name $RegistryName -ErrorAction SilentlyContinue).$RegistryName
           if ($FileOk -and ($RegValue -eq $File.Name)) { continue }
           Write-Host "Installing font: $($File.Name) as '$RegistryName'..."
-          Copy-Item -Path $File.FullName -Destination (Join-Path $UserFontsDir $File.Name) -Force
+          $DestPath = Join-Path $UserFontsDir $File.Name
+          Copy-Item -Path $File.FullName -Destination $DestPath -Force
           New-ItemProperty -Path 'HKCU:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Fonts' -Name $RegistryName -Value $File.Name -PropertyType String -Force | Out-Null
+          [void][ChezmoiFontNotify]::AddFontResourceW($DestPath)
+          $AnyInstalled = $true
+        }
+        if ($AnyInstalled) {
+          # HWND_BROADCAST/WM_FONTCHANGE, with a timeout so one unresponsive top-level window can't
+          # hang this script -- the same signal Explorer itself sends after installing a font.
+          $Result = [UIntPtr]::Zero
+          [void][ChezmoiFontNotify]::SendMessageTimeoutW([IntPtr]0xffff, 0x1D, [UIntPtr]::Zero, [IntPtr]::Zero, 2, 1000, [ref]$Result)
         }
