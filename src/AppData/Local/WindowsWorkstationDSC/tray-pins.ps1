@@ -88,8 +88,6 @@ $NewlyPromotedCount = 0
 $NewlyPromotedLabels = [System.Collections.Generic.List[string]]::new()
 
 foreach ($Target in $Targets) {
-  Write-Host "`n$($Target.Label):" -ForegroundColor Cyan
-
   $Entry = Find-NotifyIconEntry -Predicate { param($p) $p.ExecutablePath -like $Target.IconPathLike }
 
   if (-not $Entry) {
@@ -98,19 +96,17 @@ foreach ($Target in $Targets) {
       if ($Target.RunKeyName) {
         $RunCommand = (Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run' -ErrorAction SilentlyContinue).($Target.RunKeyName)
         if (-not $RunCommand) {
-          Write-Host "  Warning: no '$($Target.RunKeyName)' autostart entry found -- skipping (it may not be installed yet)." -ForegroundColor Yellow
+          Write-Host "Warning: no '$($Target.RunKeyName)' autostart entry for '$($Target.Label)' -- skipping (it may not be installed yet)." -ForegroundColor Yellow
           continue
         }
-        Write-Host "  Launching to register its tray icon..." -ForegroundColor DarkGray
         # Just the bare quoted path in every case seen so far -- not general command-line parsing.
         Start-Process -FilePath $RunCommand.Trim('"')
       } else {
         $StartApp = Get-StartApps | Where-Object { $_.Name -eq $Target.StartAppName } | Select-Object -First 1
         if (-not $StartApp) {
-          Write-Host "  Warning: could not find '$($Target.StartAppName)' in the Start Menu -- skipping (it may not be installed yet)." -ForegroundColor Yellow
+          Write-Host "Warning: could not find '$($Target.StartAppName)' in the Start Menu -- skipping (it may not be installed yet)." -ForegroundColor Yellow
           continue
         }
-        Write-Host "  Launching to register its tray icon..." -ForegroundColor DarkGray
         Start-Process "shell:AppsFolder\$($StartApp.AppID)"
       }
     }
@@ -125,15 +121,12 @@ foreach ($Target in $Targets) {
   }
 
   if (-not $Entry) {
-    Write-Host "  Warning: no tray icon appeared within 20s -- skipping. It'll be picked up automatically next time this runs." -ForegroundColor Yellow
+    Write-Host "Warning: no tray icon appeared for '$($Target.Label)' within 20s -- skipping. It'll be picked up automatically next time this runs." -ForegroundColor Yellow
     continue
   }
 
-  if ($Entry.IsPromoted -eq 1) {
-    Write-Host "  Already always-shown." -ForegroundColor DarkGray
-  } else {
+  if ($Entry.IsPromoted -ne 1) {
     Set-NotifyIconPromoted -PSPath $Entry.PSPath
-    Write-Host "  Promoted to always-shown." -ForegroundColor Green
     $NewlyPromotedCount++
     $NewlyPromotedLabels.Add($Target.Label)
   }
@@ -146,19 +139,16 @@ foreach ($Target in $Targets) {
 # built-in tray icons under that same path. It can only be promoted if Windows has already created
 # its entry, which itself only happens after removable/quick-removal hardware has been present at
 # least once -- there's no way to force that from a script, unlike the apps above.
-Write-Host "`nSafely Remove Hardware:" -ForegroundColor Cyan
 $HardwareRemovalGuid = '{7820AE78-23E3-4229-82C1-E41CB67D5B9C}'
 $HardwareEntry = Find-NotifyIconEntry -Predicate { param($p) $p.IconGuid -eq $HardwareRemovalGuid }
 if (-not $HardwareEntry) {
-  Write-Host "  Warning: no registry entry for this icon yet -- Windows only creates one after removable/quick-removal hardware has been connected at least once. It'll be picked up automatically once that happens." -ForegroundColor Yellow
-} elseif ($HardwareEntry.IsPromoted -eq 1) {
-  Write-Host "  Already always-shown." -ForegroundColor DarkGray
-  $ResolvedCount++
+  Write-Host "Warning: no registry entry yet for 'Safely Remove Hardware' -- Windows only creates one after removable/quick-removal hardware has been connected at least once." -ForegroundColor Yellow
 } else {
-  Set-NotifyIconPromoted -PSPath $HardwareEntry.PSPath
-  Write-Host "  Promoted to always-shown." -ForegroundColor Green
-  $NewlyPromotedCount++
-  $NewlyPromotedLabels.Add('Safely Remove Hardware')
+  if ($HardwareEntry.IsPromoted -ne 1) {
+    Set-NotifyIconPromoted -PSPath $HardwareEntry.PSPath
+    $NewlyPromotedCount++
+    $NewlyPromotedLabels.Add('Safely Remove Hardware')
+  }
   $ResolvedCount++
 }
 
