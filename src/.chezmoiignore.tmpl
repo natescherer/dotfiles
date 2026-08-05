@@ -9,15 +9,16 @@ Library/**
 .local/share/ansible-configuration-chezmoi/**
 ## macOS scripts
 .chezmoiscripts/30-macos/**
-.chezmoiscripts/31-macos-late/**
+.chezmoiscripts/39-macos/**
 ## Windows folders/files
 AppData/**
 Documents/**
 dot_wslconfig
 ## Windows scripts
 .chezmoiscripts/40-windows/**
-.chezmoiscripts/41-windows-late/**
-.chezmoiscripts/01-all-early/mise-checker.ps1
+.chezmoiscripts/41-windows/**
+.chezmoiscripts/49-windows/**
+.chezmoiscripts/00-all/mise-checker.ps1
 ## Windows data
 .chezmoidata/windows-ini-patches.toml
 {{- end }}
@@ -32,8 +33,9 @@ Documents/**
 dot_wslconfig
 ## Windows scripts
 .chezmoiscripts/40-windows/**
-.chezmoiscripts/41-windows-late/**
-.chezmoiscripts/01-all-early/mise-checker.ps1
+.chezmoiscripts/41-windows/**
+.chezmoiscripts/49-windows/**
+.chezmoiscripts/00-all/mise-checker.ps1
 ## Windows data
 .chezmoidata/windows-ini-patches.toml
 {{- end }}
@@ -50,8 +52,8 @@ dot_wslconfig
 .chezmoiscripts/10-linux/**
 .chezmoiscripts/20-linux-and-macos/**
 .chezmoiscripts/30-macos/**
-.chezmoiscripts/31-macos-late/**
-.chezmoiscripts/01-all-early/mise-checker.sh
+.chezmoiscripts/39-macos/**
+.chezmoiscripts/00-all/mise-checker.sh
 ## macOS Ansible configuration
 .local/share/ansible-configuration-chezmoi/**
 ## macOS folders
@@ -72,7 +74,7 @@ AppData/Local/1Password/**
 git/gh/**
 ## Skip winget configuration tagged as personal
 AppData/Local/winget-configuration-chezmoi/*.{p,ep}.winget*
-.chezmoiscripts/41-windows-late/run_onchange_after_pwa-install.ps1.tmpl
+.chezmoiscripts/41-windows/run_onchange_after_pwa-install.ps1.tmpl
 {{- end }}
 
 {{- if eq .adminRights false }}
@@ -89,9 +91,9 @@ AppData/Local/winget-configuration-chezmoi/*late2025gamingdesktop.*.winget*
 # Skip applying WinGet Configuration files
 .chezmoiscripts/40-windows/run_onchange_after_winget-configure.ps1.tmpl
 # Skip installing PWAs (depends on WinGet Configuration having run)
-.chezmoiscripts/41-windows-late/run_onchange_after_pwa-install.ps1.tmpl
+.chezmoiscripts/41-windows/run_onchange_after_pwa-install.ps1.tmpl
 # Skip the setup checklist (depends on Zettlr having been installed by WinGet Configuration)
-.chezmoiscripts/41-windows-late/run_after_setup-checklist.ps1.tmpl
+.chezmoiscripts/49-windows/run_after_setup-checklist.ps1.tmpl
 {{- end }}
 {{- if eq .chezmoi.os "darwin" }}
 # Skip applying Ansible playbook
@@ -99,6 +101,6 @@ AppData/Local/winget-configuration-chezmoi/*late2025gamingdesktop.*.winget*
 # Skip installing macOS configuration profiles
 .chezmoiscripts/30-macos/run_onchange_profiles-importer.sh.tmpl
 # Skip the setup checklist (depends on Zettlr having been installed by the Ansible playbook)
-.chezmoiscripts/31-macos-late/run_after_setup-checklist.sh.tmpl
+.chezmoiscripts/39-macos/run_after_setup-checklist.sh.tmpl
 {{- end }}
 {{- end }}

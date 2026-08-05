@@ -3,7 +3,7 @@
 # Force-installs PWAs into ungoogled-chromium via the WebAppInstallForceList registry policy --
 # the winget configuration sets installs chromium and sets the policy, this applies it
 
-# Why is this in a folder called '41-windows-late' instead of '40-windows' with the other Windows
+# Why is this in a folder called '41-windows' instead of '40-windows' with the other Windows
 # scripts? This needs to run after run_onchange_after_winget-configure.ps1.tmpl (in 40-windows/),
 # which is what applies the WebAppInstallForceList registry policy and installs ungoogled-chromium
 # in the first place.

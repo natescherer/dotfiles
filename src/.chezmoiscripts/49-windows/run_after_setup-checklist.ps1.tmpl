@@ -23,8 +23,8 @@ Copy-Item -Path $SourceChecklist -Destination $DesktopChecklist
 
 # Launches Zettlr directly with the checklist as an argument, rather than Start-Process on the
 # file itself, which would just assume run_after_windows-file-associations.ps1.tmpl's association
-# already took effect (e.g. it hasn't yet on a first-ever run, since 41-windows-late's scripts
-# have no ordering guarantee relative to each other -- see the comment at the top of this file).
+# already took effect (e.g. it hasn't yet on a first-ever run, since 41-windows/ sorts before this
+# script's 49-windows/ directory but its scripts have no ordering guarantee relative to each other).
 # The App Paths registry key is the standard place a well-behaved installer (electron-builder
 # included, which Zettlr uses) registers its own exe location for exactly this kind of lookup.
 function Get-ZettlrExePath {

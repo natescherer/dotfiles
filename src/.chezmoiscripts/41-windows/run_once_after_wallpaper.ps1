@@ -4,7 +4,7 @@
 # nothing external fights the desktop wallpaper once it's set, so this doesn't need to self-heal on
 # every apply -- chezmoi's own content hash tracking (in its state file) is enough to run this
 # exactly once and never again, even across future `chezmoi apply` runs. Still lives under
-# 41-windows-late/ (a run_after_ semantically, since the "once" and "after" prefixes compose) so
+# 41-windows/ (a run_after_ semantically, since the "once" and "after" prefixes compose) so
 # %USERPROFILE%\Pictures\wallpaper-chezmoi\ -- a regular chezmoi-managed directory -- is guaranteed
 # already on disk by the time this runs; see
 # https://www.chezmoi.io/reference/application-order/ and run_after_desktop-icons.ps1's comment

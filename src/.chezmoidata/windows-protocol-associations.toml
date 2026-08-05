@@ -1,6 +1,6 @@
 # Per-user default URL protocol-handler associations to set on Windows (e.g. the default browser).
 #
-# Applied by .chezmoiscripts/41-windows-late/run_after_windows-protocol-associations.ps1.tmpl via
+# Applied by .chezmoiscripts/41-windows/run_after_windows-protocol-associations.ps1.tmpl via
 # Set-ProtocolAssoc.ps1 (a modified copy of Set-FileAssoc.ps1's no-admin-required reimplementation
 # of the UserChoice hash, adapted for protocols instead of file extensions -- see
 # AppData/Local/WindowsWorkstationDSC/Set-ProtocolAssoc.ps1 for what changed and why).

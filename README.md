@@ -113,7 +113,7 @@ Currently managed:
       - Defines data used to provision profiles
     - [src/.chezmoitemplates/vscode](src/.chezmoitemplates/vscode)
       - Each file in this directory defines the settings for a profile
-    - [src/.chezmoiscripts/99-all-late/run_onchange_after_vscode-profiles.py.tmpl](src/.chezmoiscripts/99-all-late/run_onchange_after_vscode-profiles.py.tmpl)
+    - [src/.chezmoiscripts/90-all/run_onchange_after_vscode-profiles.py.tmpl](src/.chezmoiscripts/90-all/run_onchange_after_vscode-profiles.py.tmpl)
       - Performs profile provisioning and updating
 - [VMware Workstation](https://www.vmware.com/products/workstation-pro.html) 🪟
   - Notes

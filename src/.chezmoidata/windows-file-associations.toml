@@ -1,6 +1,6 @@
 # Per-user default file-type associations to set on Windows.
 #
-# Applied by .chezmoiscripts/41-windows-late/run_after_windows-file-associations.ps1.tmpl via
+# Applied by .chezmoiscripts/41-windows/run_after_windows-file-associations.ps1.tmpl via
 # Set-FileAssoc.ps1 (a vendored, no-admin-required reimplementation of the UserChoice hash --
 # see AppData/Local/WindowsWorkstationDSC/Set-FileAssoc.ps1 for provenance/license/why this
 # exists instead of a downloaded third-party tool).
