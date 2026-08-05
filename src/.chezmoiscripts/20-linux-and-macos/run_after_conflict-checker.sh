@@ -2,8 +2,6 @@
 
 declare -a badpaths=(
     "~/.gitconfig"
-    "~/.nanorc"
-    "~/.zsh-aliases"
     "~/.zlogin"
     "~/.zprofile"
     "~/.zshrc"
