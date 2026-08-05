@@ -87,8 +87,10 @@ if ($Removed.Count -gt 0) { $ToastLines.Add("Sent to Recycle Bin: $($Removed -jo
 if ($Failed.Count -gt 0) { $ToastLines.Add("Could not remove: $($Failed -join ', ')") }
 Send-WindowsWorkstationDSCToast -Text 'Desktop icons cleaned up', ($ToastLines -join ' | ')
 
-# Non-zero so a failure is visible in `chezmoi apply`'s own output too, not just the toast --
-# mirrors tray-pins.ps1's exit code convention for "ran, but not everything succeeded".
+# Non-zero so a failure is visible in `chezmoi apply`'s own output too, not just the toast. Unlike
+# the other pin script's unresolved-target count, $Failed here is a genuine error (a shortcut that
+# threw on removal -- locked file, unexpected ACL), not an expected steady-state, so it's fine for
+# this one to fail the run.
 if ($Failed.Count -gt 0) {
   exit 1
 }

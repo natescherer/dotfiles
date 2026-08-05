@@ -185,6 +185,10 @@ if ($NewlyPromotedCount -gt 0) {
 
 Write-Host "Tray pins applied ($ResolvedCount/$TotalCount resolved)." -ForegroundColor Green
 
-if ($ResolvedCount -lt $TotalCount) {
-  exit 1
-}
+# Deliberately no non-zero exit for $ResolvedCount -lt $TotalCount: every path that leaves a target
+# unresolved (app not installed, no autostart entry yet, icon didn't register within the poll
+# window) already warned above and is an expected steady-state, not a failure -- most machines will
+# never have every target installed (VMware, ASUS DriverHub, etc. are manual installs). Exiting
+# non-zero here would make `chezmoi apply` report failure on every ordinary run. A genuine error
+# (an unhandled exception) still surfaces on its own: pwsh exits non-zero when a script terminates
+# on one.
