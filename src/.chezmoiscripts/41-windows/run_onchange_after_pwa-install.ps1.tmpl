@@ -161,12 +161,21 @@ Wait-ForCondition -Condition { Test-AllPwasRegistered } -ProgressLabel "Waiting 
 # least leaves a shortcut behind for the block below to find -- a never-started entry leaves no
 # folder and no placeholder shortcut at all, so the old single placeholder-only repair pass never
 # caught it and Chromium got killed before it ever got there. So keep nudging Chromium in bounded
-# rounds -- re-opening every install URL, which both retries never-started entries and swaps out
-# placeholders (the same remedy the macOS chromium_pwas role uses) -- and actually check every
-# entry is accounted for before killing it, instead of trusting one pass to have caught everything.
+# rounds -- restarting it fresh so never-started entries get a real turn at the startup-time
+# WebAppInstallForceList pass (opening a URL in an already-running instance's tab does not
+# re-trigger that pass -- per the "read fresh at process startup" reasoning above, it only ever
+# replaces an *existing* placeholder, since that specific swap is keyed off a tab successfully
+# loading the install URL, not off the browser starting up), then re-opening every install URL to
+# also swap out any placeholders (the same remedy the macOS chromium_pwas role uses) -- and
+# actually check every entry is accounted for before killing it, instead of trusting one pass to
+# have caught everything.
 $MaxRepairRounds = 5
 for ($Round = 1; $Round -le $MaxRepairRounds -and -not (Test-AllPwasRegistered); $Round++) {
-    Write-Host "Round $Round/$MaxRepairRounds -- $(Get-AccountedForCount)/$($PwaEntries.Count) accounted for, $(Get-PlaceholderShortcutCount) still placeholder. Re-opening every install URL..." -ForegroundColor DarkGray
+    Write-Host "Round $Round/$MaxRepairRounds -- $(Get-AccountedForCount)/$($PwaEntries.Count) accounted for, $(Get-PlaceholderShortcutCount) still placeholder. Restarting Chromium..." -ForegroundColor DarkGray
+    Stop-ChromiumProcesses
+    Start-Sleep -Seconds 2  # let Windows release the profile's singleton lock before relaunching
+    Start-Process -FilePath $ChromiumExe -ArgumentList '--no-first-run' -WindowStyle Minimized
+    Start-Sleep -Seconds 3  # give the fresh process a moment to start its WebAppInstallForceList pass before piling tabs onto it
     foreach ($Entry in $PwaEntries) {
         Start-Process -FilePath $ChromiumExe -ArgumentList '--no-first-run', $Entry.url -WindowStyle Minimized
         Start-Sleep -Seconds 1
