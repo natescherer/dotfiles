@@ -7,6 +7,10 @@ metadata:
     processor:
       identifier: dscv3
 resources:
+  # DeveloperMode writes HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock (machine-wide),
+  # so only this property needs elevation -- confirmed by hand that the other WindowsSettings
+  # properties below write to per-user HKCU keys instead (Personalize\AppsUseLightTheme,
+  # Explorer\Advanced\TaskbarAl) and don't need it.
   - type: Microsoft.Windows.Settings/WindowsSettings
     name: WindowsSettingsDeveloperMode
     metadata:
@@ -14,14 +18,33 @@ resources:
         securityContext: elevated
     properties:
       DeveloperMode: true
+  # HKLM:\SOFTWARE\Policies\* is locked down against unelevated writes (same reasoning as
+  # TaskbarStartLayoutFile in 3.taskbarpins.e.winget), so this one-time pointer setup needs to be
+  # elevated even though the file it points at is written unelevated. The actual XML content at
+  # this path is written by run_after_windows-default-app-associations.ps1.tmpl (unelevated, runs
+  # on every `chezmoi apply`) -- see .chezmoidata/windows-default-app-associations.toml for why
+  # this indirection (Microsoft's own DefaultAssociationsConfiguration mechanism) replaced a
+  # direct UserChoice write. ExpandString (not a literal path) so this isn't tied to this specific
+  # user profile -- Windows expands %LOCALAPPDATA% per-user at each sign-in.
   - type: Microsoft.Windows/Registry
-    name: DisableWeatherAndMoreOnLockScreen
+    name: DefaultAssociationsConfigurationFile
     metadata:
       winget:
         securityContext: elevated
     properties:
       keyPath: HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\System
-      valueName: DisableLockScreenAppNotifications
+      valueName: DefaultAssociationsConfiguration
+      valueData:
+        ExpandString: "%LOCALAPPDATA%\\WindowsWorkstationDSC\\DefaultAppAssociations.xml"
+      _exist: true
+  - type: Microsoft.Windows/Registry
+    name: DisableOneDrive
+    metadata:
+      winget:
+        securityContext: elevated
+    properties:
+      keyPath: HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\OneDrive
+      valueName: DisableFileSyncNGSC
       valueData:
         DWord: 1
       _exist: true
@@ -48,35 +71,24 @@ resources:
         DWord: 1
       _exist: true
   - type: Microsoft.Windows/Registry
-    name: EnableUpdatesForOtherMicrosoftProducts
+    name: DisableWeatherAndMoreOnLockScreen
     metadata:
       winget:
         securityContext: elevated
     properties:
-      keyPath: HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings
-      valueName: AllowMUUpdateService
+      keyPath: HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\System
+      valueName: DisableLockScreenAppNotifications
       valueData:
         DWord: 1
       _exist: true
   - type: Microsoft.Windows/Registry
-    name: Sudo
+    name: DisableWindowsBackupNotifications
     metadata:
       winget:
         securityContext: elevated
     properties:
-      keyPath: HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Sudo
-      valueName: Enabled
-      valueData:
-        DWord: 3
-      _exist: true
-  - type: Microsoft.Windows/Registry
-    name: LongPaths
-    metadata:
-      winget:
-        securityContext: elevated
-    properties:
-      keyPath: HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\FileSystem
-      valueName: LongPathsEnabled
+      keyPath: HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsBackup
+      valueName: DisableMonitoring
       valueData:
         DWord: 1
       _exist: true
@@ -103,6 +115,39 @@ resources:
         DWord: 1
       _exist: true
   - type: Microsoft.Windows/Registry
+    name: EnableUpdatesForOtherMicrosoftProducts
+    metadata:
+      winget:
+        securityContext: elevated
+    properties:
+      keyPath: HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings
+      valueName: AllowMUUpdateService
+      valueData:
+        DWord: 1
+      _exist: true
+  - type: Microsoft.Windows/Registry
+    name: LongPaths
+    metadata:
+      winget:
+        securityContext: elevated
+    properties:
+      keyPath: HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\FileSystem
+      valueName: LongPathsEnabled
+      valueData:
+        DWord: 1
+      _exist: true
+  - type: Microsoft.Windows/Registry
+    name: Sudo
+    metadata:
+      winget:
+        securityContext: elevated
+    properties:
+      keyPath: HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Sudo
+      valueName: Enabled
+      valueData:
+        DWord: 3
+      _exist: true
+  - type: Microsoft.Windows/Registry
     name: WidgetServiceOff
     metadata:
       winget:
@@ -112,45 +157,4 @@ resources:
       valueName: AllowNewsAndInterests
       valueData:
         DWord: 0
-      _exist: true
-  - type: Microsoft.Windows/Registry
-    name: DisableOneDrive
-    metadata:
-      winget:
-        securityContext: elevated
-    properties:
-      keyPath: HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\OneDrive
-      valueName: DisableFileSyncNGSC
-      valueData:
-        DWord: 1
-      _exist: true
-  - type: Microsoft.Windows/Registry
-    name: DisableWindowsBackupNotifications
-    metadata:
-      winget:
-        securityContext: elevated
-    properties:
-      keyPath: HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsBackup
-      valueName: DisableMonitoring
-      valueData:
-        DWord: 1
-      _exist: true
-  # HKLM:\SOFTWARE\Policies\* is locked down against unelevated writes (same reasoning as
-  # TaskbarStartLayoutFile in 3.taskbarpins.e.winget), so this one-time pointer setup needs to be
-  # elevated even though the file it points at is written unelevated. The actual XML content at
-  # this path is written by run_after_windows-default-app-associations.ps1.tmpl (unelevated, runs
-  # on every `chezmoi apply`) -- see .chezmoidata/windows-default-app-associations.toml for why
-  # this indirection (Microsoft's own DefaultAssociationsConfiguration mechanism) replaced a
-  # direct UserChoice write. ExpandString (not a literal path) so this isn't tied to this specific
-  # user profile -- Windows expands %LOCALAPPDATA% per-user at each sign-in.
-  - type: Microsoft.Windows/Registry
-    name: DefaultAssociationsConfigurationFile
-    metadata:
-      winget:
-        securityContext: elevated
-    properties:
-      keyPath: HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\System
-      valueName: DefaultAssociationsConfiguration
-      valueData:
-        ExpandString: "%LOCALAPPDATA%\\WindowsWorkstationDSC\\DefaultAppAssociations.xml"
       _exist: true

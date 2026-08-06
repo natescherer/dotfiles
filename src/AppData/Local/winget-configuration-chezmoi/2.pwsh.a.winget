@@ -8,18 +8,18 @@ metadata:
       identifier: dscv3
 resources:
   - type: Microsoft.DSC.Transitional/RunCommandOnSet
-    name: ExecutionPolicyWindowsPowerShell
+    name: ExecutionPolicyPwsh
     properties:
-      executable: powershell
+      executable: pwsh
       arguments:
         - -NoProfile
         - -NoLogo
         - -Command
         - "Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope CurrentUser -Force"
   - type: Microsoft.DSC.Transitional/RunCommandOnSet
-    name: ExecutionPolicyPwsh
+    name: ExecutionPolicyWindowsPowerShell
     properties:
-      executable: pwsh
+      executable: powershell
       arguments:
         - -NoProfile
         - -NoLogo

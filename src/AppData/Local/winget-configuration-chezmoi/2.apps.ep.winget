@@ -60,18 +60,18 @@ resources:
       source: winget
       installMode: silent
   - type: Microsoft.WinGet/Package
+    name: Discord
+    properties:
+      id: Discord.Discord
+      source: winget
+      installMode: silent
+  - type: Microsoft.WinGet/Package
     name: DockerDesktop
     metadata:
       winget:
         securityContext: elevated
     properties:
       id: Docker.DockerDesktop
-      source: winget
-      installMode: silent
-  - type: Microsoft.WinGet/Package
-    name: Discord
-    properties:
-      id: Discord.Discord
       source: winget
       installMode: silent
   - type: Microsoft.WinGet/Package

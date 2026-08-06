@@ -15,6 +15,31 @@ resources:
       resources:
         - name: BurntToast
           version: "*"
+  - type: Microsoft.Windows/Registry
+    name: TaskbarLockedStartLayout
+    metadata:
+      winget:
+        securityContext: elevated
+    properties:
+      keyPath: HKEY_CURRENT_USER\SOFTWARE\Policies\Microsoft\Windows\Explorer
+      valueName: LockedStartLayout
+      valueData:
+        DWord: 1
+      _exist: true
+  # Re-applies the layout at every logon rather than only when the XML file's timestamp changes --
+  # continuous enforcement instead of a one-time seed, matching "capture the desired state in
+  # code" over "seed once and allow drift".
+  - type: Microsoft.Windows/Registry
+    name: TaskbarReapplyStartLayoutEveryLogon
+    metadata:
+      winget:
+        securityContext: elevated
+    properties:
+      keyPath: HKEY_CURRENT_USER\SOFTWARE\Policies\Microsoft\Windows\Explorer
+      valueName: ReapplyStartLayoutEveryLogon
+      valueData:
+        DWord: 1
+      _exist: true
   # Points the "Start Layout" Group Policy setting at taskbar-pins.ps1's stable output file --
   # HKCU:\SOFTWARE\Policies\* is locked down against unelevated writes even for the owning user
   # (confirmed by hand: ACL grants ARES\nate ReadKey only there, full control is
@@ -47,29 +72,4 @@ resources:
       valueName: StartLayoutFile
       valueData:
         ExpandString: "%LOCALAPPDATA%\\WindowsWorkstationDSC\\TaskbarLayout.xml"
-      _exist: true
-  - type: Microsoft.Windows/Registry
-    name: TaskbarLockedStartLayout
-    metadata:
-      winget:
-        securityContext: elevated
-    properties:
-      keyPath: HKEY_CURRENT_USER\SOFTWARE\Policies\Microsoft\Windows\Explorer
-      valueName: LockedStartLayout
-      valueData:
-        DWord: 1
-      _exist: true
-  # Re-applies the layout at every logon rather than only when the XML file's timestamp changes --
-  # continuous enforcement instead of a one-time seed, matching "capture the desired state in
-  # code" over "seed once and allow drift".
-  - type: Microsoft.Windows/Registry
-    name: TaskbarReapplyStartLayoutEveryLogon
-    metadata:
-      winget:
-        securityContext: elevated
-    properties:
-      keyPath: HKEY_CURRENT_USER\SOFTWARE\Policies\Microsoft\Windows\Explorer
-      valueName: ReapplyStartLayoutEveryLogon
-      valueData:
-        DWord: 1
       _exist: true

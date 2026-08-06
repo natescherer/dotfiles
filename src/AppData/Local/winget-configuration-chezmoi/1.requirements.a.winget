@@ -7,11 +7,6 @@ metadata:
     processor:
       identifier: dscv3
 resources:
-  - type: Microsoft.PowerShell.PSResourceGet/Repository
-    name: TrustPSGallery
-    properties:
-      name: PSGallery
-      trusted: true
   - type: Microsoft.PowerShell.PSResourceGet/PSResourceList
     name: WindowsDscModules
     dependsOn:
@@ -26,3 +21,8 @@ resources:
         - name: Microsoft.Windows.Developer
           version: "*"
           preRelease: true
+  - type: Microsoft.PowerShell.PSResourceGet/Repository
+    name: TrustPSGallery
+    properties:
+      name: PSGallery
+      trusted: true

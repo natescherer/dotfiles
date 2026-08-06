@@ -44,21 +44,21 @@ resources:
       source: winget
       installMode: silent
   - type: Microsoft.WinGet/Package
-    name: PowerToys
-    metadata:
-      winget:
-        securityContext: elevated
-    properties:
-      id: Microsoft.PowerToys
-      source: winget
-      installMode: silent
-  - type: Microsoft.WinGet/Package
     name: PowerShell
     metadata:
       winget:
         securityContext: elevated
     properties:
       id: Microsoft.PowerShell
+      source: winget
+      installMode: silent
+  - type: Microsoft.WinGet/Package
+    name: PowerToys
+    metadata:
+      winget:
+        securityContext: elevated
+    properties:
+      id: Microsoft.PowerToys
       source: winget
       installMode: silent
   - type: Microsoft.WinGet/Package

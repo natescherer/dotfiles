@@ -12,62 +12,27 @@ resources:
     properties:
       settings:
         enable_warnings_elevated_apps: false
-  - type: Microsoft.Windows/Registry
-    name: StickyKeys
+  # Writes HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Search\SearchboxTaskbarMode -- confirmed
+  # by hand this is a per-user key, no elevation needed.
+  - type: Microsoft.Windows.Developer/Taskbar
+    name: Taskbar
     properties:
-      keyPath: HKEY_CURRENT_USER\Control Panel\Accessibility\StickyKeys
-      valueName: Flags
-      valueData:
-        String: "504"
-      _exist: true
-  - type: Microsoft.Windows/Registry
-    name: ExplorerFullPathInTitleBar
+      SearchBoxMode: Hide
+      RestartExplorer: True
+  # Writes HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced (HideFileExt, Hidden) --
+  # confirmed by hand this is a per-user key, no elevation needed.
+  - type: Microsoft.Windows.Developer/WindowsExplorer
+    name: WindowsExplorer
     properties:
-      keyPath: HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\CabinetState
-      valueName: FullPath
-      valueData:
-        DWord: 1
-      _exist: true
-  - type: Microsoft.Windows/Registry
-    name: EnableClipboardHistory
+      FileExtensions: Show
+      HiddenFiles: Show
+      RestartExplorer: True
+  - type: Microsoft.Windows.Settings/WindowsSettings
+    name: WindowsSettings
     properties:
-      keyPath: HKEY_CURRENT_USER\Software\Microsoft\Clipboard
-      valueName: EnableClipboardHistory
-      valueData:
-        DWord: 1
-      _exist: true
-  - type: Microsoft.Windows/Registry
-    name: DisableRecentFilesInStartMenu
-    properties:
-      keyPath: HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced
-      valueName: Start_TrackDocs
-      valueData:
-        DWord: 0
-      _exist: true
-  - type: Microsoft.Windows/Registry
-    name: DisableRecommendationsInStartMenu
-    properties:
-      keyPath: HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced
-      valueName: Start_IrisRecommendations
-      valueData:
-        DWord: 0
-      _exist: true
-  - type: Microsoft.Windows/Registry
-    name: DisableFunFactsInStartMenuRotatingLockScreenOverlay
-    properties:
-      keyPath: HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager
-      valueName: RotatingLockScreenOverlayEnabled
-      valueData:
-        DWord: 0
-      _exist: true
-  - type: Microsoft.Windows/Registry
-    name: DisableFunFactsInStartMenuSubscribedContent338387
-    properties:
-      keyPath: HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager
-      valueName: SubscribedContent-338387Enabled
-      valueData:
-        DWord: 0
-      _exist: true
+      AppColorMode: Dark
+      SystemColorMode: Dark
+      TaskbarAlignment: Left
   - type: Microsoft.Windows/Registry
     name: DisableAppLaunchTracking
     properties:
@@ -77,90 +42,10 @@ resources:
         DWord: 0
       _exist: true
   - type: Microsoft.Windows/Registry
-    name: DisableWebsiteLanguageAccess
+    name: DisableBingSearchInStart
     properties:
-      keyPath: HKEY_CURRENT_USER\Control Panel\International\User Profile
-      valueName: HttpAcceptLanguageOptOut
-      valueData:
-        DWord: 1
-      _exist: true
-  - type: Microsoft.Windows/Registry
-    name: DisableSettingsSuggestedContent338393
-    properties:
-      keyPath: HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager
-      valueName: SubscribedContent-338393Enabled
-      valueData:
-        DWord: 0
-      _exist: true
-  - type: Microsoft.Windows/Registry
-    name: DisableSettingsSuggestedContent353694
-    properties:
-      keyPath: HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager
-      valueName: SubscribedContent-353694Enabled
-      valueData:
-        DWord: 0
-      _exist: true
-  - type: Microsoft.Windows/Registry
-    name: DisableSettingsSuggestedContent353696
-    properties:
-      keyPath: HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager
-      valueName: SubscribedContent-353696Enabled
-      valueData:
-        DWord: 0
-      _exist: true
-  - type: Microsoft.Windows/Registry
-    name: DisableInkingTypingDictionaryToggle
-    properties:
-      keyPath: HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\CPSS\Store\InkingAndTypingPersonalization
-      valueName: Value
-      valueData:
-        DWord: 0
-      _exist: true
-  - type: Microsoft.Windows/Registry
-    name: DisableInkingTypingDictionaryPrivacyPolicy
-    properties:
-      keyPath: HKEY_CURRENT_USER\Software\Microsoft\Personalization\Settings
-      valueName: AcceptedPrivacyPolicy
-      valueData:
-        DWord: 0
-      _exist: true
-  - type: Microsoft.Windows/Registry
-    name: DisableInkingTypingDictionaryImplicitInkCollection
-    properties:
-      keyPath: HKEY_CURRENT_USER\Software\Microsoft\InputPersonalization
-      valueName: RestrictImplicitInkCollection
-      valueData:
-        DWord: 1
-      _exist: true
-  - type: Microsoft.Windows/Registry
-    name: DisableInkingTypingDictionaryImplicitTextCollection
-    properties:
-      keyPath: HKEY_CURRENT_USER\Software\Microsoft\InputPersonalization
-      valueName: RestrictImplicitTextCollection
-      valueData:
-        DWord: 1
-      _exist: true
-  - type: Microsoft.Windows/Registry
-    name: DisableInkingTypingDictionaryContactHarvesting
-    properties:
-      keyPath: HKEY_CURRENT_USER\Software\Microsoft\InputPersonalization\TrainedDataStore
-      valueName: HarvestContacts
-      valueData:
-        DWord: 0
-      _exist: true
-  - type: Microsoft.Windows/Registry
-    name: DisableOptionalDiagnosticDataShowedToastAtLevel
-    properties:
-      keyPath: HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Diagnostics\DiagTrack
-      valueName: ShowedToastAtLevel
-      valueData:
-        DWord: 1
-      _exist: true
-  - type: Microsoft.Windows/Registry
-    name: DisableImproveInkingAndTyping
-    properties:
-      keyPath: HKEY_CURRENT_USER\Software\Microsoft\Input\TIPC
-      valueName: Enabled
+      keyPath: HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Search
+      valueName: BingSearchEnabled
       valueData:
         DWord: 0
       _exist: true
@@ -169,28 +54,6 @@ resources:
     properties:
       keyPath: HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Privacy
       valueName: TailoredExperiencesWithDiagnosticDataEnabled
-      valueData:
-        DWord: 0
-      _exist: true
-  - type: Microsoft.Windows/Registry
-    name: DisableFeedbackPromptsNumberOfSIUFInPeriod
-    properties:
-      keyPath: HKEY_CURRENT_USER\SOFTWARE\Microsoft\Siuf\Rules
-      valueName: NumberOfSIUFInPeriod
-      valueData:
-        DWord: 0
-      _exist: true
-  - type: Microsoft.Windows/Registry
-    name: DisableFeedbackPromptsPeriodInNanoSeconds
-    properties:
-      keyPath: HKEY_CURRENT_USER\SOFTWARE\Microsoft\Siuf\Rules
-      valueName: PeriodInNanoSeconds
-      _exist: false
-  - type: Microsoft.Windows/Registry
-    name: DisableBingSearchInStart
-    properties:
-      keyPath: HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Search
-      valueName: BingSearchEnabled
       valueData:
         DWord: 0
       _exist: true
@@ -219,12 +82,170 @@ resources:
         String: "0"
       _exist: true
   - type: Microsoft.Windows/Registry
+    name: DisableFeedbackPromptsNumberOfSIUFInPeriod
+    properties:
+      keyPath: HKEY_CURRENT_USER\SOFTWARE\Microsoft\Siuf\Rules
+      valueName: NumberOfSIUFInPeriod
+      valueData:
+        DWord: 0
+      _exist: true
+  - type: Microsoft.Windows/Registry
+    name: DisableFeedbackPromptsPeriodInNanoSeconds
+    properties:
+      keyPath: HKEY_CURRENT_USER\SOFTWARE\Microsoft\Siuf\Rules
+      valueName: PeriodInNanoSeconds
+      _exist: false
+  - type: Microsoft.Windows/Registry
+    name: DisableFunFactsInStartMenuRotatingLockScreenOverlay
+    properties:
+      keyPath: HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager
+      valueName: RotatingLockScreenOverlayEnabled
+      valueData:
+        DWord: 0
+      _exist: true
+  - type: Microsoft.Windows/Registry
+    name: DisableFunFactsInStartMenuSubscribedContent338387
+    properties:
+      keyPath: HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager
+      valueName: SubscribedContent-338387Enabled
+      valueData:
+        DWord: 0
+      _exist: true
+  - type: Microsoft.Windows/Registry
+    name: DisableImproveInkingAndTyping
+    properties:
+      keyPath: HKEY_CURRENT_USER\Software\Microsoft\Input\TIPC
+      valueName: Enabled
+      valueData:
+        DWord: 0
+      _exist: true
+  - type: Microsoft.Windows/Registry
+    name: DisableInkingTypingDictionaryContactHarvesting
+    properties:
+      keyPath: HKEY_CURRENT_USER\Software\Microsoft\InputPersonalization\TrainedDataStore
+      valueName: HarvestContacts
+      valueData:
+        DWord: 0
+      _exist: true
+  - type: Microsoft.Windows/Registry
+    name: DisableInkingTypingDictionaryImplicitInkCollection
+    properties:
+      keyPath: HKEY_CURRENT_USER\Software\Microsoft\InputPersonalization
+      valueName: RestrictImplicitInkCollection
+      valueData:
+        DWord: 1
+      _exist: true
+  - type: Microsoft.Windows/Registry
+    name: DisableInkingTypingDictionaryImplicitTextCollection
+    properties:
+      keyPath: HKEY_CURRENT_USER\Software\Microsoft\InputPersonalization
+      valueName: RestrictImplicitTextCollection
+      valueData:
+        DWord: 1
+      _exist: true
+  - type: Microsoft.Windows/Registry
+    name: DisableInkingTypingDictionaryPrivacyPolicy
+    properties:
+      keyPath: HKEY_CURRENT_USER\Software\Microsoft\Personalization\Settings
+      valueName: AcceptedPrivacyPolicy
+      valueData:
+        DWord: 0
+      _exist: true
+  - type: Microsoft.Windows/Registry
+    name: DisableInkingTypingDictionaryToggle
+    properties:
+      keyPath: HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\CPSS\Store\InkingAndTypingPersonalization
+      valueName: Value
+      valueData:
+        DWord: 0
+      _exist: true
+  - type: Microsoft.Windows/Registry
+    name: DisableOptionalDiagnosticDataShowedToastAtLevel
+    properties:
+      keyPath: HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Diagnostics\DiagTrack
+      valueName: ShowedToastAtLevel
+      valueData:
+        DWord: 1
+      _exist: true
+  - type: Microsoft.Windows/Registry
+    name: DisableRecentFilesInStartMenu
+    properties:
+      keyPath: HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced
+      valueName: Start_TrackDocs
+      valueData:
+        DWord: 0
+      _exist: true
+  - type: Microsoft.Windows/Registry
+    name: DisableRecommendationsInStartMenu
+    properties:
+      keyPath: HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced
+      valueName: Start_IrisRecommendations
+      valueData:
+        DWord: 0
+      _exist: true
+  - type: Microsoft.Windows/Registry
+    name: DisableSettingsSuggestedContent338393
+    properties:
+      keyPath: HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager
+      valueName: SubscribedContent-338393Enabled
+      valueData:
+        DWord: 0
+      _exist: true
+  - type: Microsoft.Windows/Registry
+    name: DisableSettingsSuggestedContent353694
+    properties:
+      keyPath: HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager
+      valueName: SubscribedContent-353694Enabled
+      valueData:
+        DWord: 0
+      _exist: true
+  - type: Microsoft.Windows/Registry
+    name: DisableSettingsSuggestedContent353696
+    properties:
+      keyPath: HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager
+      valueName: SubscribedContent-353696Enabled
+      valueData:
+        DWord: 0
+      _exist: true
+  - type: Microsoft.Windows/Registry
+    name: DisableWebsiteLanguageAccess
+    properties:
+      keyPath: HKEY_CURRENT_USER\Control Panel\International\User Profile
+      valueName: HttpAcceptLanguageOptOut
+      valueData:
+        DWord: 1
+      _exist: true
+  - type: Microsoft.Windows/Registry
+    name: EnableClipboardHistory
+    properties:
+      keyPath: HKEY_CURRENT_USER\Software\Microsoft\Clipboard
+      valueName: EnableClipboardHistory
+      valueData:
+        DWord: 1
+      _exist: true
+  - type: Microsoft.Windows/Registry
+    name: ExplorerFullPathInTitleBar
+    properties:
+      keyPath: HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\CabinetState
+      valueName: FullPath
+      valueData:
+        DWord: 1
+      _exist: true
+  - type: Microsoft.Windows/Registry
     name: GitCodeFolders
     properties:
       keyPath: HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced
       valueName: NavPaneShowVersionControl
       valueData:
         DWord: 1
+      _exist: true
+  - type: Microsoft.Windows/Registry
+    name: StickyKeys
+    properties:
+      keyPath: HKEY_CURRENT_USER\Control Panel\Accessibility\StickyKeys
+      valueName: Flags
+      valueData:
+        String: "504"
       _exist: true
   - type: Microsoft.Windows/Registry
     name: TaskbarEndTask
@@ -234,20 +255,3 @@ resources:
       valueData:
         DWord: 1
       _exist: true
-  - type: Microsoft.Windows.Developer/Taskbar
-    name: Taskbar
-    properties:
-      SearchBoxMode: Hide
-      RestartExplorer: True
-  - type: Microsoft.Windows.Developer/WindowsExplorer
-    name: WindowsExplorer
-    properties:
-      FileExtensions: Show
-      HiddenFiles: Show
-      RestartExplorer: True
-  - type: Microsoft.Windows.Settings/WindowsSettings
-    name: WindowsSettings
-    properties:
-      AppColorMode: Dark
-      SystemColorMode: Dark
-      TaskbarAlignment: Left
