@@ -234,3 +234,20 @@ resources:
       valueData:
         DWord: 1
       _exist: true
+  - type: Microsoft.Windows.Developer/Taskbar
+    name: Taskbar
+    properties:
+      SearchBoxMode: Hide
+      RestartExplorer: True
+  - type: Microsoft.Windows.Developer/WindowsExplorer
+    name: WindowsExplorer
+    properties:
+      FileExtensions: Show
+      HiddenFiles: Show
+      RestartExplorer: True
+  - type: Microsoft.Windows.Settings/WindowsSettings
+    name: WindowsSettings
+    properties:
+      AppColorMode: Dark
+      SystemColorMode: Dark
+      TaskbarAlignment: Left

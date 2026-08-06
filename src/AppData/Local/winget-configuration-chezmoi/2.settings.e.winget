@@ -8,32 +8,12 @@ metadata:
       identifier: dscv3
 resources:
   - type: Microsoft.Windows.Settings/WindowsSettings
-    name: WindowsSettings
+    name: WindowsSettingsDeveloperMode
     metadata:
       winget:
         securityContext: elevated
     properties:
-      AppColorMode: Dark
       DeveloperMode: true
-      SystemColorMode: Dark
-      TaskbarAlignment: Left
-  - type: Microsoft.Windows.Developer/Taskbar
-    name: Taskbar
-    metadata:
-      winget:
-        securityContext: elevated
-    properties:
-      SearchBoxMode: Hide
-      RestartExplorer: True
-  - type: Microsoft.Windows.Developer/WindowsExplorer
-    name: WindowsExplorer
-    metadata:
-      winget:
-        securityContext: elevated
-    properties:
-      FileExtensions: Show
-      HiddenFiles: Show
-      RestartExplorer: True
   - type: Microsoft.Windows/Registry
     name: DisableWeatherAndMoreOnLockScreen
     metadata:
