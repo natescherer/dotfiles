@@ -7,13 +7,15 @@ metadata:
     processor:
       identifier: dscv3
 resources:
+  # trustedRepository avoids needing a separate Microsoft.PowerShell.PSResourceGet/Repository
+  # resource just for this -- PSGallery is trusted globally (persisted to the PSResourceRepository
+  # store, not just this process) by TrustPSGallery in 2.pwsh.a.winget, but that file runs after
+  # this one, so this resource can't rely on it yet.
   - type: Microsoft.PowerShell.PSResourceGet/PSResourceList
     name: WindowsDscModules
-    dependsOn:
-      # yaml-language-server-disable
-      - TrustPSGallery # This is valid even though there's a schema error, see https://github.com/microsoft/winget-cli/issues/5906
     properties:
       repositoryName: PSGallery
+      trustedRepository: true
       resources:
         - name: Microsoft.Windows.Settings
           version: "*"
@@ -21,8 +23,3 @@ resources:
         - name: Microsoft.Windows.Developer
           version: "*"
           preRelease: true
-  - type: Microsoft.PowerShell.PSResourceGet/Repository
-    name: TrustPSGallery
-    properties:
-      name: PSGallery
-      trusted: true
