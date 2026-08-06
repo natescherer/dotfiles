@@ -1,0 +1,111 @@
+#Requires -Version 7.0
+
+# Sets machine-wide default file-type and URL-protocol associations declared in
+# .chezmoidata/windows-default-app-associations.toml, via Windows' own
+# DefaultAssociationsConfiguration mechanism rather than a direct UserChoice registry write -- see
+# that data file's header comment for why (UCPD.sys and UserChoiceLatest both defeat direct writes
+# on modern Windows 11).
+#
+# This script only writes the XML content DefaultAssociationsConfiguration points at -- the
+# machine-wide HKLM policy pointer itself is set once, elevated, by winget configuration's
+# DefaultAssociationsConfigurationFile resource (AppData/Local/winget-configuration-chezmoi/
+# 2.settings.e.winget), since HKLM:\SOFTWARE\Policies\* is locked down against unelevated writes.
+# Writing the XML content here is unprivileged.
+#
+# Plain run_after_ (not run_once_/run_onchange_) so it self-heals every apply -- if an app update
+# or reinstall resets a ProgId, or a new entry gets added to the data file, this notices and
+# re-applies it -- but the current-vs-desired content check below makes that a cheap no-op on the
+# common case where nothing has changed.
+#
+# Depends on run_onchange_after_winget-configure.ps1.tmpl (installs the apps referenced below, and
+# sets the DefaultAssociationsConfigurationFile registry pointer) in 40-windows/ -- sorts before
+# this script and so already ran earlier in this same `chezmoi apply`.
+
+# .chezmoidata files can't be templated -- data has to be loaded before the template engine has
+# anything to execute templates with (see https://github.com/twpayne/chezmoi/issues/3526, still
+# open) -- so the full chezmoi variable map is embedded below and read once this script actually
+# runs, same trick run_onchange_after_windows-ini-patches.ps1.tmpl uses.
+#
+# get (not plain dot access) tolerates a missing windows_default_app_associations key -- chezmoi's
+# strict template mode errors on plain dot access into a map that doesn't have the key, which a
+# stripped-down/empty data file would trigger.
+$AssociationsJson = @'
+{{ get . "windows_default_app_associations" | default (list) | toJson }}
+'@
+$Associations = $AssociationsJson | ConvertFrom-Json
+
+$XmlPath = Join-Path $env:LOCALAPPDATA 'WindowsWorkstationDSC\DefaultAppAssociations.xml'
+
+if (-not $Associations) {
+  if (Test-Path $XmlPath) { Remove-Item -Path $XmlPath -Force }
+  exit 0
+}
+
+# An app's installer registers a Capabilities\FileAssociations (extensions) or \URLAssociations
+# (protocols) key under RegisteredApplications listing the ProgId it wants for each identifier it
+# can handle -- resolving it this way avoids hardcoding a ProgId string that could drift between
+# app versions/updates. Extensions are distinguished from protocols by the leading "." (the same
+# convention the Association XML schema and DISM's own export-defaultappassociations output use).
+function Get-AppProgId {
+  param([string]$Identifier, [string]$AppNameMatch)
+  $CapabilitiesKey = if ($Identifier.StartsWith('.')) { 'FileAssociations' } else { 'URLAssociations' }
+  $RegisteredApps = Get-ItemProperty -Path 'HKLM:\SOFTWARE\RegisteredApplications' -ErrorAction SilentlyContinue
+  if (-not $RegisteredApps) { return $null }
+  $Entry = $RegisteredApps.PSObject.Properties | Where-Object { $_.Name -match $AppNameMatch } | Select-Object -First 1
+  if (-not $Entry) { return $null }
+  $CapabilitiesPath = "HKLM:\$($Entry.Value.TrimStart('\'))\$CapabilitiesKey"
+  return (Get-ItemProperty -Path $CapabilitiesPath -Name $Identifier -ErrorAction SilentlyContinue).$Identifier
+}
+
+$Xml = New-Object System.Xml.XmlDocument
+$Xml.AppendChild($Xml.CreateXmlDeclaration('1.0', 'UTF-8', $null)) | Out-Null
+$Root = $Xml.CreateElement('DefaultAssociations')
+$Xml.AppendChild($Root) | Out-Null
+
+foreach ($Association in $Associations) {
+  $Identifier = $Association.identifier
+  $AppNameMatch = $Association.appNameMatch
+
+  $ProgId = Get-AppProgId -Identifier $Identifier -AppNameMatch $AppNameMatch
+  if (-not $ProgId) {
+    Write-Host "Warning: could not resolve a registered ProgId for $Identifier matching app `"$AppNameMatch`" -- skipping. Set it manually via Settings > Apps > Default Apps." -ForegroundColor Yellow
+    continue
+  }
+
+  $Element = $Xml.CreateElement('Association')
+  $Element.SetAttribute('Identifier', $Identifier)
+  $Element.SetAttribute('ProgId', $ProgId)
+  $Element.SetAttribute('ApplicationName', $AppNameMatch)
+  $Root.AppendChild($Element) | Out-Null
+}
+
+if ($Root.ChildNodes.Count -eq 0) {
+  if (Test-Path $XmlPath) { Remove-Item -Path $XmlPath -Force }
+  exit 0
+}
+
+$StringWriter = New-Object System.IO.StringWriter
+$XmlWriter = New-Object System.Xml.XmlTextWriter($StringWriter)
+$XmlWriter.Formatting = [System.Xml.Formatting]::Indented
+$Xml.WriteTo($XmlWriter)
+$NewContent = $StringWriter.ToString()
+
+$CurrentContent = if (Test-Path $XmlPath) { Get-Content -Path $XmlPath -Raw } else { $null }
+if ($CurrentContent -eq $NewContent) {
+  # Silent: nothing changed, no missing app, no error -- the common case on every apply.
+  exit 0
+}
+
+Write-Host "`nSetting Windows default app associations..." -ForegroundColor Green
+New-Item -ItemType Directory -Path (Split-Path $XmlPath) -Force | Out-Null
+Set-Content -Path $XmlPath -Value $NewContent -NoNewline
+
+# DefaultAssociationsConfiguration is documented by Microsoft as applying at sign-in -- unlike
+# taskbar pins (a different policy/subsystem, confirmed by hand to apply instantly on recent
+# builds), there's no known way to force this one to take effect within the current session.
+# gpupdate /force at least ensures the Group Policy engine has the current pointer/content cached
+# ahead of the next sign-in, rather than waiting out its own background refresh interval too.
+Write-Host "Refreshing Group Policy (association will take effect at next sign-in)..." -ForegroundColor Cyan
+gpupdate /target:computer /force | Out-Null
+
+Write-Host "Default app associations set ($($Root.ChildNodes.Count)/$($Associations.Count) resolved)." -ForegroundColor Green

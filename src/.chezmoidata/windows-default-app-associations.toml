@@ -1,0 +1,52 @@
+# Per-machine default app associations to set on Windows -- both file-type extensions (.pdf) and
+# URL protocols (http, https, the default-browser mechanism) are handled identically here, since
+# Windows' own DefaultAssociationsConfiguration mechanism (see below) treats them the same way.
+#
+# Applied via HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\System\DefaultAssociationsConfiguration
+# (the "Set a default associations configuration file" policy -- also exposed as the
+# ApplicationDefaults/DefaultAssociationsConfiguration MDM CSP) rather than by directly writing the
+# per-user UserChoice registry key: Windows 11 now actively defends UserChoice against exactly that
+# kind of direct/hash-bypass write --
+#   - UCPD.sys (the User Choice Protection Driver, shipped since the February 2024 cumulative
+#     update) blocks third-party processes from writing UserChoice at all, at least for http,
+#     https, .pdf, and a few other extensions -- precisely the ones anyone would actually want to
+#     automate.
+#   - UserChoiceLatest (an A/B-tested rollout as of ~April 2025) replaces the classic UserChoice
+#     key/hash format with a new one that includes a machine ID; once a machine has migrated to it,
+#     Windows stops reading the old UserChoice key entirely, so even a correctly-computed legacy
+#     hash gets silently ignored.
+# DefaultAssociationsConfiguration is Microsoft's own first-party mechanism for the same goal, so
+# it isn't subject to either defense. The tradeoff: it's a machine-wide (HKLM) policy applied at
+# each user's sign-in, not an instant same-session change -- see
+# .chezmoiscripts/41-windows/run_after_windows-default-app-associations.ps1.tmpl and
+# AppData/Local/winget-configuration-chezmoi/2.settings.e.winget (DefaultAssociationsConfigurationFile
+# resource) for how the two halves (unelevated XML content vs. elevated registry pointer) fit
+# together.
+#
+# Each entry's app is resolved to a ProgId at apply time via the app's own
+# RegisteredApplications\...\Capabilities\FileAssociations or \URLAssociations registry entry (not
+# hardcoded here, since a ProgId can drift between app versions) -- appNameMatch is matched
+# (-match, so it's a regex) against RegisteredApplications entry names and must match exactly one
+# installed app.
+[[windows_default_app_associations]]
+identifier = ".pdf"
+# Acrobat isn't installed yet as of writing (it'll come from a Creative Cloud sign-in, not
+# winget) -- until then this just resolves to nothing every apply (a skipped-with-warning
+# no-op, not a failure) and picks itself up automatically on whichever later `chezmoi apply`
+# runs after it's actually installed. Not yet confirmed against a real
+# RegisteredApplications entry -- adjust this regex if Acrobat registers under a different
+# name than expected (check via `Get-ItemProperty HKLM:\SOFTWARE\RegisteredApplications`
+# once it's installed).
+appNameMatch = "Acrobat"
+
+[[windows_default_app_associations]]
+identifier = ".mp4"
+appNameMatch = "VLC"
+
+[[windows_default_app_associations]]
+identifier = "http"
+appNameMatch = "BrowserPicker"
+
+[[windows_default_app_associations]]
+identifier = "https"
+appNameMatch = "BrowserPicker"

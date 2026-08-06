@@ -155,3 +155,22 @@ resources:
       valueData:
         DWord: 1
       _exist: true
+  # HKLM:\SOFTWARE\Policies\* is locked down against unelevated writes (same reasoning as
+  # TaskbarStartLayoutFile in 3.taskbarpins.e.winget), so this one-time pointer setup needs to be
+  # elevated even though the file it points at is written unelevated. The actual XML content at
+  # this path is written by run_after_windows-default-app-associations.ps1.tmpl (unelevated, runs
+  # on every `chezmoi apply`) -- see .chezmoidata/windows-default-app-associations.toml for why
+  # this indirection (Microsoft's own DefaultAssociationsConfiguration mechanism) replaced a
+  # direct UserChoice write. ExpandString (not a literal path) so this isn't tied to this specific
+  # user profile -- Windows expands %LOCALAPPDATA% per-user at each sign-in.
+  - type: Microsoft.Windows/Registry
+    name: DefaultAssociationsConfigurationFile
+    metadata:
+      winget:
+        securityContext: elevated
+    properties:
+      keyPath: HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\System
+      valueName: DefaultAssociationsConfiguration
+      valueData:
+        ExpandString: "%LOCALAPPDATA%\\WindowsWorkstationDSC\\DefaultAppAssociations.xml"
+      _exist: true
