@@ -34,12 +34,6 @@
   "yaml.disableSchemaDetection": [
     "**/*.yaml.tmpl",
     "**/*.yml.tmpl",
-    "**/.github/workflows/*.yml",
-    "**/.github/workflows/*.yaml",
-    "**/.gitea/workflows/*.yml",
-    "**/.gitea/workflows/*.yaml",
-    "**/.forgejo/workflows/*.yml",
-    "**/.forgejo/workflows/*.yaml",
     "azure-pipelines.yml",
     "azure-pipelines.yaml"
   ]
