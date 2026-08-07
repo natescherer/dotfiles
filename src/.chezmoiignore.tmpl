@@ -74,7 +74,7 @@ AppData/Local/1Password/**
 git/gh/**
 ## Skip winget configuration tagged as personal
 AppData/Local/winget-configuration-chezmoi/*.{p,ep}.winget*
-.chezmoiscripts/41-windows/run_onchange_after_pwa-install.ps1.tmpl
+.chezmoiscripts/41-windows/pwa-install.ps1.tmpl
 {{- end }}
 
 {{- if eq .adminRights false }}
@@ -89,18 +89,18 @@ AppData/Local/winget-configuration-chezmoi/*late2025gamingdesktop.*.winget*
 {{- if eq .applyOSConfig false }}
 {{- if eq .chezmoi.os "windows" }}
 # Skip applying WinGet Configuration files
-.chezmoiscripts/40-windows/run_onchange_after_winget-configure.ps1.tmpl
+.chezmoiscripts/40-windows/winget-configure.ps1.tmpl
 # Skip installing PWAs (depends on WinGet Configuration having run)
-.chezmoiscripts/41-windows/run_onchange_after_pwa-install.ps1.tmpl
+.chezmoiscripts/41-windows/pwa-install.ps1.tmpl
 # Skip the setup checklist (its manual steps only apply once the rest of the OS config has run)
-.chezmoiscripts/91-windows/run_once_after_setup-checklist.ps1.tmpl
+.chezmoiscripts/91-windows/setup-checklist.ps1.tmpl
 {{- end }}
 {{- if eq .chezmoi.os "darwin" }}
 # Skip applying Ansible playbook
-.chezmoiscripts/30-macos/run_onchange_after_ansible-configure.sh.tmpl
+.chezmoiscripts/30-macos/ansible-configure.sh.tmpl
 # Skip installing macOS configuration profiles
-.chezmoiscripts/30-macos/run_onchange_profiles-importer.sh.tmpl
+.chezmoiscripts/30-macos/profiles-importer.sh.tmpl
 # Skip the setup checklist (its manual steps only apply once the rest of the OS config has run)
-.chezmoiscripts/91-macos/run_once_after_setup-checklist.sh.tmpl
+.chezmoiscripts/91-macos/setup-checklist.sh.tmpl
 {{- end }}
 {{- end }}
