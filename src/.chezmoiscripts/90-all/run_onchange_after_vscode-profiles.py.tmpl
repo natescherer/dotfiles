@@ -398,7 +398,7 @@ def write_profile_settings(profile_name, profile_dir, settings_content):
             f"{YELLOW_TERM_COLOR}Warning: VS Code profile '{profile_name}' {reason}.\n"
             f"\n"
             f"Compare it against what chezmoi would write with:\n"
-            f"    code --diff \"{settings_path}\" \"{desired_path}\"\n"
+            f"code --diff \"{settings_path}\" \"{desired_path}\"\n"
             f"\n"
             f"Then either reconcile the differences manually, or run the following to have chezmoi\n"
             f"overwrite it automatically:\n"
