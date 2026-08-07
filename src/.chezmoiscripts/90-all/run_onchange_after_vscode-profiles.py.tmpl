@@ -51,15 +51,18 @@ triggering the run_onchange_. */}}
 {{- end }}
 {{- $profiles = append $profiles (dict "name" .name "extensions" $extensions "settings" $settings "icon" $icon) }}
 {{- end }}
-PROFILES = {{ $profiles | toJson }}
+# toJson renders true/false/null, which aren't valid Python literals (unlike True/False/None) --
+# each embed below is wrapped as a raw string and parsed with json.loads instead of splicing it in
+# as Python source directly, so booleans and backslashes in the data can't break the syntax.
+PROFILES = json.loads(r'''{{ $profiles | toJson }}''')
 
 # .chezmoidata files can't be templated (data has to be loaded before the template engine has
 # anything to execute templates with), so vscode.toml's all_profile_extensions entries express
 # their whenTrue/whenFalse gates as top-level chezmoi variable names rather than real template
 # conditionals -- same convention windows-ini-patches.toml uses. The full chezmoi variable map is
 # embedded here so those gates can be evaluated once this script actually runs.
-CHEZMOI_DATA = {{ . | toJson }}
-ALL_PROFILE_EXTENSIONS = {{ .vscode.all_profile_extensions | default (list) | toJson }}
+CHEZMOI_DATA = json.loads(r'''{{ . | toJson }}''')
+ALL_PROFILE_EXTENSIONS = json.loads(r'''{{ .vscode.all_profile_extensions | default (list) | toJson }}''')
 
 IS_WINDOWS = platform.system() == "Windows"
 
