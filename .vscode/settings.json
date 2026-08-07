@@ -1,5 +1,6 @@
 {
   "files.associations": {
+    ".chezmoiignore.tmpl": "properties",
     "**/dot_ssh/*": "plaintext",
     "**/git/*": "plaintext",
     "**/src/.chezmoitemplates/vscode/**/*.json": "jsonc",

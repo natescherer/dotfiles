@@ -88,11 +88,12 @@ AppData/Local/winget-configuration-chezmoi/*late2025gamingdesktop.*.winget*
 
 {{- if eq .applyOSConfig false }}
 {{- if eq .chezmoi.os "windows" }}
-# Skip applying WinGet Configuration files
 .chezmoiscripts/40-windows/winget-configure.ps1
-# Skip installing PWAs (depends on WinGet Configuration having run)
 .chezmoiscripts/41-windows/pwa-install.ps1
-# Skip the setup checklist (its manual steps only apply once the rest of the OS config has run)
+.chezmoiscripts/41-windows/taskbar-pins.ps1
+.chezmoiscripts/41-windows/tray-pins.ps1
+.chezmoiscripts/41-windows/desktop-icons.ps1
+.chezmoiscripts/41-windows/pins-autostart.ps1
 .chezmoiscripts/91-windows/setup-checklist.ps1
 {{- end }}
 {{- if eq .chezmoi.os "darwin" }}
