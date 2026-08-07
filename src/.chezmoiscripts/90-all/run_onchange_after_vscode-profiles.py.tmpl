@@ -33,12 +33,11 @@ triggering the run_onchange_. */}}
 {{- if ne .name "Default" }}
 {{- $icon = .icon }}
 {{- end }}
-{{- $merged := dict }}
+{{- $settingsEntries := list }}
 {{- range $settingsFile := .settings_files | default (list) }}
 {{- $fileContent := include $settingsFile | fromJsonc }}
-{{- $merged = merge $fileContent $merged }}
+{{- $settingsEntries = append $settingsEntries (dict "file" $settingsFile "content" $fileContent) }}
 {{- end }}
-{{- $settings := $merged | toPrettyJson }}
 {{- $extensions := list }}
 {{- range $extensionSetName := .extension_sets | default (list) }}
 {{- $extensionSetExtensions := index $extensionSetDefns $extensionSetName | default (list) }}
@@ -49,7 +48,7 @@ triggering the run_onchange_. */}}
 {{- range $extension := .extensions | default (list) }}
 {{- $extensions = append $extensions $extension }}
 {{- end }}
-{{- $profiles = append $profiles (dict "name" .name "extensions" $extensions "settings" $settings "icon" $icon) }}
+{{- $profiles = append $profiles (dict "name" .name "extensions" $extensions "settings_files" $settingsEntries "icon" $icon) }}
 {{- end }}
 # toJson renders true/false/null, which aren't valid Python literals (unlike True/False/None) --
 # each embed below is wrapped as a raw string and parsed with json.loads instead of splicing it in
@@ -176,6 +175,64 @@ def extension_conditions_met(entry):
         if CHEZMOI_DATA.get(var_name) is True:
             return False
     return True
+
+
+class SettingsConflictError(Exception):
+    def __init__(self, path, file_a, file_b, value_a, value_b):
+        self.path = path
+        self.file_a = file_a
+        self.file_b = file_b
+        self.value_a = value_a
+        self.value_b = value_b
+        path_str = ".".join(path) if path else "<root>"
+        super().__init__(
+            f"'{path_str}' is set to {value_a!r} in '{file_a}' and {value_b!r} in '{file_b}'"
+        )
+
+
+def _record_origins(origins, path, value, filename):
+    # Tracks which file is responsible for each path in the merged tree, purely so a later
+    # conflict can name the two files involved instead of just the two values.
+    origins[path] = filename
+    if isinstance(value, dict):
+        for key, sub_value in value.items():
+            _record_origins(origins, path + (key,), sub_value, filename)
+
+
+def _merge_settings_values(existing, incoming, path, origins, incoming_file):
+    if isinstance(existing, dict) and isinstance(incoming, dict):
+        merged = dict(existing)
+        for key, incoming_value in incoming.items():
+            child_path = path + (key,)
+            if key in existing:
+                merged[key] = _merge_settings_values(
+                    existing[key], incoming_value, child_path, origins, incoming_file
+                )
+            else:
+                merged[key] = incoming_value
+                _record_origins(origins, child_path, incoming_value, incoming_file)
+        return merged
+
+    if isinstance(existing, list) and isinstance(incoming, list):
+        return existing + incoming
+
+    if existing == incoming:
+        return existing
+
+    raise SettingsConflictError(path, origins.get(path, "<unknown>"), incoming_file, existing, incoming)
+
+
+def merge_settings(settings_files):
+    # Combines a profile's settings_files (in the order settings_files lists them) into one
+    # settings.json: objects merge key-by-key (recursively), arrays at the same key concatenate,
+    # and a key set to two different, incompatible values (including a type mismatch, like an
+    # object in one file and an array in another) raises SettingsConflictError rather than
+    # silently letting the later file win.
+    merged = {}
+    origins = {}
+    for entry in settings_files:
+        merged = _merge_settings_values(merged, entry["content"], (), origins, entry["file"])
+    return merged
 
 
 def hash_string(value):
@@ -447,7 +504,20 @@ def main():
 
         if not sync_extensions(name, extensions):
             all_succeeded = False
-        write_profile_settings(name, profile_dir, profile["settings"])
+
+        try:
+            settings = merge_settings(profile["settings_files"])
+        except SettingsConflictError as exc:
+            print(
+                f"{RED_TERM_COLOR}Error: VS Code profile '{name}' has conflicting settings -- {exc}. "
+                f"Resolve the conflict in the source files, then re-run 'chezmoi apply'.{RESET_TERM_STYLE}\n",
+                file=sys.stderr,
+            )
+            all_succeeded = False
+            continue
+
+        settings_content = json.dumps(settings, indent=2, sort_keys=True) + "\n"
+        write_profile_settings(name, profile_dir, settings_content)
 
     if not all_succeeded:
         # Exiting non-zero (see the shutil.which("code") check above for why) so chezmoi retries
