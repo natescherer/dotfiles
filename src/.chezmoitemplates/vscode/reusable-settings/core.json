@@ -122,5 +122,6 @@
         "**/.azurepipelines/*.yaml",
         "azure-pipelines.yml",
         "azure-pipelines.yaml"
-    ]
+    ],
+    "window.newWindowProfile": "Default"
 }
