@@ -6,18 +6,11 @@
 {{- else if eq .chezmoi.os "windows" }}
     {{- $fontDir = ".local/share/chezmoifonts" }} ##@ This is a staging directory, fonts deposited here will be later installed as part of winget configure
 {{- end }}
-# TrueType (.ttf), not the release's OpenType (.otf) build -- the .otf builds of both fonts below
-# are CFF/PostScript-outline ("OTTO") flavored OpenType, which Windows' legacy GDI font loader
-# (what per-user, no-admin font installation goes through -- see 1.fonts.a.winget) has long-known
-# quirks with: the file and its per-user registry entry both end up looking completely correct, but
-# the font itself never actually loads, in any app, even across a reboot. Confirmed both .ttf builds
-# below are glyf-outline (not CFF) and have byte-for-byte identical glyph counts to their .otf
-# siblings, so this loses nothing.
-["{{ $fontDir }}/CascadiaMonoNF-Regular.ttf"]
+["{{ $fontDir }}/CascadiaMonoNF-Regular.otf"]
     type = "archive-file"
     url = "https://github.com/microsoft/cascadia-code/releases/download/v2407.24/CascadiaCode-2407.24.zip"
-    path = "ttf/static/CascadiaMonoNF-Regular.ttf"
-["{{ $fontDir }}/overpass-regular.ttf"]
+    path = "otf/static/CascadiaMonoNF-Regular.otf"
+["{{ $fontDir }}/overpass-regular.otf"]
     type = "archive-file"
     url = "https://github.com/RedHatOfficial/Overpass/releases/download/v3.0.5/overpass-3.0.5.zip"
-    path = "Overpass-3.0.5/webfonts/overpass-webfont/overpass-regular.ttf"
+    path = "Overpass-3.0.5/desktop-fonts/overpass/overpass-regular.otf"

@@ -47,9 +47,10 @@ resources:
           $Face = $Glyph.Win32FaceNames['en-US']
           if (-not $Face) { $Face = ($Glyph.Win32FaceNames.Values | Select-Object -First 1) }
           $RegistryName = if ($Face -and $Face -ne 'Regular') { "$Family $Face ($TypeLabel)" } else { "$Family ($TypeLabel)" }
-          $FileOk = Test-Path (Join-Path $UserFontsDir $File.Name)
+          $DestPath = Join-Path $UserFontsDir $File.Name
+          $FileOk = Test-Path $DestPath
           $RegValue = (Get-ItemProperty -Path 'HKCU:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Fonts' -Name $RegistryName -ErrorAction SilentlyContinue).$RegistryName
-          if ($FileOk -and ($RegValue -eq $File.Name)) { $InstalledCount++ }
+          if ($FileOk -and ($RegValue -eq $DestPath)) { $InstalledCount++ }
         }
         return @{ FontsFound = $Files.Count; FontsInstalled = $InstalledCount }
       testScript: |
@@ -69,9 +70,10 @@ resources:
           $Face = $Glyph.Win32FaceNames['en-US']
           if (-not $Face) { $Face = ($Glyph.Win32FaceNames.Values | Select-Object -First 1) }
           $RegistryName = if ($Face -and $Face -ne 'Regular') { "$Family $Face ($TypeLabel)" } else { "$Family ($TypeLabel)" }
-          $FileOk = Test-Path (Join-Path $UserFontsDir $File.Name)
+          $DestPath = Join-Path $UserFontsDir $File.Name
+          $FileOk = Test-Path $DestPath
           $RegValue = (Get-ItemProperty -Path 'HKCU:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Fonts' -Name $RegistryName -ErrorAction SilentlyContinue).$RegistryName
-          if (-not ($FileOk -and ($RegValue -eq $File.Name))) { return $false }
+          if (-not ($FileOk -and ($RegValue -eq $DestPath))) { return $false }
         }
         return $true
       setScript: |
@@ -98,13 +100,16 @@ resources:
           $Face = $Glyph.Win32FaceNames['en-US']
           if (-not $Face) { $Face = ($Glyph.Win32FaceNames.Values | Select-Object -First 1) }
           $RegistryName = if ($Face -and $Face -ne 'Regular') { "$Family $Face ($TypeLabel)" } else { "$Family ($TypeLabel)" }
-          $FileOk = Test-Path (Join-Path $UserFontsDir $File.Name)
-          $RegValue = (Get-ItemProperty -Path 'HKCU:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Fonts' -Name $RegistryName -ErrorAction SilentlyContinue).$RegistryName
-          if ($FileOk -and ($RegValue -eq $File.Name)) { continue }
-          Write-Host "Installing font: $($File.Name) as '$RegistryName'..."
           $DestPath = Join-Path $UserFontsDir $File.Name
+          $FileOk = Test-Path $DestPath
+          $RegValue = (Get-ItemProperty -Path 'HKCU:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Fonts' -Name $RegistryName -ErrorAction SilentlyContinue).$RegistryName
+          if ($FileOk -and ($RegValue -eq $DestPath)) { continue }
+          Write-Host "Installing font: $($File.Name) as '$RegistryName'..."
           Copy-Item -Path $File.FullName -Destination $DestPath -Force
-          New-ItemProperty -Path 'HKCU:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Fonts' -Name $RegistryName -Value $File.Name -PropertyType String -Force | Out-Null
+          # HKLM's system-wide font entries store a bare filename, which Windows resolves against
+          # the hardcoded %windir%\Fonts -- HKCU per-user entries have no such implicit folder, so
+          # Windows only resolves them when the value is the font's full path.
+          New-ItemProperty -Path 'HKCU:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Fonts' -Name $RegistryName -Value $DestPath -PropertyType String -Force | Out-Null
           [void][ChezmoiFontNotify]::AddFontResourceW($DestPath)
           $AnyInstalled = $true
         }
