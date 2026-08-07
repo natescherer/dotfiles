@@ -1,23 +1,29 @@
 [vscode]
 
-[vscode.extension_sets]
-# Extension sets can be reused across multiple profiles
-core = [
-  "blueglassblock.better-json5",  # JSON5 language server
-  "editorconfig.editorconfig",  # EditorConfig support, see https://editorconfig.org/
-  "hverlin.mise-vscode",  # Env vars, local tools, tasks all-in-one
-  "jimeh.actionlint",  # GitHub Actions linter
-  "mechatroner.rainbow-csv",  # Improves CSV viewing
-  "ms-azure-devops.azure-pipelines",  # Azure Pipelines support
-  "oderwat.indent-rainbow",  # Improves indent visibility
-  "owenlamont.ryl",  # YAML linter/formatter
-  "redhat.vscode-yaml",  # Core YAML support
-  "rvben.rumdl",  # Markdown linter/formatter
-  "tekumara.typos-vscode",  # Intelligent spell checker
-  "tombi-toml.tombi",  # TOML linter/formatter
-  "usernamehw.errorlens",  # Highlights errors and warnings inline
+# Extensions applied to every profile except Default (which is deliberately kept minimal -- see
+# its comment below). An entry can optionally gate itself with whenTrue and/or whenFalse, same
+# semantics as .chezmoidata/windows-ini-patches.toml: each is a list of top-level chezmoi variable
+# names (e.g. "isPersonal", "isVM" -- not dotted/nested paths); whenTrue requires every named
+# variable to be true, whenFalse requires every named variable to be anything other than true.
+all_profile_extensions = [
+  { id = "blueglassblock.better-json5" },  # JSON5 language server
+  { id = "editorconfig.editorconfig" },  # EditorConfig support, see https://editorconfig.org/
+  { id = "hverlin.mise-vscode" },  # Env vars, local tools, tasks all-in-one
+  { id = "jimeh.actionlint" },  # GitHub Actions linter
+  { id = "mechatroner.rainbow-csv" },  # Improves CSV viewing
+  { id = "ms-azure-devops.azure-pipelines" },  # Azure Pipelines support
+  { id = "oderwat.indent-rainbow" },  # Improves indent visibility
+  { id = "owenlamont.ryl" },  # YAML linter/formatter
+  { id = "redhat.vscode-yaml" },  # Core YAML support
+  { id = "rvben.rumdl" },  # Markdown linter/formatter
+  { id = "tekumara.typos-vscode" },  # Intelligent spell checker
+  { id = "tombi-toml.tombi" },  # TOML linter/formatter
+  { id = "usernamehw.errorlens" },  # Highlights errors and warnings inline
+  { id = "anthropic.claude-code", whenTrue = ["isPersonal"] },  # Claude Code
 ]
 
+[vscode.extension_sets]
+# Extension sets can be reused across multiple profiles
 jupyter = [
   "ms-toolsai.jupyter",  # Jupyter extension
   "ms-toolsai.jupyter-keymap",  # Jupyter keymap
@@ -53,17 +59,16 @@ extensions = [
 name = "Chezmoi"
 icon = "home"
 settings_files = [".chezmoitemplates/vscode/reusable-settings/core.json", ".chezmoitemplates/vscode/profile-settings/python.json"]
-extension_sets = ["core", "python"]
+extension_sets = ["python"]
 extensions = [
   "ms-vscode.powershell",  # PowerShell extension
 ]
-# Should figure out a way to disable redhat.vscode-yaml for this profile, since it throws all kinds of linting errors about *.yaml.tmpl files
 
 [[vscode.profiles]]
 name = "Kubernetes"
 icon = "server"
 settings_files = [".chezmoitemplates/vscode/reusable-settings/core.json", ".chezmoitemplates/vscode/profile-settings/python.json", ".chezmoitemplates/vscode/profile-settings/kubernetes.json"]
-extension_sets = ["core", "python"]
+extension_sets = ["python"]
 extensions = [
   "ms-kubernetes-tools.vscode-kubernetes-tools",
 ]
@@ -72,7 +77,7 @@ extensions = [
 name = "Nix"
 icon = "terminal-linux"
 settings_files = [".chezmoitemplates/vscode/reusable-settings/core.json", ".chezmoitemplates/vscode/profile-settings/nix.json"]
-extension_sets = ["core", "containers"]
+extension_sets = ["containers"]
 extensions = [
   "jnoortheen.nix-ide",  # Nix language server
   "signageos.signageos-vscode-sops",  # SOPS support for secret management
@@ -82,7 +87,7 @@ extensions = [
 name = "PowerShell"
 icon = "terminal"
 settings_files = [".chezmoitemplates/vscode/reusable-settings/core.json", ".chezmoitemplates/vscode/profile-settings/powershell.json"]
-extension_sets = ["core"]
+extension_sets = []
 extensions = [
   "ms-vscode.powershell",  # PowerShell extension
 ]
@@ -91,14 +96,14 @@ extensions = [
 name = "Python"
 icon = "snake"
 settings_files = [".chezmoitemplates/vscode/reusable-settings/core.json", ".chezmoitemplates/vscode/profile-settings/python.json"]
-extension_sets = ["core", "python", "jupyter"]
+extension_sets = ["python", "jupyter"]
 extensions = []
 
 [[vscode.profiles]]
 name = "Terraform"
 icon = "paintcan"
 settings_files = [".chezmoitemplates/vscode/reusable-settings/core.json", ".chezmoitemplates/vscode/profile-settings/python.json", ".chezmoitemplates/vscode/profile-settings/terraform.json"]
-extension_sets = ["core", "python"]
+extension_sets = ["python"]
 extensions =  [
   "hashicorp.terraform",
 ]
@@ -107,7 +112,7 @@ extensions =  [
 name = "Web"
 icon = "compass"
 settings_files = [".chezmoitemplates/vscode/reusable-settings/core.json", ".chezmoitemplates/vscode/profile-settings/web.json"]
-extension_sets = ["core"]
+extension_sets = []
 extensions = [
   "biomejs.biome",
   "deque-systems.vscode-axe-linter",

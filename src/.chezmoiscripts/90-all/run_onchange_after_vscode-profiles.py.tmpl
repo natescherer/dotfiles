@@ -53,6 +53,14 @@ triggering the run_onchange_. */}}
 {{- end }}
 PROFILES = {{ $profiles | toJson }}
 
+# .chezmoidata files can't be templated (data has to be loaded before the template engine has
+# anything to execute templates with), so vscode.toml's all_profile_extensions entries express
+# their whenTrue/whenFalse gates as top-level chezmoi variable names rather than real template
+# conditionals -- same convention windows-ini-patches.toml uses. The full chezmoi variable map is
+# embedded here so those gates can be evaluated once this script actually runs.
+CHEZMOI_DATA = {{ . | toJson }}
+ALL_PROFILE_EXTENSIONS = {{ .vscode.all_profile_extensions | default (list) | toJson }}
+
 IS_WINDOWS = platform.system() == "Windows"
 
 if IS_WINDOWS:
@@ -151,6 +159,20 @@ def sync_extensions(profile_name, desired_extensions):
         )
 
     return all_succeeded
+
+
+def extension_conditions_met(entry):
+    # whenTrue requires every named variable to be True; whenFalse requires every named variable
+    # to be anything other than True. A variable name missing from CHEZMOI_DATA resolves to None,
+    # which satisfies whenFalse (it's not True) but fails whenTrue (it isn't True either) -- an
+    # unset variable reads as falsy.
+    for var_name in entry.get("whenTrue", []):
+        if CHEZMOI_DATA.get(var_name) is not True:
+            return False
+    for var_name in entry.get("whenFalse", []):
+        if CHEZMOI_DATA.get(var_name) is True:
+            return False
+    return True
 
 
 def hash_string(value):
@@ -375,10 +397,17 @@ def main():
 
     user_dir = vscode_user_dir()
 
+    # Default is deliberately kept minimal (see its comment in vscode.toml) to nudge you into
+    # picking a real profile, so it's excluded from all_profile_extensions.
+    gated_extensions = [
+        entry["id"] for entry in ALL_PROFILE_EXTENSIONS if extension_conditions_met(entry)
+    ]
+
     all_succeeded = True
 
     for profile in PROFILES:
         name = profile["name"]
+        extensions = profile["extensions"] if name == "Default" else profile["extensions"] + gated_extensions
 
         if name == "Default":
             # Default always exists at a fixed path - no storage.json lookup, provisioning, or
@@ -413,7 +442,7 @@ def main():
             set_profile_icon(user_dir, name, profile["icon"])
             profile_dir = os.path.join(user_dir, "profiles", location)
 
-        if not sync_extensions(name, profile["extensions"]):
+        if not sync_extensions(name, extensions):
             all_succeeded = False
         write_profile_settings(name, profile_dir, profile["settings"])
 
