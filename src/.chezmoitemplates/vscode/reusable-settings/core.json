@@ -112,12 +112,6 @@
     "workbench.startupEditor": "none",
     "yaml.extension.recommendations": false,
     "yaml.disableSchemaDetection": [
-        "**/.github/workflows/*.yml",
-        "**/.github/workflows/*.yaml",
-        "**/.gitea/workflows/*.yml",
-        "**/.gitea/workflows/*.yaml",
-        "**/.forgejo/workflows/*.yml",
-        "**/.forgejo/workflows/*.yaml",
         "**/.azurepipelines/*.yml",
         "**/.azurepipelines/*.yaml",
         "azure-pipelines.yml",
