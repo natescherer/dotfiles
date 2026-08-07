@@ -34,8 +34,13 @@ New-Item -ItemType Directory -Path $ConfigDir -Force | Out-Null
 $ConfigFiles = (Get-ChildItem -Path $ConfigDir -Filter "*.winget" -File | Sort-Object Name).Name
 
 # winget's exit code isn't reliable (see bottom of script) and this runs unattended, so log
-# everything -- otherwise a real failure leaves no record once the terminal closes.
-$LogPath = Join-Path $ConfigDir "winget-configure.log"
+# everything -- otherwise a real failure leaves no record once the terminal closes. Timestamped
+# per run, in its own subdirectory, rather than one path every run overwrites -- otherwise the
+# evidence for a failure is gone as soon as a second run (even a successful one) happens before
+# anyone looks.
+$LogDir = Join-Path $ConfigDir "logs"
+New-Item -ItemType Directory -Path $LogDir -Force | Out-Null
+$LogPath = Join-Path $LogDir "winget-configure_$(Get-Date -Format 'yyyy-MM-dd_HHmmss').log"
 "Run started $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')" | Set-Content -Path $LogPath
 
 # Where winget writes its own diagnostic logs -- pointed to from failure log lines.
