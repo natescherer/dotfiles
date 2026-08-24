@@ -18,6 +18,9 @@ Currently managed:
 - [Cargo](https://github.com/rust-lang/cargo) 🐧 🍎 🪟
   - Config Files
     - [src/.chezmoidata/env-vars.toml](src/.chezmoidata/env-vars.toml)
+- [Claude](https://claude.com/) 🐧 🍎 🪟
+  - Config Files
+    - [src/dot_config/claude/CLAUDE.md](src/dot_config/claude/CLAUDE.md)
 - [Clocker](https://abhishekbanthia.com/clocker/) 🍎
   - Notes
     - Configuration is imported via script [src/.chezmoiscripts/30-macos/run_onchange_defaults-importer.sh.tmpl](src/.chezmoiscripts/30-macos/run_onchange_defaults-importer.sh.tmpl)

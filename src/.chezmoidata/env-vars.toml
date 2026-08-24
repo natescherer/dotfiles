@@ -42,6 +42,12 @@ path_part2 = "cargo"
 comment = "Cargo: Repoint data from home"
 
 [[env_vars_apps]]
+name = "CLAUDE_CONFIG_DIR"
+path_part1 = "$XDG_CONFIG_HOME"
+path_part2 = "claude"
+comment = "Claude: Repoint data from home"
+
+[[env_vars_apps]]
 name = "LESSHISTFILE"
 value = "-"
 comment = "Less: Disable history file in home"
