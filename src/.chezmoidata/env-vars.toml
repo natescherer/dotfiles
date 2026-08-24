@@ -25,9 +25,21 @@ home_subpath_part2 = "state"
 comment = "XDG Directory Specification: Setup"
 
 [[env_vars_apps]]
+name = "ANDROID_USER_HOME"
+path_part1 = "$XDG_DATA_HOME"
+path_part2 = "android"
+comment = "Android SDK: Repoint data from home"
+
+[[env_vars_apps]]
 name = "AZURE_CORE_SURVEY_MESSAGE"
 value = "false"
 comment = "Azure CLI: Disable prompts to take surveys"
+
+[[env_vars_apps]]
+name = "AZURE_DEVOPS_CACHE_DIR"
+path_part1 = "$XDG_CACHE_HOME"
+path_part2 = "azure-devops"
+comment = "Azure CLI DevOps Extension: Repoint data from home"
 
 [[env_vars_apps]]
 name = "AZURE_CONFIG_DIR"
@@ -46,6 +58,18 @@ name = "CLAUDE_CONFIG_DIR"
 path_part1 = "$XDG_CONFIG_HOME"
 path_part2 = "claude"
 comment = "Claude: Repoint data from home"
+
+[[env_vars_apps]]
+name = "COPILOT_HOME"
+path_part1 = "$XDG_CONFIG_HOME"
+path_part2 = "copilot"
+comment = "GitHub Copilot CLI: Repoint config from home"
+
+[[env_vars_apps]]
+name = "DOCKER_CONFIG"
+path_part1 = "$XDG_CONFIG_HOME"
+path_part2 = "docker"
+comment = "Docker Desktop: Repoint config from home"
 
 [[env_vars_apps]]
 name = "LESSHISTFILE"
