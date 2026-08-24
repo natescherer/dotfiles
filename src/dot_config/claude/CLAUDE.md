@@ -1,4 +1,20 @@
+<!-- WARNING: This file is chezmoi-managed and should not be manually edited! -->
 # CLAUDE.md
+
+## Where to save durable knowledge
+
+Before saving something you learn (workflow rules, gotchas, established
+patterns -- not one-off task context) to persistent memory, ask which of
+these it belongs in, rather than guessing:
+
+- **Private local memory** -- tied to one project, not shared with the team
+  or other tools.
+- **The project's `AGENTS.md`** -- version-controlled, shared with the team
+  and interoperable across coding agents; for conventions specific to that
+  project. If a `CLAUDE.md` file doesn't exist yet, make one that imports
+  `AGENTS.md` as well.
+- **This file** -- applies to every project you personally work in, but
+  private to you and invisible to teammates or other tools.
 
 ## Git workflow
 
