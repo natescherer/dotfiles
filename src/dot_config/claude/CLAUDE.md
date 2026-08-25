@@ -27,6 +27,12 @@ these it belongs in, rather than guessing:
   bundle unrelated fixes into one commit, even if it's faster -- it's fine to
   bundle a fix with file(s) it's obviously coupled to (e.g. a new file plus
   the config change needed to lint it).
+- When separate fixes will each be reviewed/merged independently (not as a
+  stacked series), give each one its own branch off `main` rather than
+  stacking multiple commits on one branch -- so they can land in any order
+  without one PR depending on another. Before creating each new branch,
+  `git checkout main && git pull` first, since an earlier branch in the same
+  batch may already have been merged.
 - Proposing a commit message inside a longer summary is **not** approval to
   commit. Print the full proposed message as its own block (e.g. a code
   fence), then wait for a distinct yes -- don't infer approval from the
