@@ -44,3 +44,12 @@ these it belongs in, rather than guessing:
 - After a commit+push, if there's no more queued work on that branch, switch
   back to `main` (and `git pull`) rather than leaving the session sitting on a
   finished feature branch.
+
+## Documentation and comments
+
+- Keep docs, comments, and commit messages pithy -- state the current fact,
+  not the history of how I got there. Don't leave remnants of a wrong
+  turn (a claim I made and then had to correct, a rejected approach, "note:
+  earlier this said X but that was wrong") in shipped text. If that history
+  is genuinely worth keeping, it belongs in session memory, not in the
+  artifact itself.
