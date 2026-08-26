@@ -26,3 +26,5 @@
 - After a commit+push, if there's no more queued work on that branch, switch
   back to `main` (and `git pull`) rather than leaving the session sitting on a
   finished feature branch.
+- Never add a `Co-Authored-By` trailer (or any other AI-attribution line) to
+  commit messages -- author commits as mine alone.
