@@ -1,21 +1,3 @@
-<!-- WARNING: This file is chezmoi-managed and should not be manually edited! -->
-# CLAUDE.md
-
-## Where to save durable knowledge
-
-Before saving something you learn (workflow rules, gotchas, established
-patterns -- not one-off task context) to persistent memory, ask which of
-these it belongs in, rather than guessing:
-
-- **Private local memory** -- tied to one project, not shared with the team
-  or other tools.
-- **The project's `AGENTS.md`** -- version-controlled, shared with the team
-  and interoperable across coding agents; for conventions specific to that
-  project. If a `CLAUDE.md` file doesn't exist yet, make one that imports
-  `AGENTS.md` as well.
-- **This file** -- applies to every project you personally work in, but
-  private to you and invisible to teammates or other tools.
-
 ## Git workflow
 
 - Default to a feature branch + PR for any change -- do not commit directly to
@@ -44,12 +26,5 @@ these it belongs in, rather than guessing:
 - After a commit+push, if there's no more queued work on that branch, switch
   back to `main` (and `git pull`) rather than leaving the session sitting on a
   finished feature branch.
-
-## Documentation and comments
-
-- Keep docs, comments, and commit messages pithy -- state the current fact,
-  not the history of how I got there. Don't leave remnants of a wrong
-  turn (a claim I made and then had to correct, a rejected approach, "note:
-  earlier this said X but that was wrong") in shipped text. If that history
-  is genuinely worth keeping, it belongs in session memory, not in the
-  artifact itself.
+- Never add a `Co-Authored-By` trailer (or any other AI-attribution line) to
+  commit messages -- author commits as mine alone.
