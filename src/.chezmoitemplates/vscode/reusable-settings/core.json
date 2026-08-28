@@ -56,7 +56,6 @@
     },
     "merge-conflict.autoNavigateNextConflict.enabled": true,
     "mise.checkForNewMiseVersion": false,
-    "mise.updateOpenTerminalsEnvAutomatically": true,
     "redhat.telemetry.enabled": false,
     "remote.defaultExtensionsIfInstalledLocally": [
         "GitHub.copilot",
