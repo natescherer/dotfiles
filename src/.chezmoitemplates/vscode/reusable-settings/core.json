@@ -7,6 +7,9 @@
     },
     "breadcrumbs.enabled": true,
     "chat.editor.wordWrap": "on",
+    "chat.instructionsFilesLocations": {
+        "~/.config/copilot/instructions": true
+    },
     "chat.restoreLastPanelSession": true,
     "claudeCode.preferredLocation": "sidebar",
     "diffEditor.codeLens": true,
