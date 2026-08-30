@@ -6,10 +6,12 @@
 # names (e.g. "isPersonal", "isVM" -- not dotted/nested paths); whenTrue requires every named
 # variable to be true, whenFalse requires every named variable to be anything other than true.
 all_profile_extensions = [
+  { id = "anthropic.claude-code", whenTrue = ["isPersonal"] },  # Claude Code
   { id = "blueglassblock.better-json5" },  # JSON5 language server
   { id = "editorconfig.editorconfig" },  # EditorConfig support, see https://editorconfig.org/
   { id = "hverlin.mise-vscode" },  # Env vars, local tools, tasks all-in-one
   { id = "jimeh.actionlint" },  # GitHub Actions linter
+  { id = "maptz.regionfolder" }, # Region folding support for all languages
   { id = "mechatroner.rainbow-csv" },  # Improves CSV viewing
   { id = "ms-azure-devops.azure-pipelines" },  # Azure Pipelines support
   { id = "oderwat.indent-rainbow" },  # Improves indent visibility
@@ -18,8 +20,7 @@ all_profile_extensions = [
   { id = "rvben.rumdl" },  # Markdown linter/formatter
   { id = "tekumara.typos-vscode" },  # Intelligent spell checker
   { id = "tombi-toml.tombi" },  # TOML linter/formatter
-  { id = "usernamehw.errorlens" },  # Highlights errors and warnings inline
-  { id = "anthropic.claude-code", whenTrue = ["isPersonal"] },  # Claude Code
+  { id = "usernamehw.errorlens" }  # Highlights errors and warnings inline
 ]
 
 [vscode.extension_sets]
