@@ -28,6 +28,11 @@ if ((Get-Command brew) -and (Test-Path ($completions = "$(brew --prefix)/share/p
 # Import aliases
 . $(Join-Path $PSScriptRoot "aliases.ps1")
 
+# Import local aliases (if present)
+if (Test-Path $(Join-Path $PSScriptRoot "aliases-local.ps1")) {
+  . $(Join-Path $PSScriptRoot "aliases-local.ps1")
+}
+
 {{ if lookPath "mise" -}}
 # Activate mise
 mise activate pwsh | Out-String | Invoke-Expression

@@ -26,6 +26,9 @@ setopt INC_APPEND_HISTORY       # don't wait for shell to exit to save history l
 # Source aliases
 source ${ZDOTDIR}/.zsh-aliases
 
+# Source local aliases (if present)
+[[ -r ${ZDOTDIR}/.zsh-aliases-local ]] && source ${ZDOTDIR}/.zsh-aliases-local
+
 {{ if findExecutable "brew" (list "/opt/homebrew/bin" "/home/linuxbrew/.linuxbrew/bin") -}}
 # Activate Homebrew
 eval "$({{ findExecutable "brew" (list "/opt/homebrew/bin" "/home/linuxbrew/.linuxbrew/bin") }} shellenv)"
