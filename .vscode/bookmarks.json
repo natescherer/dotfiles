@@ -1,7 +1,7 @@
 {
 	"files": [
 		{
-			"path": "src/.chezmoitemplates/vscode/reusable-settings/core.json",
+			"path": "chezmoi/.chezmoitemplates/vscode/reusable-settings/core.json",
 			"bookmarks": [
 				{
 					"line": 0,
@@ -11,7 +11,7 @@
 			]
 		},
 		{
-			"path": "src/.chezmoidata/vscode.toml",
+			"path": "chezmoi/.chezmoidata/vscode.toml",
 			"bookmarks": [
 				{
 					"line": 7,
@@ -21,7 +21,7 @@
 			]
 		},
 		{
-			"path": "src/AppData/Local/winget-configuration-chezmoi/2.apps-core.a.winget",
+			"path": "chezmoi/AppData/Local/winget-configuration-chezmoi/2.apps-core.a.winget",
 			"bookmarks": [
 				{
 					"line": 9,
@@ -31,7 +31,7 @@
 			]
 		},
 		{
-			"path": "src/.chezmoitemplates/ai-instructions/working-style.md",
+			"path": "chezmoi/.chezmoitemplates/ai-instructions/working-style.md",
 			"bookmarks": [
 				{
 					"line": 0,

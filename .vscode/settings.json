@@ -4,7 +4,7 @@
     ".chezmoiignore.tmpl": "properties",
     "**/dot_ssh/*": "plaintext",
     "**/git/*": "plaintext",
-    "**/src/.chezmoitemplates/vscode/**/*.json": "jsonc",
+    "**/chezmoi/.chezmoitemplates/vscode/**/*.json": "jsonc",
     "*.json.tmpl": "jsonc",
     "*.mobileconfig": "xml",
     "*.sh.tmpl": "shellscript",

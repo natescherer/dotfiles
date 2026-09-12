@@ -11,139 +11,139 @@ Currently managed:
 
 - [1Password](https://1password.com/) 🐧 🍎 🪟
   - Config Files
-    - [src/.chezmoitemplates/1password/agent.toml.tmpl](src/.chezmoitemplates/1password/agent.toml.tmpl)
+    - [chezmoi/.chezmoitemplates/1password/agent.toml.tmpl](chezmoi/.chezmoitemplates/1password/agent.toml.tmpl)
 - [Azure CLI](https://learn.microsoft.com/en-us/cli/azure/) 🐧 🍎 🪟
   - Config Files
-    - [src/.chezmoidata/env-vars.toml](src/.chezmoidata/env-vars.toml)
+    - [chezmoi/.chezmoidata/env-vars.toml](chezmoi/.chezmoidata/env-vars.toml)
 - [Cargo](https://github.com/rust-lang/cargo) 🐧 🍎 🪟
   - Config Files
-    - [src/.chezmoidata/env-vars.toml](src/.chezmoidata/env-vars.toml)
+    - [chezmoi/.chezmoidata/env-vars.toml](chezmoi/.chezmoidata/env-vars.toml)
 - [Claude](https://claude.com/) 🐧 🍎 🪟
   - Config Files
-    - [src/dot_config/claude/CLAUDE.md](src/dot_config/claude/CLAUDE.md)
+    - [chezmoi/dot_config/claude/CLAUDE.md](chezmoi/dot_config/claude/CLAUDE.md)
 - [Clocker](https://abhishekbanthia.com/clocker/) 🍎
   - Notes
-    - Configuration is imported via script [src/.chezmoiscripts/30-macos/run_onchange_defaults-importer.sh.tmpl](src/.chezmoiscripts/30-macos/run_onchange_defaults-importer.sh.tmpl)
+    - Configuration is imported via script [chezmoi/.chezmoiscripts/30-macos/run_onchange_defaults-importer.sh.tmpl](chezmoi/.chezmoiscripts/30-macos/run_onchange_defaults-importer.sh.tmpl)
   - Config Files
-    - [src/.scriptdata/macos-defaults/com.abhishek.Clocker.plist](src/.scriptdata/macos-defaults/com.abhishek.Clocker.plist)
+    - [chezmoi/.scriptdata/macos-defaults/com.abhishek.Clocker.plist](chezmoi/.scriptdata/macos-defaults/com.abhishek.Clocker.plist)
       - Note this is a non-editable binary file, made via `defaults export com.abhishek.Clocker com.abhishek.Clocker.plist`
 - [Delta](https://github.com/dandavison/delta) 🐧 🍎 🪟
   - Config Files
-    - [src/dot_config/git/config.tmpl](src/dot_config/git/config.tmpl)
-    - [src/.chezmoi.yaml.tmpl](src/.chezmoi.yaml.tmpl)
+    - [chezmoi/dot_config/git/config.tmpl](chezmoi/dot_config/git/config.tmpl)
+    - [chezmoi/.chezmoi.yaml.tmpl](chezmoi/.chezmoi.yaml.tmpl)
 - [fzf](https://github.com/junegunn/fzf) 🐧 🍎
   - Config Files
-    - [src/dot_config/zsh/dot_zshrc.tmpl](src/dot_config/zsh/dot_zshrc.tmpl)
+    - [chezmoi/dot_config/zsh/dot_zshrc.tmpl](chezmoi/dot_config/zsh/dot_zshrc.tmpl)
 - [Ghostty](https://ghostty.org/) 🐧 🍎
   - Notes
-    - Notification permissions are pre-granted via a configuration profile, since macOS has no supported way to grant them silently. Installed via script [src/.chezmoiscripts/30-macos/run_onchange_profiles-importer.sh.tmpl](src/.chezmoiscripts/30-macos/run_onchange_profiles-importer.sh.tmpl)
+    - Notification permissions are pre-granted via a configuration profile, since macOS has no supported way to grant them silently. Installed via script [chezmoi/.chezmoiscripts/30-macos/run_onchange_profiles-importer.sh.tmpl](chezmoi/.chezmoiscripts/30-macos/run_onchange_profiles-importer.sh.tmpl)
   - Config Files
-    - [src/dot_config/ghostty/config.tmpl](src/dot_config/ghostty/config.tmpl)
-    - [src/.scriptdata/macos-profiles/notifications.mobileconfig](src/.scriptdata/macos-profiles/notifications.mobileconfig)
+    - [chezmoi/dot_config/ghostty/config.tmpl](chezmoi/dot_config/ghostty/config.tmpl)
+    - [chezmoi/.scriptdata/macos-profiles/notifications.mobileconfig](chezmoi/.scriptdata/macos-profiles/notifications.mobileconfig)
 - [Git](https://git-scm.com/) 🐧 🍎 🪟
   - Config Files
-    - [src/dot_config/git/config.tmpl](src/dot_config/git/config.tmpl)
-    - [src/dot_config/git/ignore](src/dot_config/git/ignore)
+    - [chezmoi/dot_config/git/config.tmpl](chezmoi/dot_config/git/config.tmpl)
+    - [chezmoi/dot_config/git/ignore](chezmoi/dot_config/git/ignore)
   - Folders
-    - [src/git/gh](src/git/gh) for GitHub repos
-    - [src/git/azdo](src/git/azdo) for Azure DevOps repos
+    - [chezmoi/git/gh](chezmoi/git/gh) for GitHub repos
+    - [chezmoi/git/azdo](chezmoi/git/azdo) for Azure DevOps repos
 - [GitHub CLI](https://cli.github.com/) 🐧 🍎 🪟
   - Config Files
-    - [src/dot_config/mise/config.toml](src/dot_config/mise/config.toml)
-    - [src/dot_config/gh/config.yml](src/dot_config/gh/config.yml)
+    - [chezmoi/dot_config/mise/config.toml](chezmoi/dot_config/mise/config.toml)
+    - [chezmoi/dot_config/gh/config.yml](chezmoi/dot_config/gh/config.yml)
 - [GnuPG](https://gnupg.org/) 🐧 🍎 🪟
   - Config Files
-    - [src/.chezmoidata/env-vars.toml](src/.chezmoidata/env-vars.toml)
+    - [chezmoi/.chezmoidata/env-vars.toml](chezmoi/.chezmoidata/env-vars.toml)
 - [Go](https://https://go.dev/) 🐧 🍎 🪟
   - Config Files
-    - [src/.chezmoidata/env-vars.toml](src/.chezmoidata/env-vars.toml)
+    - [chezmoi/.chezmoidata/env-vars.toml](chezmoi/.chezmoidata/env-vars.toml)
 - [Homebrew Autoupdate](https://github.com/DomT4/homebrew-autoupdate) 🍎
   - Notes
-    - Notification permissions are pre-granted via a configuration profile, since macOS has no supported way to grant them silently. Installed via script [src/.chezmoiscripts/30-macos/run_onchange_profiles-importer.sh.tmpl](src/.chezmoiscripts/30-macos/run_onchange_profiles-importer.sh.tmpl)
+    - Notification permissions are pre-granted via a configuration profile, since macOS has no supported way to grant them silently. Installed via script [chezmoi/.chezmoiscripts/30-macos/run_onchange_profiles-importer.sh.tmpl](chezmoi/.chezmoiscripts/30-macos/run_onchange_profiles-importer.sh.tmpl)
   - Config Files
-    - [src/.scriptdata/macos-profiles/notifications.mobileconfig](src/.scriptdata/macos-profiles/notifications.mobileconfig)
+    - [chezmoi/.scriptdata/macos-profiles/notifications.mobileconfig](chezmoi/.scriptdata/macos-profiles/notifications.mobileconfig)
 - [k9s](https://github.com/derailed/k9s) 🐧 🍎 🪟
   - Config Files
-    - [src/dot_config/k9s/config.yaml.tmpl](src/dot_config/k9s/config.yaml.tmpl)
+    - [chezmoi/dot_config/k9s/config.yaml.tmpl](chezmoi/dot_config/k9s/config.yaml.tmpl)
 - [kubie](https://github.com/sbstp/kubie) 🐧 🍎
   - Config Files
-    - [src/dot_kube/kubie.yaml](src/dot_kube/kubie.yaml)
+    - [chezmoi/dot_kube/kubie.yaml](chezmoi/dot_kube/kubie.yaml)
 - [macOS](https://www.apple.com/macos/) 🍎
   - Config Files
-    - [src/Library/Application Support/ansible-configuration-chezmoi](<src/Library/Application Support/ansible-configuration-chezmoi>)
-    - [src/.chezmoiscripts/30-macos/run_onchange_after_ansible-configure.sh.tmpl](src/.chezmoiscripts/30-macos/run_onchange_after_ansible-configure.sh.tmpl)
+    - [chezmoi/Library/Application Support/ansible-configuration-chezmoi](<chezmoi/Library/Application Support/ansible-configuration-chezmoi>)
+    - [chezmoi/.chezmoiscripts/30-macos/run_onchange_after_ansible-configure.sh.tmpl](chezmoi/.chezmoiscripts/30-macos/run_onchange_after_ansible-configure.sh.tmpl)
 - [micro](https://micro-editor.github.io/) 🐧 🍎 🪟
   - Config Files
-    - [src/dot_config/micro/settings.json](src/dot_config/micro/settings.json)
+    - [chezmoi/dot_config/micro/settings.json](chezmoi/dot_config/micro/settings.json)
 - [mise](https://mise.jdx.dev) 🐧 🍎 🪟
   - Config Files
-    - [src/dot_config/mise/config.toml](src/dot_config/mise/config.toml)
+    - [chezmoi/dot_config/mise/config.toml](chezmoi/dot_config/mise/config.toml)
 - [npm](https://www.npmjs.com/) 🐧 🍎 🪟
   - Config Files
-    - [src/.chezmoidata/env-vars.toml](src/.chezmoidata/env-vars.toml)
-    - [src/dot_config/npm/npmrc](src/dot_config/npm/npmrc)
+    - [chezmoi/.chezmoidata/env-vars.toml](chezmoi/.chezmoidata/env-vars.toml)
+    - [chezmoi/dot_config/npm/npmrc](chezmoi/dot_config/npm/npmrc)
 - [rustup](https://rustup.rs/) 🐧 🍎 🪟
   - Config Files
-    - [src/.chezmoidata/env-vars.toml](src/.chezmoidata/env-vars.toml)
+    - [chezmoi/.chezmoidata/env-vars.toml](chezmoi/.chezmoidata/env-vars.toml)
 - Terminal Color Scheme
   - Applied to Ghostty, Windows Terminal, and Visual Studio Code
   - Generated by [Root Loops](https://rootloops.sh/?sugar=6&colors=9&sogginess=0&flavor=1&fruit=10&milk=0)
 - [PowerShell](https://github.com/PowerShell/PowerShell) 🐧 🍎 🪟
   - Config Files
-    - [src/.chezmoitemplates/powershell/aliases.ps1.tmpl](src/.chezmoitemplates/powershell/aliases.ps1.tmpl)
-    - [src/.chezmoitemplates/powershell/env.ps1.tmpl](src/.chezmoitemplates/powershell/env.ps1.tmpl)
-    - [src/.chezmoitemplates/powershell/profile.ps1.tmpl](src/.chezmoitemplates/powershell/profile.ps1.tmpl)
+    - [chezmoi/.chezmoitemplates/powershell/aliases.ps1.tmpl](chezmoi/.chezmoitemplates/powershell/aliases.ps1.tmpl)
+    - [chezmoi/.chezmoitemplates/powershell/env.ps1.tmpl](chezmoi/.chezmoitemplates/powershell/env.ps1.tmpl)
+    - [chezmoi/.chezmoitemplates/powershell/profile.ps1.tmpl](chezmoi/.chezmoitemplates/powershell/profile.ps1.tmpl)
 - [Sheldon](https://github.com/rossmacarthur/sheldon) 🐧 🍎
   - Config Files
-    - [src/dot_config/sheldon/plugins.toml](src/dot_config/sheldon/plugins.toml)
+    - [chezmoi/dot_config/sheldon/plugins.toml](chezmoi/dot_config/sheldon/plugins.toml)
 - [Starship](https://starship.rs) 🐧 🍎 🪟
   - Config Files
-    - [src/.chezmoidata/env-vars.toml](src/.chezmoidata/env-vars.toml)
-    - [src/dot_config/starship/config.toml.tmpl](src/dot_config/starship/config.toml.tmpl)
+    - [chezmoi/.chezmoidata/env-vars.toml](chezmoi/.chezmoidata/env-vars.toml)
+    - [chezmoi/dot_config/starship/config.toml.tmpl](chezmoi/dot_config/starship/config.toml.tmpl)
 - [Stats](https://github.com/exelban/stats) 🍎
   - Notes
-    - Configuration is imported via script [src/.chezmoiscripts/30-macos/run_onchange_defaults-importer.sh.tmpl](src/.chezmoiscripts/30-macos/run_onchange_defaults-importer.sh.tmpl)
+    - Configuration is imported via script [chezmoi/.chezmoiscripts/30-macos/run_onchange_defaults-importer.sh.tmpl](chezmoi/.chezmoiscripts/30-macos/run_onchange_defaults-importer.sh.tmpl)
   - Config Files
-    - [src/.scriptdata/macos-defaults/eu.exelban.Stats.plist](src/.scriptdata/macos-defaults/eu.exelban.Stats.plist)
+    - [chezmoi/.scriptdata/macos-defaults/eu.exelban.Stats.plist](chezmoi/.scriptdata/macos-defaults/eu.exelban.Stats.plist)
       - Note this is a non-editable binary file, made via `defaults export eu.exelban.Stats eu.exelban.Stats.plist`
 - [Ungoogled Chromium](https://github.com/ungoogled-software/ungoogled-chromium) 🍎
   - Notes
-    - Notification permissions are pre-granted via a configuration profile, since macOS has no supported way to grant them silently. Installed via script [src/.chezmoiscripts/30-macos/run_onchange_profiles-importer.sh.tmpl](src/.chezmoiscripts/30-macos/run_onchange_profiles-importer.sh.tmpl)
+    - Notification permissions are pre-granted via a configuration profile, since macOS has no supported way to grant them silently. Installed via script [chezmoi/.chezmoiscripts/30-macos/run_onchange_profiles-importer.sh.tmpl](chezmoi/.chezmoiscripts/30-macos/run_onchange_profiles-importer.sh.tmpl)
   - Config Files
-    - [src/.scriptdata/macos-profiles/notifications.mobileconfig](src/.scriptdata/macos-profiles/notifications.mobileconfig)
+    - [chezmoi/.scriptdata/macos-profiles/notifications.mobileconfig](chezmoi/.scriptdata/macos-profiles/notifications.mobileconfig)
 - [UniGetUI](https://www.marticliment.com/unigetui/) 🪟
   - Notes
     - Uses an unusual model of one-file-per-setting, there are many files under the below directory
   - Config Files
-    - [src/AppData/Local/UniGetUI/Configuration](src/AppData/Local/UniGetUI/Configuration)
+    - [chezmoi/AppData/Local/UniGetUI/Configuration](chezmoi/AppData/Local/UniGetUI/Configuration)
 - [Visual Studio Code](https://code.visualstudio.com/) 🐧 🍎 🪟
   - Notes
     - Configured to support the syncing of profiles
   - Config Files
-    - [src/.chezmoidata/vscode.toml](src/.chezmoidata/vscode.toml)
+    - [chezmoi/.chezmoidata/vscode.toml](chezmoi/.chezmoidata/vscode.toml)
       - Defines data used to provision profiles
-    - [src/.chezmoitemplates/vscode](src/.chezmoitemplates/vscode)
+    - [chezmoi/.chezmoitemplates/vscode](chezmoi/.chezmoitemplates/vscode)
       - Each file in this directory defines the settings for a profile
-    - [src/.chezmoiscripts/90-all/run_onchange_after_vscode-profiles.py.tmpl](src/.chezmoiscripts/90-all/run_onchange_after_vscode-profiles.py.tmpl)
+    - [chezmoi/.chezmoiscripts/90-all/run_onchange_after_vscode-profiles.py.tmpl](chezmoi/.chezmoiscripts/90-all/run_onchange_after_vscode-profiles.py.tmpl)
       - Performs profile provisioning and updating
 - [VMware Workstation](https://www.vmware.com/products/workstation-pro.html) 🪟
   - Notes
     - VMware stores its session state in the same INI file as its settings, so needed settings are patched in-place via script
   - Config Files
-    - [src/.chezmoidata/windows-ini-patches.toml](src/.chezmoidata/windows-ini-patches.toml)
+    - [chezmoi/.chezmoidata/windows-ini-patches.toml](chezmoi/.chezmoidata/windows-ini-patches.toml)
 - [Windows](https://windows.com) 🪟
   - Config Files
-    - [src/dot_wslconfig](src/dot_wslconfig)
-    - [src/AppData/Local/winget-configuration-chezmoi](src/AppData/Local/winget-configuration-chezmoi)
+    - [chezmoi/dot_wslconfig](chezmoi/dot_wslconfig)
+    - [chezmoi/AppData/Local/winget-configuration-chezmoi](chezmoi/AppData/Local/winget-configuration-chezmoi)
       - Files under this folder are part of a Winget Configuration used to declaratively configure Windows workstatesion <!-- rumdl-disable-line MD013 -->
 - [Windows Terminal](https://apps.microsoft.com/detail/9n0dx20hk701) 🪟
   - Config Files
-    - [src/AppData/Local/Packages/Microsoft.WindowsTerminal_8wekyb3d8bbwe/LocalState/settings.json](src/AppData/Local/Packages/Microsoft.WindowsTerminal_8wekyb3d8bbwe/LocalState/settings.json)
+    - [chezmoi/AppData/Local/Packages/Microsoft.WindowsTerminal_8wekyb3d8bbwe/LocalState/settings.json](chezmoi/AppData/Local/Packages/Microsoft.WindowsTerminal_8wekyb3d8bbwe/LocalState/settings.json)
 - [Zsh](https://www.zsh.org/) 🐧 🍎
   - Config Files
-    - [src/dot_config/zsh/dot_zsh-aliases.tmpl](src/dot_config/zsh/dot_zsh-aliases.tmpl)
-    - [src/dot_config/zsh/dot_zshrc.tmpl](src/dot_config/zsh/dot_zshrc.tmpl)
-    - [src/dot_zshenv.tmpl](src/dot_zshenv.tmpl)
+    - [chezmoi/dot_config/zsh/dot_zsh-aliases.tmpl](chezmoi/dot_config/zsh/dot_zsh-aliases.tmpl)
+    - [chezmoi/dot_config/zsh/dot_zshrc.tmpl](chezmoi/dot_config/zsh/dot_zshrc.tmpl)
+    - [chezmoi/dot_zshenv.tmpl](chezmoi/dot_zshenv.tmpl)
 
 ## Loading this Config
 
