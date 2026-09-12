@@ -12,7 +12,7 @@
 # the run_onchange_ gate below (rerun only when the vendored playbook content changes) is
 # sufficient on its own.
 
-{{- $ansibleDir := print .chezmoi.sourceDir "/dot_local/share/ansible-configuration-chezmoi" -}}
+{{- $ansibleDir := print .chezmoi.sourceDir "/Library/Application Support/ansible-configuration-chezmoi" -}}
 {{- $ansibleFiles := list -}}
 {{- range joinPath $ansibleDir "**" | glob | sortAlpha -}}
 {{- if not (stat .).isDir -}}
@@ -35,7 +35,7 @@ export ANSIBLE_FORCE_COLOR=1
 
 echo -e "\033[1;32m\nApplying macOS configuration via ansible-playbook...\033[0m"
 
-TargetDir="$HOME/.local/share/ansible-configuration-chezmoi"
+TargetDir="$HOME/Library/Application Support/ansible-configuration-chezmoi"
 LogFile="$TargetDir/ansible-playbook.log"
 echo "Run started $(date '+%Y-%m-%d %H:%M:%S')" > "$LogFile"
 

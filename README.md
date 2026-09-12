@@ -62,7 +62,7 @@ Currently managed:
     - [src/dot_kube/kubie.yaml](src/dot_kube/kubie.yaml)
 - [macOS](https://www.apple.com/macos/) 🍎
   - Config Files
-    - [src/dot_local/share/ansible-configuration-chezmoi](src/dot_local/share/ansible-configuration-chezmoi)
+    - [src/Library/Application Support/ansible-configuration-chezmoi](<src/Library/Application Support/ansible-configuration-chezmoi>)
     - [src/.chezmoiscripts/30-macos/run_onchange_after_ansible-configure.sh.tmpl](src/.chezmoiscripts/30-macos/run_onchange_after_ansible-configure.sh.tmpl)
 - [micro](https://micro-editor.github.io/) 🐧 🍎 🪟
   - Config Files
