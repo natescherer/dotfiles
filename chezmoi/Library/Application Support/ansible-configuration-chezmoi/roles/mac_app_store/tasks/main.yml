@@ -19,7 +19,7 @@
 
 - name: Install Mac App Store apps
   community.general.mas:
-    id: "{{ mac_app_store_apps.values() | list }}"
+    id: "{{ (mac_app_store_apps | combine(mac_app_store_apps_personal | default({}))).values() | list }}"
     state: present
   environment:
     PATH: "{{ homebrew_prefix }}/bin:{{ ansible_facts.env.PATH }}"

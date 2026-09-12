@@ -1,0 +1,17 @@
+---
+# Personal-only Homebrew formulas/casks. Excluded on non-personal machines via
+# .chezmoiignore.tmpl (see AppData/Local/winget-configuration-chezmoi/README.md
+# for the "p" tag convention this mirrors).
+homebrew_formulas_personal:
+  - proton-pass-cli
+
+homebrew_casks_personal:
+  - anylist
+  - claude
+  - discord
+  - docker-desktop
+  - localsend
+  - megasync
+  - obsidian
+  - proton-pass
+  - ungoogled-chromium

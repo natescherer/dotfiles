@@ -67,6 +67,8 @@ git/gh/**
 ## Skip winget configuration tagged as personal
 AppData/Local/winget-configuration-chezmoi/*.{p,ep}.winget*
 .chezmoiscripts/41-windows/pwa-install.ps1
+## Skip ansible var files tagged as personal
+Library/Application Support/ansible-configuration-chezmoi/group_vars/all/*.p.yml*
 {{- end }}
 
 {{- if eq .adminRights false }}

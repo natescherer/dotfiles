@@ -44,12 +44,12 @@
 
     - name: Install Homebrew formulas
       community.general.homebrew:
-        name: "{{ homebrew_formulas }}"
+        name: "{{ homebrew_formulas + (homebrew_formulas_personal | default([])) }}"
         state: present
 
     - name: Install Homebrew casks
       community.general.homebrew_cask:
-        name: "{{ homebrew_casks }}"
+        name: "{{ homebrew_casks + (homebrew_casks_personal | default([])) }}"
         state: present
 
     - name: Check whether homebrew-autoupdate is already scheduled

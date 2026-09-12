@@ -1,4 +1,9 @@
 ---
+# Personal-only Dock pins. Excluded on non-personal machines via
+# .chezmoiignore.tmpl — a work Mac's Dock will end up with internal apps
+# that don't belong in a public dotfiles repo, so dock_pins is skipped
+# entirely there rather than managing a "safe" subset.
+#
 # Apps pinned to the Dock, left to right, as full paths to their .app
 # bundle. This replaces the Dock's whole pinned-app list (including
 # whatever macOS ships by default), so leave nothing off the list you want

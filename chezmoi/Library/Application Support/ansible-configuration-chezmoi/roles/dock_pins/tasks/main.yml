@@ -14,9 +14,18 @@
 # folder, which is why they look like they belong at the plain path. So
 # each entry is resolved against a few candidate locations rather than
 # assuming dock_pinned_apps' literal path is where the app actually is.
+#
+# dock_pinned_apps defaults to [] (see defaults/main.yml) since it's
+# personal-only — on a non-personal machine the loop below runs zero times,
+# so dock_pinned_apps_resolved needs this explicit initialization or later
+# tasks that reference it would fail on an undefined variable.
+- name: Initialize resolved Dock pins list
+  ansible.builtin.set_fact:
+    dock_pinned_apps_resolved: []
+
 - name: Resolve each pinned Dock app to wherever it actually lives
   ansible.builtin.set_fact:
-    dock_pinned_apps_resolved: "{{ (dock_pinned_apps_resolved | default([])) + [{'original': item, 'path': resolved_path, 'exists': resolved_path | length > 0}] }}"
+    dock_pinned_apps_resolved: "{{ dock_pinned_apps_resolved + [{'original': item, 'path': resolved_path, 'exists': resolved_path | length > 0}] }}"
   loop: "{{ dock_pinned_apps }}"
   loop_control:
     label: "{{ item }}"

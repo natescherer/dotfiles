@@ -22,7 +22,6 @@ homebrew_formulas:
   - micro
   - mise
   - pinentry-mac
-  - proton-pass-cli
   - sheldon
   - starship
   - utiluti
@@ -31,24 +30,15 @@ homebrew_formulas:
 # Casks (GUI apps / fonts)
 homebrew_casks:
   - alt-tab
-  - anylist
   - brave-browser
-  - claude
-  - discord
-  - docker-desktop
   - firefox
   - font-cascadia-mono-nf
   - ghostty
   - git-credential-manager
   - keka
-  - localsend
   - macshot
-  - megasync
-  - obsidian
-  - proton-pass
   - stats
   - thaw
-  - ungoogled-chromium
   - visual-studio-code
   - vlc
   - vscodium

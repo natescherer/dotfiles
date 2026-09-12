@@ -1,0 +1,6 @@
+---
+# dock_pinned_apps is defined in group_vars/all/pins.p.yml, which is
+# personal-machines-only (excluded via .chezmoiignore.tmpl). This default
+# keeps the role a no-op on non-personal machines instead of failing on an
+# undefined variable.
+dock_pinned_apps: []

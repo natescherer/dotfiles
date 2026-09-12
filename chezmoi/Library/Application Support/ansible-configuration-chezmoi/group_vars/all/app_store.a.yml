@@ -1,0 +1,8 @@
+---
+# Mac App Store apps: name -> App Store numeric id
+mac_app_store_apps:
+  Amphetamine: 937984704
+  Clocker: 1056643111
+  Speedtest: 1153157709
+  "Windows App": 1295203466
+  Xcode: 497799835
