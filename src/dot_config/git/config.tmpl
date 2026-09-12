@@ -5,6 +5,12 @@
     eol = lf
     editor = {{ .editor }}
     excludesFile = {{ joinPath .chezmoi.homeDir ".config" "git" "ignore" | replace "\\" "\\\\" }}
+    pager = delta
+[interactive]
+    diffFilter = delta --color-only
+[delta]
+    navigate = true
+    line-numbers = true
 [init]
     defaultBranch = main
 [user]
