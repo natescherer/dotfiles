@@ -49,10 +49,7 @@ data:
     isVM: {{ $isVM }}
     computerModel: {{ $computerModel | quote }}
 diff:
-    command: "code"
-    args:
-    - "--wait"
-    - "--diff"
+    pager: "delta"
     exclude:
         - scripts
 edit:

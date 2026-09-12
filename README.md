@@ -27,6 +27,10 @@ Currently managed:
   - Config Files
     - [src/.scriptdata/macos-defaults/com.abhishek.Clocker.plist](src/.scriptdata/macos-defaults/com.abhishek.Clocker.plist)
       - Note this is a non-editable binary file, made via `defaults export com.abhishek.Clocker com.abhishek.Clocker.plist`
+- [Delta](https://github.com/dandavison/delta) 🐧 🍎 🪟
+  - Config Files
+    - [src/dot_config/git/config.tmpl](src/dot_config/git/config.tmpl)
+    - [src/.chezmoi.yaml.tmpl](src/.chezmoi.yaml.tmpl)
 - [fzf](https://github.com/junegunn/fzf) 🐧 🍎
   - Config Files
     - [src/dot_config/zsh/dot_zshrc.tmpl](src/dot_config/zsh/dot_zshrc.tmpl)
@@ -173,6 +177,7 @@ Install the following tools however is appropriate for your distro:
 - Starship
 - Sheldon
 - Mise
+- Delta
 - Zsh (make sure to set as default shell)
 
 Then run the below:
