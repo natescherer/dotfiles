@@ -20,6 +20,12 @@ resources:
       source: winget
       installMode: silent
   - type: Microsoft.WinGet/Package
+    name: delta
+    properties:
+      id: dandavison.delta
+      source: winget
+      installMode: silent
+  - type: Microsoft.WinGet/Package
     name: fzf
     properties:
       id: junegunn.fzf

@@ -18,7 +18,8 @@ $env:Path = [System.Environment]::GetEnvironmentVariable('Path', 'Machine') + ';
 $Dependencies = @(
     @{Name = "grep"; WinGetId = "Microsoft.Coreutils"},
     @{Name = "starship"; WinGetId = "Starship.Starship"},
-    @{Name = "mise"; WinGetId = "jdx.mise" }
+    @{Name = "mise"; WinGetId = "jdx.mise" },
+    @{Name = "delta"; WinGetId = "dandavison.delta" }
 )
 
 foreach ($Dep in $Dependencies) {

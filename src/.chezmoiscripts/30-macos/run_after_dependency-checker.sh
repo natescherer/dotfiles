@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
 
-dependencies=("starship" "fzf" "gls" "sheldon" "mise")
+dependencies=("starship" "fzf" "gls" "sheldon" "mise" "delta")
 
 for dep in "${dependencies[@]}"; do
     if ! command -v $dep >/dev/null 2>&1; then
         if [ "$dep" = "gls" ]; then
             echo -e "\033[1;33mWarning: 'gls' is not found. Install it via 'brew install coretools'\033[0m"
+        elif [ "$dep" = "delta" ]; then
+            echo -e "\033[1;33mWarning: 'delta' is not found. Install it via 'brew install git-delta'\033[0m"
         else
             echo -e "\033[1;33mWarning: '$dep' is not found. Install it via 'brew install $dep'\033[0m"
         fi
