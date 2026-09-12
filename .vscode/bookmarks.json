@@ -1,0 +1,44 @@
+{
+	"files": [
+		{
+			"path": "src/.chezmoitemplates/vscode/reusable-settings/core.json",
+			"bookmarks": [
+				{
+					"line": 0,
+					"column": 0,
+					"label": "VSCode Core Settings"
+				}
+			]
+		},
+		{
+			"path": "src/.chezmoidata/vscode.toml",
+			"bookmarks": [
+				{
+					"line": 7,
+					"column": 0,
+					"label": "VSCode Extensions"
+				}
+			]
+		},
+		{
+			"path": "src/AppData/Local/winget-configuration-chezmoi/2.apps-core.a.winget",
+			"bookmarks": [
+				{
+					"line": 9,
+					"column": 1,
+					"label": "WinGet Core Apps"
+				}
+			]
+		},
+		{
+			"path": "src/.chezmoitemplates/ai-instructions/working-style.md",
+			"bookmarks": [
+				{
+					"line": 0,
+					"column": 0,
+					"label": "Agent Instructions: Working Style"
+				}
+			]
+		}
+	]
+}

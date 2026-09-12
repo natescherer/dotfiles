@@ -6,6 +6,8 @@
         "editor.tabSize": 2
     },
     "breadcrumbs.enabled": true,
+    "bookmarks.sideBar.countBadge": "off",
+    "bookmarks.sideBar.expanded": true,
     "chat.editor.wordWrap": "on",
     "chat.instructionsFilesLocations": {
         "~/.config/copilot/instructions": true

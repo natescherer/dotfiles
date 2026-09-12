@@ -1,8 +1,9 @@
 {
   "recommendations": [
+    "alefragnani.bookmarks",
     "astral-sh.ty",
     "charliermarsh.ruff",
-    "IgorKramar.gotmpl-yaml-highlighter",
+    "igorkramar.gotmpl-yaml-highlighter",
     "ms-python.debugpy",
     "ms-python.python",
     "ms-python.vscode-pylance",

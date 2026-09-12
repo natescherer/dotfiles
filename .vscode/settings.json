@@ -1,4 +1,5 @@
 {
+  "bookmarks.saveBookmarksInProject": true,
   "files.associations": {
     ".chezmoiignore.tmpl": "properties",
     "**/dot_ssh/*": "plaintext",
@@ -25,10 +26,6 @@
   "git.branchProtection": [],
   "python.analysis.ignore": [
     "**/*.py.tmpl"
-  ],
-  "go-template.patterns": [
-    "**/*.tmpl",
-    "**/.chezmoitemplates/**"
   ],
   "json.schemaDownload.trustedDomains": {
     "https://aka.ms": true

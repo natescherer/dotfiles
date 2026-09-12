@@ -6,6 +6,7 @@
 # names (e.g. "isPersonal", "isVM" -- not dotted/nested paths); whenTrue requires every named
 # variable to be true, whenFalse requires every named variable to be anything other than true.
 all_profile_extensions = [
+  { id = "alefragnani.bookmarks" }, # Code Bookmarks
   { id = "anthropic.claude-code", whenTrue = ["isPersonal"] },  # Claude Code
   { id = "editorconfig.editorconfig" },  # EditorConfig support, see https://editorconfig.org/
   { id = "github.vscode-github-actions" }, # GitHub Actions support
