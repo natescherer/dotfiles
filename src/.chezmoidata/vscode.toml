@@ -63,6 +63,7 @@ settings_files = [".chezmoitemplates/vscode/reusable-settings/core.json", ".chez
 extension_sets = ["python"]
 extensions = [
   "ms-vscode.powershell",  # PowerShell extension
+  "IgorKramar.gotmpl-yaml-highlighter", # YAML Go template highlighting for Chezmoi
 ]
 
 [[vscode.profiles]]
@@ -72,6 +73,7 @@ settings_files = [".chezmoitemplates/vscode/reusable-settings/core.json", ".chez
 extension_sets = ["python"]
 extensions = [
   "ms-kubernetes-tools.vscode-kubernetes-tools",
+  "IgorKramar.gotmpl-yaml-highlighter", # YAML Go template highlighting for Helmfile
 ]
 
 [[vscode.profiles]]

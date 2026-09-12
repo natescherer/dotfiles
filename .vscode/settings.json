@@ -10,8 +10,8 @@
     "*.ps1.tmpl": "powershell",
     "*.py.tmpl": "python",
     "*.toml.tmpl": "toml",
-    "*.winget.tmpl": "yaml",
-    "*.yaml.tmpl": "go-template",
+    "*.winget.tmpl": "yaml-gotmpl",
+    "*.yaml.tmpl": "yaml-gotmpl",
     "dot_wslconfig": "ini",
     "dot_zshenv.tmpl": "shellscript",
     "dot_zsh-aliases.tmpl": "shellscript",
@@ -36,6 +36,12 @@
     "**/*.yaml.tmpl",
     "**/*.yml.tmpl",
     "azure-pipelines.yml",
-    "azure-pipelines.yaml"
+    "azure-pipelines.yaml",
+    "**/.github/workflows/*.yml",
+    "**/.github/workflows/*.yaml",
+    "**/.gitea/workflows/*.yml",
+    "**/.gitea/workflows/*.yaml",
+    "**/.forgejo/workflows/*.yml",
+    "**/.forgejo/workflows/*.yaml"
   ]
 }

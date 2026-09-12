@@ -1,5 +1,15 @@
 {
   "recommendations": [
-    "jinliming2.vscode-go-template"
+    "astral-sh.ty",
+    "charliermarsh.ruff",
+    "IgorKramar.gotmpl-yaml-highlighter",
+    "ms-python.debugpy",
+    "ms-python.python",
+    "ms-python.vscode-pylance",
+    "ms-python.vscode-python-envs",
+    "ms-vscode.powershell",
+    "owenlamont.ryl",
+    "redhat.vscode-yaml",
+    "tombi-toml.tombi"
   ]
 }
