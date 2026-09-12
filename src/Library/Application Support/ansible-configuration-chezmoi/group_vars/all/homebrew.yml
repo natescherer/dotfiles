@@ -1,0 +1,53 @@
+---
+# Homebrew taps
+homebrew_taps:
+  - domt4/autoupdate
+
+# homebrew-autoupdate schedule/flags — see https://github.com/DomT4/homebrew-autoupdate
+# Runs every 43200 seconds (12h), upgrading + cleaning up automatically.
+homebrew_autoupdate_args: "43200 --upgrade --cleanup --immediate --sudo"
+homebrew_autoupdate_plist: "{{ ansible_facts.env.HOME }}/Library/LaunchAgents/com.github.domt4.homebrew-autoupdate.plist"
+
+# Formulas (CLI tools / non-GUI packages)
+homebrew_formulas:
+  - chezmoi
+  - coreutils
+  - curl
+  - dockutil
+  - fzf
+  - git
+  - git-delta
+  - jq
+  - mas
+  - micro
+  - mise
+  - pinentry-mac
+  - sheldon
+  - starship
+  - utiluti
+  - yq
+
+# Casks (GUI apps / fonts)
+homebrew_casks:
+  - 1password-cli
+  - alt-tab
+  - anylist
+  - brave-browser
+  - claude
+  - discord
+  - docker-desktop
+  - firefox
+  - font-cascadia-mono-nf
+  - ghostty
+  - git-credential-manager
+  - keka
+  - localsend
+  - macshot
+  - megasync
+  - obsidian
+  - stats
+  - thaw
+  - ungoogled-chromium
+  - visual-studio-code
+  - vlc
+  - vscodium
