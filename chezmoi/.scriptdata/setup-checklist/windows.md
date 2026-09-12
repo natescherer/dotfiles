@@ -40,7 +40,7 @@ file is only written once.
 
 ## Login and Setup
 
-- [ ] 1Password
+- [ ] Proton Pass
   - [ ] Open on Startup
   - [ ] Enable SSH Agent
   - [ ] Enable CLI

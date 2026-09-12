@@ -8,7 +8,7 @@ metadata:
       identifier: dscv3
 resources:
   - type: Microsoft.Windows/Registry
-    name: Edge1PasswordExtensionForcelist
+    name: EdgeProtonPassExtensionForcelist
     metadata:
       winget:
         securityContext: elevated
@@ -16,5 +16,5 @@ resources:
       keyPath: HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Edge\ExtensionInstallForcelist
       valueName: "1"
       valueData:
-        String: dppgmdbiimibapkepcbdbmkaabgiofem;https://edge.microsoft.com/extensionwebstorebase/v1/crx
+        String: gcllgfdnfnllodcaambdaknbipemelie;https://edge.microsoft.com/extensionwebstorebase/v1/crx
       _exist: true

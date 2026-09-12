@@ -45,10 +45,11 @@ file is only written once.
 
 ## Login and Setup
 
-- [ ] 1Password
+- [ ] Proton Pass
   - [ ] Open on Startup
   - [ ] Enable SSH Agent
   - [ ] Enable CLI
+  - [ ] Enable Safari extension (Safari > Settings > Extensions)
 - [ ] Brave
   - [ ] Set up sync
   - [ ] Set search engine

@@ -9,9 +9,6 @@ Feel free to use anything here according to your needs!
 
 Currently managed:
 
-- [1Password](https://1password.com/) 🐧 🍎 🪟
-  - Config Files
-    - [chezmoi/.chezmoitemplates/1password/agent.toml.tmpl](chezmoi/.chezmoitemplates/1password/agent.toml.tmpl)
 - [Azure CLI](https://learn.microsoft.com/en-us/cli/azure/) 🐧 🍎 🪟
   - Config Files
     - [chezmoi/.chezmoidata/env-vars.toml](chezmoi/.chezmoidata/env-vars.toml)
@@ -93,6 +90,12 @@ Currently managed:
     - [chezmoi/.chezmoitemplates/powershell/aliases.ps1.tmpl](chezmoi/.chezmoitemplates/powershell/aliases.ps1.tmpl)
     - [chezmoi/.chezmoitemplates/powershell/env.ps1.tmpl](chezmoi/.chezmoitemplates/powershell/env.ps1.tmpl)
     - [chezmoi/.chezmoitemplates/powershell/profile.ps1.tmpl](chezmoi/.chezmoitemplates/powershell/profile.ps1.tmpl)
+- [Proton Pass](https://proton.me/pass) 🐧 🍎 🪟
+  - Notes
+    - SSH agent vault/key selection (via [Proton Pass CLI](https://protonpass.github.io/pass-cli/)) is set with CLI flags at agent startup rather than a config file
+  - Config Files
+    - [chezmoi/dot_zshenv.tmpl](chezmoi/dot_zshenv.tmpl)
+    - [chezmoi/dot_ssh/config.tmpl](chezmoi/dot_ssh/config.tmpl)
 - [Sheldon](https://github.com/rossmacarthur/sheldon) 🐧 🍎
   - Config Files
     - [chezmoi/dot_config/sheldon/plugins.toml](chezmoi/dot_config/sheldon/plugins.toml)

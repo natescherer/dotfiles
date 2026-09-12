@@ -27,11 +27,7 @@ export {{ .name }}="{{ joinPath $.chezmoi.homeDir (get . "home_subpath_part1") (
 export HOMEBREW_CASK_OPTS="--appdir=~/Applications" # Homebrew:Set cask installs to use per-user directory
 {{- end }}
 {{- if eq .isPersonal true }}
-{{- if eq .chezmoi.os "darwin" }}
-export SSH_AUTH_SOCK={{ .chezmoi.homeDir }}/Library/Group\ Containers/2BUA8C4S2C.com.1password/t/agent.sock # SSH: Set 1Password as auth socket
-{{- else if eq .chezmoi.os "linux" }}
-export SSH_AUTH_SOCK={{ .chezmoi.homeDir }}/.1password/agent.sock # SSH: Set 1Password as auth socket
-{{- end }}
+export SSH_AUTH_SOCK={{ .chezmoi.homeDir }}/.ssh/proton-pass-agent.sock # SSH: Set Proton Pass as auth socket
 {{- end }}
 
 # PATH additions

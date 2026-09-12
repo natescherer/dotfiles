@@ -42,8 +42,6 @@ dot_wslconfig
 # Ignore on Windows
 ## Ghostty
 .config/ghostty/**
-## Linux/macOS 1Password
-.config/1Password/**
 ## Linux/macOS PowerShell
 .config/powershell/**
 ## Linux/macOS scripts
@@ -65,8 +63,6 @@ Library/**
 
 {{- if eq .isPersonal false }}
 # Personal Configuration
-.config/1Password/**
-AppData/Local/1Password/**
 git/gh/**
 ## Skip winget configuration tagged as personal
 AppData/Local/winget-configuration-chezmoi/*.{p,ep}.winget*

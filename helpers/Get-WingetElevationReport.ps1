@@ -65,8 +65,8 @@ function Get-WingetPackageVersion {
 }
 
 # winget-pkgs lays manifests out as manifests/<lowercase first letter>/<Id split on '.', one
-# directory per segment>/<version>/<Id>.installer.yaml -- e.g. AgileBits.1Password 8.12.30.21 ->
-# manifests/a/AgileBits/1Password/8.12.30.21/AgileBits.1Password.installer.yaml.
+# directory per segment>/<version>/<Id>.installer.yaml -- e.g. Proton.ProtonPass 1.32.0 ->
+# manifests/p/Proton/ProtonPass/1.32.0/Proton.ProtonPass.installer.yaml.
 function Get-WingetManifestElevation {
   param([string]$Id, [string]$Version)
 

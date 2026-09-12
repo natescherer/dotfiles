@@ -18,21 +18,6 @@ metadata:
       identifier: dscv3
 resources:
   - type: Microsoft.WinGet/Package
-    name: 1Password
-    metadata:
-      winget:
-        securityContext: elevated
-    properties:
-      id: AgileBits.1Password
-      source: winget
-      installMode: silent
-  - type: Microsoft.WinGet/Package
-    name: 1PasswordCLI
-    properties:
-      id: AgileBits.1Password.CLI
-      source: winget
-      installMode: silent
-  - type: Microsoft.WinGet/Package
     name: AdobeCreativeCloud
     metadata:
       winget:
@@ -117,6 +102,18 @@ resources:
     name: ProtonDrive
     properties:
       id: Proton.ProtonDrive
+      source: winget
+      installMode: silent
+  - type: Microsoft.WinGet/Package
+    name: ProtonPass
+    properties:
+      id: Proton.ProtonPass
+      source: winget
+      installMode: silent
+  - type: Microsoft.WinGet/Package
+    name: ProtonPassCLI
+    properties:
+      id: Proton.ProtonPass.CLI
       source: winget
       installMode: silent
   - type: Microsoft.WinGet/Package

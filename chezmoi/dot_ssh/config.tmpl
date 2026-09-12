@@ -1,5 +1,5 @@
 ## WARNING: This file is chezmoi-managed and should not be manually edited!
 
 {{- if eq .isPersonal true }}
-Include ~/.ssh/1Password/config
+IdentityAgent {{ .chezmoi.homeDir }}/.ssh/proton-pass-agent.sock
 {{- end }}

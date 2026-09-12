@@ -1,13 +1,13 @@
 ---
 # Mac App Store apps: name -> App Store numeric id
 mac_app_store_apps:
-  1Password: 443987910
   Amphetamine: 937984704
   Clocker: 1056643111
   Kindle: 302584613
   "Microsoft 365": 1450038993
   Paprika: 1303222628
   "Poolsuite FM": 1514817810
+  "Proton Pass for Safari": 6502835663
   Speedtest: 1153157709
   TestFlight: 899247664
   TickTick: 966085870

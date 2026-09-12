@@ -17,4 +17,3 @@
 - Test in a no-admin-rights scenario
 - Test dock pinning a program that isn't installed yet ()
 - Implement <https://browsers.software> and set as default browser
-- Add 1Password Safatai Extension
