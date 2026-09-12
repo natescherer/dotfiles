@@ -47,6 +47,10 @@ Currently managed:
   - Folders
     - [src/git/gh](src/git/gh) for GitHub repos
     - [src/git/azdo](src/git/azdo) for Azure DevOps repos
+- [GitHub CLI](https://cli.github.com/) 🐧 🍎 🪟
+  - Config Files
+    - [src/dot_config/mise/config.toml](src/dot_config/mise/config.toml)
+    - [src/dot_config/gh/config.yml](src/dot_config/gh/config.yml)
 - [GnuPG](https://gnupg.org/) 🐧 🍎 🪟
   - Config Files
     - [src/.chezmoidata/env-vars.toml](src/.chezmoidata/env-vars.toml)
