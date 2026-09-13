@@ -1,11 +1,16 @@
 ## WARNING: This file is chezmoi-managed and should not be manually edited!
 
 # Set up shell completions
+[ -d "$XDG_CACHE_HOME"/zsh ] || mkdir -p "$XDG_CACHE_HOME"/zsh
 autoload -Uz compinit
-compinit -d "$XDG_CACHE_HOME"/zsh/zcompdump-$ZSH_VERSION
+zcompdump="$XDG_CACHE_HOME"/zsh/zcompdump-$ZSH_VERSION
+if [[ $(date +'%Y%j') == $(date -r "$zcompdump" +'%Y%j' 2>/dev/null) ]]; then
+  compinit -C -d "$zcompdump"
+else
+  compinit -d "$zcompdump"
+fi
 zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'
 zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
-[ -d "$XDG_CACHE_HOME"/zsh ] || mkdir -p "$XDG_CACHE_HOME"/zsh
 zstyle ':completion:*' cache-path "$XDG_CACHE_HOME"/zsh/zcompcache
 
 # Set history options
