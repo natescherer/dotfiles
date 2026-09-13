@@ -1,0 +1,8 @@
+---
+# Whether this is the user's personal machine, mirroring chezmoi's own
+# isPersonal. Unlike the *.p.yml files in this directory (entirely absent
+# on non-personal machines via .chezmoiignore.tmpl), this file is always
+# present, so roles that need a direct personal/work signal can branch on
+# it explicitly instead of only inferring "personal" from whether some
+# other personal-only package happens to be installed.
+is_personal_machine: {{ .isPersonal }}

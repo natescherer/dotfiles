@@ -54,7 +54,7 @@
   ansible.builtin.command: utiluti url set mailto ch.protonmail.desktop
   environment:
     PATH: "{{ homebrew_prefix }}/bin:{{ ansible_facts.env.PATH }}"
-  when: proton_mail_app.stat.exists and current_default_mail_app.stdout | trim != 'ch.protonmail.desktop'
+  when: proton_mail_app.stat.exists and is_personal_machine and current_default_mail_app.stdout | trim != 'ch.protonmail.desktop'
   changed_when: true
   failed_when: false
 
@@ -90,6 +90,6 @@
   ansible.builtin.command: utiluti type set extension:ics ch.protonmail.desktop
   environment:
     PATH: "{{ homebrew_prefix }}/bin:{{ ansible_facts.env.PATH }}"
-  when: proton_mail_app.stat.exists and current_ics_handler.stdout | trim != 'ch.protonmail.desktop'
+  when: proton_mail_app.stat.exists and is_personal_machine and current_ics_handler.stdout | trim != 'ch.protonmail.desktop'
   changed_when: true
   failed_when: false
