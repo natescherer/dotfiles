@@ -151,9 +151,7 @@ name = "Default"
 settings_files = [".chezmoitemplates/editors/reusable-settings/core.json", ".chezmoitemplates/editors/profile-settings/vscodium-general.json"]
 extension_sets = []
 extensions = [
-  "alefragnani.bookmarks",  # Code Bookmarks
   "dracula-theme.theme-dracula",  # Distinct dark theme, so a VSCodium window is recognizable at a glance next to VS Code
-  "editorconfig.editorconfig",  # EditorConfig support, see https://editorconfig.org/
   "mechatroner.rainbow-csv",  # Improves CSV viewing
   "oderwat.indent-rainbow",  # Improves indent visibility
   "owenlamont.ryl",  # YAML linter/formatter
