@@ -10,24 +10,14 @@
 # https://www.chezmoi.io/reference/application-order/ and run_after_desktop-icons.ps1's comment
 # for the same reasoning.
 
-$WallpaperDir = Join-Path $env:USERPROFILE 'Pictures\wallpaper-chezmoi'
+$WallpaperPath = Join-Path $env:USERPROFILE 'Pictures\wallpaper-chezmoi\windows-default.jpg'
 
-if (-not (Test-Path $WallpaperDir)) {
-  Write-Host "Warning: '$WallpaperDir' does not exist; skipping wallpaper setup." -ForegroundColor Yellow
+if (-not (Test-Path $WallpaperPath)) {
+  Write-Host "Warning: '$WallpaperPath' does not exist; skipping wallpaper setup." -ForegroundColor Yellow
   exit 0
 }
 
-$Candidates = Get-ChildItem -Path $WallpaperDir -File -ErrorAction SilentlyContinue |
-  Where-Object { $_.Extension -in '.jpg', '.jpeg', '.png', '.bmp' }
-
-if (-not $Candidates) {
-  Write-Host "Warning: no image files found in '$WallpaperDir'; skipping wallpaper setup." -ForegroundColor Yellow
-  exit 0
-}
-
-$Chosen = $Candidates | Get-Random
-
-Write-Host "`nSetting wallpaper to '$($Chosen.Name)'..." -ForegroundColor Green
+Write-Host "`nSetting wallpaper to '$WallpaperPath'..." -ForegroundColor Green
 
 # WallpaperStyle 10 = "Fill" (crop to fill the screen, preserving aspect ratio) -- a reasonable
 # default regardless of each image's own resolution/aspect ratio. TileWallpaper must be explicitly
@@ -53,11 +43,11 @@ $SPIF_UPDATEINIFILE = 0x01
 $SPIF_SENDCHANGE = 0x02
 
 $Result = [WindowsWorkstationDSCWallpaper]::SystemParametersInfo(
-  $SPI_SETDESKWALLPAPER, 0, $Chosen.FullName, $SPIF_UPDATEINIFILE -bor $SPIF_SENDCHANGE)
+  $SPI_SETDESKWALLPAPER, 0, $WallpaperPath, $SPIF_UPDATEINIFILE -bor $SPIF_SENDCHANGE)
 
 if ($Result -eq 0) {
   Write-Host "Warning: SystemParametersInfo failed to set the wallpaper." -ForegroundColor Yellow
   exit 1
 }
 
-Write-Host "Wallpaper set to '$($Chosen.Name)'." -ForegroundColor Green
+Write-Host "Wallpaper set to '$WallpaperPath'." -ForegroundColor Green
