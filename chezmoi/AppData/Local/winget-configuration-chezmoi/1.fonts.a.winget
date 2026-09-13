@@ -11,7 +11,7 @@ resources:
     name: InstallFonts
     metadata:
       description: >-
-        Discovers fonts under .local/share/chezmoifonts at winget-configure execution time
+        Discovers fonts under %LOCALAPPDATA%\chezmoifonts at winget-configure execution time
         (Get-ChildItem), not chezmoi template-render time. This file used to be a .tmpl that
         globbed that directory while chezmoi rendered it, but this file and the
         .chezmoiexternal.toml.tmpl downloads that populate that directory are both regular
@@ -31,7 +31,7 @@ resources:
         loads identically under both hosts.
     properties:
       getScript: |
-        $FontsDir = Join-Path $HOME '.local' 'share' 'chezmoifonts'
+        $FontsDir = Join-Path $env:LOCALAPPDATA 'chezmoifonts'
         $UserFontsDir = Join-Path $env:LOCALAPPDATA 'Microsoft' 'Windows' 'Fonts'
         $Files = @()
         if (Test-Path $FontsDir) {
@@ -54,7 +54,7 @@ resources:
         }
         return @{ FontsFound = $Files.Count; FontsInstalled = $InstalledCount }
       testScript: |
-        $FontsDir = Join-Path $HOME '.local' 'share' 'chezmoifonts'
+        $FontsDir = Join-Path $env:LOCALAPPDATA 'chezmoifonts'
         $UserFontsDir = Join-Path $env:LOCALAPPDATA 'Microsoft' 'Windows' 'Fonts'
         $Files = @()
         if (Test-Path $FontsDir) {
@@ -77,7 +77,7 @@ resources:
         }
         return $true
       setScript: |
-        $FontsDir = Join-Path $HOME '.local' 'share' 'chezmoifonts'
+        $FontsDir = Join-Path $env:LOCALAPPDATA 'chezmoifonts'
         if (-not (Test-Path $FontsDir)) { return }
         $UserFontsDir = Join-Path $env:LOCALAPPDATA 'Microsoft' 'Windows' 'Fonts'
         if (-not (Test-Path $UserFontsDir)) { New-Item -Path $UserFontsDir -ItemType Directory -Force | Out-Null }
