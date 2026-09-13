@@ -26,6 +26,11 @@
 ## {{ trimPrefix (print $ansibleDir "/") . }} hash: {{ include . | sha256sum }}
 {{ end -}}
 
+{{ if not .adminRights -}}
+echo -e "\033[1;33m\nSkipping macOS Ansible configuration -- this account doesn't have admin rights (adminRights is false), and ansible-playbook's sudoers-bootstrap step needs a password that actually grants sudo. Re-run 'chezmoi init' with adminRights set to true once this account has admin rights.\033[0m"
+exit 0
+{{- end }}
+
 set -euo pipefail
 
 # Piping through `tee` below makes brew/ansible think stdout isn't a terminal, which normally
