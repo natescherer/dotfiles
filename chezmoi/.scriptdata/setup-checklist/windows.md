@@ -50,7 +50,7 @@ file is only written once.
 - [ ] Firefox
   - [ ] Set up sync
   - [ ] Set search engine
-- [ ] Mullvad
+- [ ] Proton VPN
   - [ ] Set to run on startup
 - [ ] NVIDIA App
   - [ ] Install drivers
@@ -69,11 +69,11 @@ file is only written once.
 - [ ] Disney+
 - [ ] Dolby Access
 - [ ] Microsoft 365
-- [ ] Mullvad
 - [ ] Netflix
 - [ ] Paprika
 - [ ] Paramount+
 - [ ] Prime Video
+- [ ] Proton VPN
 - [ ] VSCode
 
 ## Manual Config

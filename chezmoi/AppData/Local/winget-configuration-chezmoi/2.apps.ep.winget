@@ -72,15 +72,6 @@ resources:
       source: winget
       installMode: silent
   - type: Microsoft.WinGet/Package
-    name: MullvadVPN
-    metadata:
-      winget:
-        securityContext: elevated
-    properties:
-      id: MullvadVPN.MullvadVPN
-      source: winget
-      installMode: silent
-  - type: Microsoft.WinGet/Package
     name: Obsidian
     metadata:
       winget:
@@ -120,6 +111,15 @@ resources:
     name: ProtonPassCLI
     properties:
       id: Proton.ProtonPass.CLI
+      source: winget
+      installMode: silent
+  - type: Microsoft.WinGet/Package
+    name: ProtonVPN
+    metadata:
+      winget:
+        securityContext: elevated
+    properties:
+      id: Proton.ProtonVPN
       source: winget
       installMode: silent
   - type: Microsoft.WinGet/Package
