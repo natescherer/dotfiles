@@ -11,7 +11,7 @@ homebrew_casks_personal:
   - discord
   - docker-desktop
   - localsend
-  - megasync
   - obsidian
+  - proton-drive
   - proton-pass
   - ungoogled-chromium
