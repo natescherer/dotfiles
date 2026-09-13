@@ -1,0 +1,40 @@
+---
+# Sets the desktop wallpaper exactly once, ever -- mirroring
+# .chezmoiscripts/41-windows/run_once_after_wallpaper.ps1's run_once_ semantics: "nothing external
+# fights the desktop wallpaper once it's set, so this doesn't need to self-heal on every apply."
+# Ansible has no native "run once, ever" primitive, so this uses the same sentinel-file idiom as
+# macos_settings' own one-time /etc/pam.d/sudo_local task (a `creates:` guard) -- once
+# wallpaper_sentinel exists, nothing here re-fights a wallpaper you've since changed by hand.
+
+- name: Determine the wallpaper sentinel path
+  ansible.builtin.set_fact:
+    wallpaper_sentinel_path: "{{ ansible_facts.env.HOME }}/Library/Application Support/ansible-configuration-chezmoi/.wallpaper-set"
+
+- name: Check whether the wallpaper has already been set once
+  ansible.builtin.stat:
+    path: "{{ wallpaper_sentinel_path }}"
+  register: wallpaper_sentinel
+
+- name: Determine which wallpaper image to use
+  ansible.builtin.set_fact:
+    wallpaper_path: "{{ ansible_facts.env.HOME }}/Pictures/wallpaper-chezmoi/{{ wallpaper_image }}"
+  when: not wallpaper_sentinel.stat.exists
+
+# Applies to every desktop (all displays/Spaces) rather than just desktop 1, so a second monitor
+# doesn't get left on whatever it had before.
+- name: Set desktop wallpaper
+  ansible.builtin.command:
+    argv:
+      - osascript
+      - -e
+      - tell application "System Events" to set picture of every desktop to POSIX file "{{ wallpaper_path }}"
+  when: not wallpaper_sentinel.stat.exists
+  changed_when: true
+
+- name: Record that the wallpaper has been set
+  ansible.builtin.file:
+    path: "{{ wallpaper_sentinel_path }}"
+    state: touch
+    mode: "0644"
+  when: not wallpaper_sentinel.stat.exists
+  changed_when: true

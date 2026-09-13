@@ -7,7 +7,6 @@
 
 ## macOS Ansible Configuration
 
-- Wallpaper
 - Segment out by personal and non-personal
 - Test in a no-admin-rights scenario
 - Test dock pinning a program that isn't installed yet ()
