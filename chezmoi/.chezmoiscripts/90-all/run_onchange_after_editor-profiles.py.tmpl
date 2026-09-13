@@ -185,18 +185,26 @@ def sync_extensions(editor_key, profile_name, desired_extensions):
     desired = set(desired_extensions)
     installed = list_extensions(editor_key, profile_name)
 
-    all_succeeded = True
-    for extension_id in sorted(desired - installed):
-        if not install_extension(editor_key, profile_name, extension_id):
-            all_succeeded = False
+    # Extension ids are case-insensitive to VS Code itself -- --list-extensions always reports
+    # them lowercased regardless of the marketplace's own casing for the id (e.g. GitHub.vscode-
+    # pull-request-github comes back as github.vscode-pull-request-github), so comparing raw
+    # strings treats an already-installed extension as untracked/missing purely over letter case.
+    installed_lower = {ext.lower() for ext in installed}
+    desired_lower = {ext.lower() for ext in desired}
 
-    extra = installed - desired
+    all_succeeded = True
+    for extension_id in sorted(desired, key=str.lower):
+        if extension_id.lower() not in installed_lower:
+            if not install_extension(editor_key, profile_name, extension_id):
+                all_succeeded = False
+
+    extra = sorted((ext for ext in installed if ext.lower() not in desired_lower), key=str.lower)
     if extra:
         print(
             f"{YELLOW_TERM_COLOR}Warning: {display_name} profile '{profile_name}' has the following extensions "
             f"installed that aren't tracked by chezmoi. They have not been uninstalled, but you "
             f"should consider adding them to '.chezmoidata/editors.toml': "
-            f"{', '.join(sorted(extra))}{RESET_TERM_STYLE}\n",
+            f"{', '.join(extra)}{RESET_TERM_STYLE}\n",
             file=sys.stderr,
         )
 
