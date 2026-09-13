@@ -2,6 +2,8 @@
 # PowerShell: Documents/PowerShell/env.ps1.tmpl
 # Zsh: dot_zshenv.tmpl
 
+# Note that EDITOR is being set in the per-shell env files
+
 [[env_vars_core]]
 name = "XDG_CONFIG_HOME"
 home_subpath_part1 = ".config"
