@@ -105,6 +105,12 @@ resources:
       source: winget
       installMode: silent
   - type: Microsoft.WinGet/Package
+    name: ProtonMail
+    properties:
+      id: Proton.ProtonMail
+      source: winget
+      installMode: silent
+  - type: Microsoft.WinGet/Package
     name: ProtonPass
     properties:
       id: Proton.ProtonPass

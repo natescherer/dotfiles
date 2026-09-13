@@ -36,25 +36,25 @@
   changed_when: true
   failed_when: false
 
-- name: Check whether Outlook is installed
+- name: Check whether Proton Mail is installed
   ansible.builtin.stat:
-    path: "/Applications/Microsoft Outlook.app"
-  register: outlook_app
+    path: "/Applications/Proton Mail.app"
+  register: proton_mail_app
 
 - name: Check current default mail app
   ansible.builtin.command: utiluti url mailto --bundle-id
   environment:
     PATH: "{{ homebrew_prefix }}/bin:{{ ansible_facts.env.PATH }}"
   register: current_default_mail_app
-  when: outlook_app.stat.exists
+  when: proton_mail_app.stat.exists
   changed_when: false
   failed_when: false
 
-- name: Set Outlook as the default mail app
-  ansible.builtin.command: utiluti url set mailto com.microsoft.Outlook
+- name: Set Proton Mail as the default mail app
+  ansible.builtin.command: utiluti url set mailto ch.protonmail.desktop
   environment:
     PATH: "{{ homebrew_prefix }}/bin:{{ ansible_facts.env.PATH }}"
-  when: outlook_app.stat.exists and current_default_mail_app.stdout | trim != 'com.microsoft.Outlook'
+  when: proton_mail_app.stat.exists and current_default_mail_app.stdout | trim != 'ch.protonmail.desktop'
   changed_when: true
   failed_when: false
 
@@ -62,12 +62,19 @@
 # scriptable as of this writing, but macOS 26.4+ started requiring the same
 # kind of confirmation for some file-type changes too, so this may start
 # prompting the same way on a future OS update.
+#
+# Speculative as of writing: Proton Mail's own build config declares only the
+# mailto: URL scheme, with no CFBundleDocumentTypes entry for .ics, so it may
+# not be a registered candidate handler for this UTI yet. failed_when: false
+# means that just shows up as a no-op (utiluti errors, ansible doesn't) until
+# Proton adds that declaration — same tolerance as the Outlook version of
+# this task had for a declined confirmation dialog.
 - name: Get the UTI for .ics files
   ansible.builtin.command: utiluti get-uti ics
   environment:
     PATH: "{{ homebrew_prefix }}/bin:{{ ansible_facts.env.PATH }}"
   register: ics_uti
-  when: outlook_app.stat.exists
+  when: proton_mail_app.stat.exists
   changed_when: false
   failed_when: false
 
@@ -76,14 +83,14 @@
   environment:
     PATH: "{{ homebrew_prefix }}/bin:{{ ansible_facts.env.PATH }}"
   register: current_ics_handler
-  when: outlook_app.stat.exists
+  when: proton_mail_app.stat.exists
   changed_when: false
   failed_when: false
 
-- name: Associate .ics files with Outlook
-  ansible.builtin.command: utiluti type set extension:ics com.microsoft.Outlook
+- name: Associate .ics files with Proton Mail
+  ansible.builtin.command: utiluti type set extension:ics ch.protonmail.desktop
   environment:
     PATH: "{{ homebrew_prefix }}/bin:{{ ansible_facts.env.PATH }}"
-  when: outlook_app.stat.exists and current_ics_handler.stdout | trim != 'com.microsoft.Outlook'
+  when: proton_mail_app.stat.exists and current_ics_handler.stdout | trim != 'ch.protonmail.desktop'
   changed_when: true
   failed_when: false

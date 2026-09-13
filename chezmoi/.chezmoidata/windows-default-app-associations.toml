@@ -50,3 +50,14 @@ appNameMatch = "BrowserPicker"
 [[windows_default_app_associations]]
 identifier = "https"
 appNameMatch = "BrowserPicker"
+
+[[windows_default_app_associations]]
+identifier = ".ics"
+# Speculative, like the Acrobat entry above: Proton Mail's Windows build (a Squirrel installer)
+# doesn't declare any file associations in its own packaging config as of writing, so it may not
+# register a RegisteredApplications\...\Capabilities\FileAssociations entry for .ics at all yet.
+# Until it does, this just resolves to nothing every apply (skipped-with-warning, not a failure)
+# and picks itself up automatically once it's actually registered -- adjust appNameMatch if Proton
+# Mail registers under a different name than expected (check via
+# `Get-ItemProperty HKLM:\SOFTWARE\RegisteredApplications`).
+appNameMatch = "Proton Mail"

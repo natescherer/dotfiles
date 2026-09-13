@@ -44,16 +44,16 @@
 Write-Host "`nSetting taskbar pins..." -ForegroundColor Green
 
 # Desired left-to-right order. Explorer has no Start Menu entry (Get-StartApps never returns it),
-# so it's special-cased below via its well-known AppUserModelID. Windows Terminal and Outlook are
-# packaged apps matched by an AppID substring (their stable package family name) rather than by
-# Start Menu display name, since display names drift -- Windows Terminal's Start Menu entry was
-# renamed from "Windows Terminal" to plain "Terminal" at one point. Name is kept as a fallback
-# match for both in case the package family name ever changes too.
+# so it's special-cased below via its well-known AppUserModelID. Windows Terminal is a packaged app
+# matched by an AppID substring (its stable package family name) rather than by Start Menu display
+# name, since display names drift -- its Start Menu entry was renamed from "Windows Terminal" to
+# plain "Terminal" at one point. Name is kept as a fallback match in case the package family name
+# ever changes too.
 $Pins = @(
   @{ Label = 'Explorer' }
   @{ Label = 'Windows Terminal'; AppIdLike = '*WindowsTerminal*'; Name = 'Terminal' }
   @{ Label = 'Discord'; Name = 'Discord' }
-  @{ Label = 'Outlook'; AppIdLike = '*OutlookForWindows*'; Name = 'Outlook' }
+  @{ Label = 'Proton Mail'; Name = 'Proton Mail' }
   @{ Label = 'Firefox'; Name = 'Firefox' }
   @{ Label = 'Brave'; Name = 'Brave' }
   @{ Label = 'Obsidian'; Name = 'Obsidian' }
