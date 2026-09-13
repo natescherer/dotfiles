@@ -13,8 +13,11 @@
 $WallpaperPath = Join-Path $env:USERPROFILE 'Pictures\wallpaper-chezmoi\windows-default.jpg'
 
 if (-not (Test-Path $WallpaperPath)) {
-  Write-Host "Warning: '$WallpaperPath' does not exist; skipping wallpaper setup." -ForegroundColor Yellow
-  exit 0
+  # run_once_ only records success on a zero exit -- exiting 0 here would permanently mark the
+  # wallpaper as "set" even though it never was. Exiting non-zero makes chezmoi retry this script
+  # on every future apply until the file actually exists.
+  Write-Host "Warning: '$WallpaperPath' does not exist; skipping wallpaper setup. Exiting non-zero so chezmoi retries on the next apply." -ForegroundColor Yellow
+  exit 1
 }
 
 Write-Host "`nSetting wallpaper to '$WallpaperPath'..." -ForegroundColor Green

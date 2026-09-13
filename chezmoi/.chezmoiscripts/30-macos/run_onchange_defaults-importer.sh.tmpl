@@ -2,13 +2,24 @@
 
 # This script will automatically import any *.plist files located in .scriptdata/macos-defaults
 
+failed=0
+
 {{ $globOutput := joinPath .chezmoi.sourceDir ".scriptdata/macos-defaults/**.plist" | glob }}
 {{ range $sourceDirPlistPath := $globOutput -}}
 {{ $plistFile := base $sourceDirPlistPath -}}
 {{ $appDomain := trimSuffix ".plist" $plistFile -}}
 # The below ensures that this file will change when the hashed file changes, triggering this script to execute
 ## {{ $plistFile }} hash: {{ include $sourceDirPlistPath | sha256sum }}
-defaults import {{ $appDomain }} {{ $sourceDirPlistPath }}
 echo "\033[1;34mImporting {{ $plistFile }} via 'defaults import'...\033[0m"
+if ! defaults import {{ $appDomain }} {{ $sourceDirPlistPath }}; then
+  echo "\033[0;31mWarning: 'defaults import {{ $appDomain }}' failed for {{ $plistFile }}\033[0m" >&2
+  failed=1
+fi
 
 {{ end -}}
+# A failed import above would otherwise be silently swallowed: this is a run_onchange_ script, so
+# chezmoi only reruns it when a plist's content changes, not because a prior run failed. Exiting
+# non-zero makes chezmoi retry it on every future apply until every import succeeds.
+if [ "$failed" -ne 0 ]; then
+  exit 1
+fi

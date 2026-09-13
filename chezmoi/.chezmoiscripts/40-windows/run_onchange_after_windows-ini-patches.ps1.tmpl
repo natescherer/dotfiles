@@ -5,6 +5,12 @@
 #
 # Sources data from .chezmoidata/windows-ini-patches.toml
 
+# Without this, a failed Set-Content below is a non-terminating error by default: $AnyChanged
+# would still get set to $true right after it (not gated on the write actually succeeding), so
+# this run_onchange_ script would report success and never be retried even though the patch was
+# never written.
+$ErrorActionPreference = 'Stop'
+
 # .chezmoidata files can't be templated -- data has to be loaded before the template engine has
 # anything to execute templates with (see https://github.com/twpayne/chezmoi/issues/3526, still
 # open) -- so a file entry's whenTrue/whenFalse conditions (naming arbitrary top-level chezmoi

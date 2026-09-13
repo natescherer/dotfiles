@@ -414,6 +414,13 @@ def set_profile_icon(user_dir, profile_name, icon):
 
 
 def write_profile_settings(editor_key, profile_name, profile_dir, settings_content):
+    # Returns False when it left drifted/untracked settings.json alone instead of writing (i.e.
+    # whenever it printed a warn_drifted message) -- the caller turns that into a non-zero exit,
+    # the same "keep retrying every future apply" trick sync_editor's shutil.which() check already
+    # uses for a missing editor binary. Without that, CHEZMOI_EDITOR_CLOBBER=true would only take
+    # effect on an apply where chezmoi already decided to run this script for some unrelated reason
+    # (this script's own content changed) -- a plain, unresolved drift wouldn't by itself cause
+    # chezmoi to invoke this run_onchange_ script again to notice the flag.
     meta = EDITORS_META[editor_key]
     display_name = meta["display_name"]
     os.makedirs(profile_dir, exist_ok=True)
@@ -449,16 +456,16 @@ def write_profile_settings(editor_key, profile_name, profile_dir, settings_conte
 
     if not os.path.exists(settings_path):
         write_settings()
-        return
+        return True
 
     if not os.path.exists(hash_path):
         if CHEZMOI_EDITOR_CLOBBER:
             print(f"{CYAN_TERM_COLOR}{display_name} profile '{profile_name}' had an untracked settings.json; "
                   f"overwriting it since CHEZMOI_EDITOR_CLOBBER is set.{RESET_TERM_STYLE}\n")
             write_settings()
-            return
+            return True
         warn_drifted("has a settings.json that is not chezmoi-managed")
-        return
+        return False
 
     with open(hash_path, "r", encoding="utf-8", newline="") as f:
         last_written_hash = f.read().strip()
@@ -470,15 +477,17 @@ def write_profile_settings(editor_key, profile_name, profile_dir, settings_conte
             print(f"{CYAN_TERM_COLOR}{display_name} profile '{profile_name}' had local changes to settings.json; "
                   f"overwriting them since CHEZMOI_EDITOR_CLOBBER is set.{RESET_TERM_STYLE}\n")
             write_settings()
-            return
+            return True
         warn_drifted("has local changes to settings.json that aren't tracked in chezmoi; leaving it as-is")
-        return
+        return False
 
     if os.path.exists(desired_path):
         os.remove(desired_path)
 
     if live_hash != desired_hash:
         write_settings()
+
+    return True
 
 
 def sync_editor(editor):
@@ -563,7 +572,8 @@ def sync_editor(editor):
             continue
 
         settings_content = json.dumps(settings, indent=2, sort_keys=True) + "\n"
-        write_profile_settings(key, name, profile_dir, settings_content)
+        if not write_profile_settings(key, name, profile_dir, settings_content):
+            all_succeeded = False
 
     return all_succeeded
 

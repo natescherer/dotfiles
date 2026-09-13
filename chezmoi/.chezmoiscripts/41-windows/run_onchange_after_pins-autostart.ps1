@@ -23,6 +23,11 @@
 #
 # BurntToast itself is installed declaratively by winget configuration, and will need to be set as a dependency when this is built into a DSC module.
 
+# Without this, a failed Set-ItemProperty below is a non-terminating error by default and the
+# script would still print its success message and exit 0 -- same class of bug fixed elsewhere
+# in this pass (see run_onchange_after_windows-ini-patches.ps1.tmpl).
+$ErrorActionPreference = 'Stop'
+
 Write-Host "`nRegistering tray/taskbar pin and desktop-icon-cleanup scripts for login autostart..." -ForegroundColor Green
 
 $PwshExe = (Get-Command pwsh -ErrorAction SilentlyContinue).Source

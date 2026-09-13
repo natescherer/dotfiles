@@ -183,9 +183,11 @@ $PlaceholderCount = Get-PlaceholderShortcutCount
 $AccountedForCount = Get-AccountedForCount
 if ($AccountedForCount -lt $PwaEntries.Count -or $PlaceholderCount -gt 0) {
     # run_onchange_'s gate is keyed on this script's own rendered content, not on whether it
-    # actually succeeded last time -- so a leftover failure here won't be retried automatically
-    # on the next chezmoi apply unless pwas.toml (or this script) changes. Said explicitly since
-    # that's exactly what caused the still-missing entries to go unnoticed for a while.
-    Write-Host "Warning: still not all PWAs installed after $MaxRepairRounds repair round(s) -- this won't be retried automatically until pwas.toml or this script changes. Rerun this script directly (it's idempotent) or investigate manually." -ForegroundColor Yellow
+    # actually succeeded last time -- so a leftover failure here would otherwise go unretried
+    # until pwas.toml (or this script) next changes, which is exactly what let missing entries
+    # go unnoticed for a while. Exiting non-zero makes chezmoi retry this script on every future
+    # apply until everything is accounted for.
+    Write-Host "Warning: still not all PWAs installed after $MaxRepairRounds repair round(s) ($AccountedForCount/$($PwaEntries.Count) accounted for under $WebAppsDir, $PlaceholderCount still placeholder). Exiting non-zero so 'chezmoi apply' retries." -ForegroundColor Yellow
+    exit 1
 }
 Write-Host "PWA install pass complete ($AccountedForCount/$($PwaEntries.Count) accounted for under $WebAppsDir -- $(Get-NewPwaCount) newly installed this run, $PlaceholderCount still placeholder)." -ForegroundColor Green

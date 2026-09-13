@@ -13,6 +13,12 @@
 # cross-platform script), so directory sort order makes this the literal last thing `chezmoi apply`
 # does whenever the OS config gets applied at all.
 
+# run_once_ only records success on a zero exit; without this, a failed Copy-Item below is a
+# non-terminating error by default and the script would fall through to `exit 0` anyway,
+# permanently marking the checklist as delivered even though it never landed on the Desktop --
+# same class of bug as run_onchange_defaults-importer.sh.tmpl lacking `set -e`.
+$ErrorActionPreference = 'Stop'
+
 $SourceChecklist = '{{ joinPath .chezmoi.sourceDir ".scriptdata/setup-checklist/windows.md" }}'
 $DesktopChecklist = Join-Path ([Environment]::GetFolderPath('Desktop')) 'SETUP-CHECKLIST.md'
 
