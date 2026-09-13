@@ -1,3 +1,35 @@
 ## WARNING: This file is chezmoi-managed and should not be manually edited!
 
-{{- template "powershell/profile.ps1.tmpl" . -}}
+#Requires -Version 7.0
+
+# PATH additions
+$env:PATH = "$env:PATH;{{ joinPath .chezmoi.homeDir "bin" }}"
+
+
+# Fix weird formatting in Get-ChildItem Output
+$PSStyle.Formatting.CustomTableHeaderLabel = $PSStyle.Formatting.TableHeader
+
+# Import environment variables
+. $(Join-Path $PSScriptRoot "env.ps1")
+
+# Import aliases
+. $(Join-Path $PSScriptRoot "aliases.ps1")
+
+# Import local aliases (if present)
+if (Test-Path $(Join-Path $PSScriptRoot "aliases-local.ps1")) {
+  . $(Join-Path $PSScriptRoot "aliases-local.ps1")
+}
+
+{{ if lookPath "mise" -}}
+# Activate mise
+mise activate pwsh | Out-String | Invoke-Expression
+
+{{ end -}}
+# Activate Starship
+# Runtime check (not a template-time {{"{{"}} if lookPath }} gate): winget configure installs
+# Starship later in the same chezmoi apply run, so a template-time check would bake in "not
+# found" on a fresh machine and require a second apply to pick it up. Checking at the moment
+# each shell starts means it self-heals as soon as Starship lands on PATH, no re-apply needed.
+if (Get-Command starship -ErrorAction SilentlyContinue) {
+  Invoke-Expression (&starship init powershell)
+}

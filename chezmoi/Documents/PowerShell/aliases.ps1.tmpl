@@ -1,3 +1,16 @@
 ## WARNING: This file is chezmoi-managed and should not be manually edited!
 
-{{- template "powershell/aliases.ps1.tmpl" . -}}
+#Requires -Version 7.0
+
+function Invoke-LsWithOptions {
+    & "{{ lookPath "ls" }}" -AFGhl --group-directories-first --color=auto
+}
+
+function mkdircd([string]$Path) {
+    mkdir $Path
+    cd $Path
+}
+
+Set-Alias -Name cl -Value clear
+Set-Alias -Name k -Value kubectl
+Set-Alias -Name ll -Value Invoke-LsWithOptions
