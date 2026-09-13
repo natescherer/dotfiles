@@ -11,6 +11,18 @@
     osascript -e 'tell application "System Events" to tell appearance preferences to set dark mode to true'
   when: dark_mode_current.stdout | trim != 'true'
 
+# Lives at /Library/Preferences rather than a per-user domain -- macOS reads the system-wide
+# copy for this one, not ~/Library/Preferences. Requires Location Services to actually take
+# effect, which isn't itself scriptable (no `defaults`/CLI hook for that toggle).
+- name: Set time zone automatically using current location
+  community.general.osx_defaults:
+    domain: /Library/Preferences/com.apple.timezone.auto
+    key: Active
+    type: bool
+    value: true
+    state: present
+  become: true
+
 - name: Configure Dock behavior
   community.general.osx_defaults:
     domain: com.apple.dock
@@ -42,6 +54,39 @@
     key: IsAnalog
     type: bool
     value: true
+    state: present
+  notify: Restart Control Center
+
+# Spotlight, Focus, Screen Mirroring, Display, and Timer are all hidden from the menu bar by
+# default (no key at all until someone explicitly adds them via System Settings), so there's
+# nothing to write for those -- only items that need to move away from their out-of-the-box
+# state get an explicit key below. Wi-Fi and Sound are keyed "VisibleCC" (Control Center) since
+# that's the toggle that actually controls the menu bar icon here; Battery and Now Playing use
+# plain "Visible" instead, matching what's actually in com.apple.controlcenter on an already
+# hand-configured Mac.
+- name: Configure visible Control Center menu bar items
+  community.general.osx_defaults:
+    domain: com.apple.controlcenter
+    key: "{{ item.key }}"
+    type: bool
+    value: "{{ item.value }}"
+    state: present
+  loop:
+    - { key: "NSStatusItem Visible Battery", value: false }
+    - { key: "NSStatusItem Visible NowPlaying", value: false }
+    - { key: "NSStatusItem VisibleCC WiFi", value: true }
+    - { key: "NSStatusItem VisibleCC Sound", value: true }
+  notify: Restart Control Center
+
+# BatteryShowPercentage lives in the -currentHost variant of this domain, separate from the
+# item-visibility keys above (which are host-independent).
+- name: Hide battery percentage in the menu bar
+  community.general.osx_defaults:
+    host: currentHost
+    domain: com.apple.controlcenter
+    key: BatteryShowPercentage
+    type: bool
+    value: false
     state: present
   notify: Restart Control Center
 
@@ -86,6 +131,14 @@
     value: true
     state: present
   notify: Restart Finder
+
+- name: Enable trackpad tap-to-click
+  community.general.osx_defaults:
+    domain: com.apple.AppleMultitouchTrackpad
+    key: Clicking
+    type: bool
+    value: true
+    state: present
 
 - name: Enable Touch ID for sudo
   ansible.builtin.shell: |
