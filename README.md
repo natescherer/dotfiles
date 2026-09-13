@@ -17,7 +17,8 @@ Currently managed:
     - [chezmoi/.chezmoidata/env-vars.toml](chezmoi/.chezmoidata/env-vars.toml)
 - [Claude](https://claude.com/) 🐧 🍎 🪟
   - Config Files
-    - [chezmoi/dot_config/claude/CLAUDE.md](chezmoi/dot_config/claude/CLAUDE.md)
+    - [chezmoi/dot_config/claude/CLAUDE.md.tmpl](chezmoi/dot_config/claude/CLAUDE.md.tmpl)
+    - [chezmoi/dot_config/claude/settings.json](chezmoi/dot_config/claude/settings.json)
 - [Clocker](https://abhishekbanthia.com/clocker/) 🍎
   - Notes
     - Configuration is imported via script [chezmoi/.chezmoiscripts/30-macos/run_onchange_defaults-importer.sh.tmpl](chezmoi/.chezmoiscripts/30-macos/run_onchange_defaults-importer.sh.tmpl)
