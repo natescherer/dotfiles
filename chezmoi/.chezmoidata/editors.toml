@@ -11,9 +11,9 @@ default_profile_is_placeholder = true
 # names (e.g. "isPersonal", "isVM" -- not dotted/nested paths); whenTrue requires every named
 # variable to be true, whenFalse requires every named variable to be anything other than true.
 all_profile_extensions = [
-  { id = "alefragnani.bookmarks" }, # Code Bookmarks
-  { id = "anthropic.claude-code", whenTrue = ["isPersonal"] },  # Claude Code
-  { id = "editorconfig.editorconfig" },  # EditorConfig support, see https://editorconfig.org/
+  { id = "alefragnani.Bookmarks" }, # Code Bookmarks
+  { id = "Anthropic.claude-code", whenTrue = ["isPersonal"] },  # Claude Code
+  { id = "EditorConfig.EditorConfig" },  # EditorConfig support, see https://editorconfig.org/
   { id = "github.vscode-github-actions" }, # GitHub Actions support
   { id = "GitHub.vscode-pull-request-github", whenTrue = ["isPersonal"] }, # GitHub PR/Issue browser
   { id = "hverlin.mise-vscode" },  # Env vars, local tools, tasks all-in-one
@@ -70,7 +70,7 @@ settings_files = [".chezmoitemplates/editors/reusable-settings/core.json", ".che
 extension_sets = ["python"]
 extensions = [
   "ms-vscode.powershell",  # PowerShell extension
-  "igorkramar.gotmpl-yaml-highlighter", # YAML Go template highlighting for Chezmoi
+  "IgorKramar.gotmpl-yaml-highlighter", # YAML Go template highlighting for Chezmoi
 ]
 
 [[vscode.profiles]]
@@ -80,7 +80,7 @@ settings_files = [".chezmoitemplates/editors/reusable-settings/core.json", ".che
 extension_sets = ["python"]
 extensions = [
   "ms-kubernetes-tools.vscode-kubernetes-tools",
-  "igorkramar.gotmpl-yaml-highlighter", # YAML Go template highlighting for Helmfile
+  "IgorKramar.gotmpl-yaml-highlighter", # YAML Go template highlighting for Helmfile
 ]
 
 [[vscode.profiles]]
@@ -142,7 +142,7 @@ extensions = [
 default_profile_is_placeholder = false
 
 all_profile_extensions = [
-  { id = "anthropic.claude-code", whenTrue = ["isPersonal"] },  # Claude Code
+  { id = "Anthropic.claude-code", whenTrue = ["isPersonal"] },  # Claude Code
 ]
 
 [vscodium.extension_sets]
