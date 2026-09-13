@@ -2,6 +2,7 @@
 # Homebrew taps
 homebrew_taps:
   - domt4/autoupdate
+  - browsers-software/tap
 
 # homebrew-autoupdate schedule/flags — see https://github.com/DomT4/homebrew-autoupdate
 # Runs every 43200 seconds (12h), upgrading + cleaning up automatically.
@@ -31,6 +32,7 @@ homebrew_formulas:
 homebrew_casks:
   - alt-tab
   - brave-browser
+  - browsers
   - firefox
   - font-cascadia-mono-nf
   - ghostty

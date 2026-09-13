@@ -11,28 +11,30 @@
 # play on (failed_when: false), since a "no" is a valid outcome, not a
 # broken run. See https://github.com/scriptingosx/utiluti
 
-- name: Check whether Firefox is installed
+- name: Check whether Browsers is installed
   ansible.builtin.stat:
-    path: "/Applications/Firefox.app"
-  register: firefox_app
+    path: "/Applications/Browsers.app"
+  register: browsers_app
 
 - name: Check current default browser
   ansible.builtin.command: utiluti url http --bundle-id
   environment:
     PATH: "{{ homebrew_prefix }}/bin:{{ ansible_facts.env.PATH }}"
   register: current_default_browser
-  when: firefox_app.stat.exists
+  when: browsers_app.stat.exists
   changed_when: false
   failed_when: false
 
-# Skipped entirely (not just reported as unchanged) when Firefox is already
-# the default, so a re-run doesn't pop the confirmation dialog for no
-# reason.
-- name: Set Firefox as the default browser
-  ansible.builtin.command: utiluti url set http org.mozilla.firefox
+# Skipped entirely (not just reported as unchanged) when Browsers is
+# already the default, so a re-run doesn't pop the confirmation dialog for
+# no reason. Browsers.app (https://browsers.software) is a link-routing
+# picker, not a browser itself -- Firefox/Brave stay installed as its
+# pickable targets rather than being the direct OS default.
+- name: Set Browsers as the default browser
+  ansible.builtin.command: utiluti url set http software.Browsers
   environment:
     PATH: "{{ homebrew_prefix }}/bin:{{ ansible_facts.env.PATH }}"
-  when: firefox_app.stat.exists and current_default_browser.stdout | trim != 'org.mozilla.firefox'
+  when: browsers_app.stat.exists and current_default_browser.stdout | trim != 'software.Browsers'
   changed_when: true
   failed_when: false
 
