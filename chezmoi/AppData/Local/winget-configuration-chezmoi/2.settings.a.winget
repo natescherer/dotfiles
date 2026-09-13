@@ -12,15 +12,11 @@ resources:
     properties:
       settings:
         enable_warnings_elevated_apps: false
-  # Writes HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Search\SearchboxTaskbarMode -- confirmed
-  # by hand this is a per-user key, no elevation needed.
   - type: Microsoft.Windows.Developer/Taskbar
     name: Taskbar
     properties:
       SearchBoxMode: Hide
       RestartExplorer: True
-  # Writes HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced (HideFileExt, Hidden) --
-  # confirmed by hand this is a per-user key, no elevation needed.
   - type: Microsoft.Windows.Developer/WindowsExplorer
     name: WindowsExplorer
     properties:

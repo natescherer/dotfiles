@@ -1,15 +1,8 @@
 ---
 # PWAs to install in ungoogled-chromium via WebAppInstallForceList policy. Sourced from
-# .chezmoidata/pwas.toml, shared with the Windows winget PWA provisioning
-# so both platforms force-install the same list. Personal-only: excluded on
-# non-personal machines via .chezmoiignore.tmpl.
-#
-# Name and icon come from the site's web app manifest — don't set
-# custom_name/custom_icon here. If Chromium's hidden background install
-# can't load the page, it installs a URL-named placeholder app (that's
-# what once produced `https/www.youtube.com.app` with no icon); the
-# chromium_pwas role detects placeholders and navigates a real tab to the
-# install URL, which makes Chromium swap in the real manifest-derived app.
+# .chezmoidata/pwas.toml (see its header for custom_name/placeholder-repair details), shared with
+# the Windows winget PWA provisioning so both platforms force-install the same list.
+# Personal-only: excluded on non-personal machines via .chezmoiignore.tmpl.
 # {{ $pwas := list }}{{ range .pwas.entries }}{{ if not (has "darwin" (index . "ignore_on" | default list)) }}{{ $pwas = append $pwas (omit . "ignore_on") }}{{ end }}{{ end }}
 chromium_web_apps:
 {{ $pwas | toYaml | trimSuffix "\n" | indent 2 }}

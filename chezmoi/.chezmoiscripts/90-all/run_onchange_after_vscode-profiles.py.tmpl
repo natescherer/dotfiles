@@ -450,8 +450,8 @@ def main():
         # otherwise unchanged -- until VS Code is actually on PATH. That's a more reliable "run
         # once VS Code becomes available" trigger than a chezmoi-template-time lookPath check
         # would be, since chezmoi's own process can't see a PATH change from a script it spawned
-        # earlier in this same apply run (confirmed empirically: a template-time check here
-        # would wrongly skip the sync on the very run that just installed VS Code).
+        # earlier in this same apply run -- a template-time check here would wrongly skip the
+        # sync on the very run that just installed VS Code.
         print(f"{YELLOW_TERM_COLOR}VS Code ('code' command) not found; skipping VS Code profile/extension sync.{RESET_TERM_STYLE}\n", file=sys.stderr)
         sys.exit(1)
 
@@ -481,7 +481,7 @@ def main():
                 # process to exit; it can return a moment before VS Code's debounced write of
                 # storage.json (where profile registration lands) actually reaches disk. Windows'
                 # wait mechanism blocks until the process fully exits, so it doesn't race this --
-                # empirically this retry is only ever needed on macOS, but it's harmless elsewhere.
+                # this retry is only ever needed on macOS, but it's harmless elsewhere.
                 # The automatic path in provision_profile already polls for registration itself,
                 # so this loop mainly exists for that macOS lag on the manual-close fallback.
                 for attempt in range(10):

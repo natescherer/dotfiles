@@ -1,6 +1,4 @@
 ---
-# The user must be signed into the Mac App Store for this role to work, 
-# if not, the role will warn the user and skip installing Mac App Store apps.
 - name: Check Mac App Store sign-in status
   ansible.builtin.command: mas account
   environment:

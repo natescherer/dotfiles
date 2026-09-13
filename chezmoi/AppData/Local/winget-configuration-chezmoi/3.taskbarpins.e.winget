@@ -42,26 +42,22 @@ resources:
       _exist: true
   # Points the "Start Layout" Group Policy setting at taskbar-pins.ps1's stable output file --
   # HKCU:\SOFTWARE\Policies\* is locked down against unelevated writes even for the owning user
-  # (confirmed by hand: ACL grants ARES\nate ReadKey only there, full control is
-  # SYSTEM/Administrators-only), so this one-time pointer setup needs to be elevated even though
-  # everything else about the pin scripts is deliberately unprivileged. The actual XML file
-  # content at this path is written by taskbar-pins.ps1 (unelevated, runs on every login) --
-  # only the registry pointer itself, which never changes, needs to live here.
-  # ExpandString (not a literal path) so this isn't tied to this specific user profile.
+  # (ACL grants the user ReadKey only, full control is SYSTEM/Administrators-only), so this
+  # one-time pointer setup needs to be elevated even though everything else about the pin scripts
+  # is deliberately unprivileged. The actual XML file content at this path is written by
+  # taskbar-pins.ps1 (unelevated, runs on every login) -- only the registry pointer itself, which
+  # never changes, needs to live here. ExpandString (not a literal path) so this isn't tied to
+  # this specific user profile.
   #
-  # StartLayoutFile alone does nothing -- confirmed by hand (registry value correct, file valid,
-  # gpupdate /force, Explorer restart, and a full sign-out/sign-in all had zero effect). Per the
-  # actual ADMX shipped with Windows (PolicyDefinitions/StartMenu.admx), StartLayoutFile is a
-  # sub-element of a *different* policy, LockedStartLayout -- Windows never even looks at
-  # StartLayoutFile unless LockedStartLayout itself is set too. That policy's ADMX help text reads
-  # like unrevised Windows 10 tile-Start documentation ("prevents users from changing its
-  # configuration", expects Export-StartLayout-format XML) that predates the Windows 11-specific
-  # taskbar-only pinning capability documented at
-  # https://learn.microsoft.com/en-us/windows/configuration/taskbar/pinned-apps, which explicitly
-  # shows this same GPO path accepting the CustomTaskbarLayoutCollection/TaskbarPinList schema
-  # taskbar-pins.ps1 already generates -- kept that schema rather than switching to genuine
-  # Export-StartLayout output. Locking out manual taskbar customization in exchange for the
-  # layout actually being declared here is an accepted tradeoff, not an oversight.
+  # StartLayoutFile alone does nothing: per the actual ADMX shipped with Windows
+  # (PolicyDefinitions/StartMenu.admx), StartLayoutFile is a sub-element of a *different* policy,
+  # LockedStartLayout -- Windows never even looks at StartLayoutFile unless LockedStartLayout
+  # itself is set too. That policy's ADMX help text reads like unrevised Windows 10 tile-Start
+  # documentation that predates the Windows 11-specific taskbar-only pinning capability documented
+  # at https://learn.microsoft.com/en-us/windows/configuration/taskbar/pinned-apps, which
+  # explicitly shows this same GPO path accepting the CustomTaskbarLayoutCollection/TaskbarPinList
+  # schema taskbar-pins.ps1 already generates. Locking out manual taskbar customization in
+  # exchange for the layout actually being declared here is an accepted tradeoff, not an oversight.
   - type: Microsoft.Windows/Registry
     name: TaskbarStartLayoutFile
     metadata:

@@ -154,11 +154,9 @@ $Xml.Save($LayoutPath)
 
 #endregion
 
-# Confirmed on this machine (Windows 11 build 26200.8875, past the documented 26200.5722 threshold
-# for "applied instantly, without requiring sign out/sign in") that policy-based taskbar pins take
-# effect without a full logoff. Restarting Explorer is still cheap insurance for older builds that
-# fall back to the pre-instant-apply behavior of "applies at next sign-in" -- this can't make that
-# case any worse, and may still help it along.
+# Policy-based taskbar pins apply instantly without a full logoff on builds >= 26200.5722. Restarting
+# Explorer is still cheap insurance for older builds that fall back to "applies at next sign-in" --
+# this can't make that case any worse, and may still help it along.
 Write-Host "Restarting Explorer to apply the new taskbar layout..." -ForegroundColor Cyan
 Get-Process -Name explorer -ErrorAction SilentlyContinue | Stop-Process -Force
 Start-Sleep -Seconds 2

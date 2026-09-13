@@ -9,7 +9,6 @@
 # NotifyIconSettings entry to show up, then flips that entry's IsPromoted value to 1 -- the same
 # value the "Select which icons appear on the taskbar" Settings page itself edits. This is
 # undocumented and could break in a future Windows update, same caveat as the taskbar-pins script.
-# Verified by hand against the live registry on this machine before writing this script.
 #
 # A standalone, self-contained script -- no chezmoi-specific assumptions (no `chezmoi apply`
 # invocations, no chezmoi source-dir references). It's installed at a stable path
@@ -53,9 +52,9 @@ $Targets = @(
   @{ Label = 'Docker Desktop'; StartAppName = 'Docker Desktop'; IconPathLike = '*\Docker\Docker\frontend\Docker Desktop.exe' }
   # VMware's Start Menu tile ("VMware Workstation Pro") launches the full VM manager UI, not the
   # background helper that actually owns the tray icon -- vmware-tray.exe is a separate process
-  # Windows launches directly at every login via its own HKLM Run key entry, confirmed against
-  # this machine. RunKeyName below reuses that same entry to launch it here instead of going
-  # through Get-StartApps/shell:AppsFolder like every other target.
+  # Windows launches directly at every login via its own HKLM Run key entry. RunKeyName below
+  # reuses that same entry to launch it here instead of going through Get-StartApps/shell:AppsFolder
+  # like every other target.
   @{ Label = 'VMware Workstation'; RunKeyName = 'vmware-tray.exe'; IconPathLike = '*\VMware\VMware Workstation\vmware-tray.exe' }
   # winget's Anthropic.Claude package is a per-user Squirrel-style installer (same pattern as
   # Discord/Slack), not a Store/MSIX package. IconPathLike has a wildcard version segment
@@ -131,9 +130,9 @@ foreach ($Target in $Targets) {
 }
 
 # Safely Remove Hardware isn't an installable app -- it's a built-in icon that explorer.exe itself
-# registers, identified by the documented GUID_HARDWARE_REMOVAL icon GUID (confirmed against this
-# machine's own registry) rather than by ExecutablePath, since explorer.exe hosts several distinct
-# built-in tray icons under that same path. It can only be promoted if Windows has already created
+# registers, identified by the documented GUID_HARDWARE_REMOVAL icon GUID rather than by
+# ExecutablePath, since explorer.exe hosts several distinct built-in tray icons under that same
+# path. It can only be promoted if Windows has already created
 # its entry, which itself only happens after removable/quick-removal hardware has been present at
 # least once -- there's no way to force that from a script, unlike the apps above.
 $HardwareRemovalGuid = '{7820AE78-23E3-4229-82C1-E41CB67D5B9C}'

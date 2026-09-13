@@ -8,9 +8,8 @@ metadata:
       identifier: dscv3
 resources:
   # DeveloperMode writes HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock (machine-wide),
-  # so only this property needs elevation -- confirmed by hand that the other WindowsSettings
-  # properties below write to per-user HKCU keys instead (Personalize\AppsUseLightTheme,
-  # Explorer\Advanced\TaskbarAl) and don't need it.
+  # so only this property needs elevation -- the other WindowsSettings properties (in
+  # 2.settings.a.winget) write to per-user HKCU keys instead and don't.
   - type: Microsoft.Windows.Settings/WindowsSettings
     name: WindowsSettingsDeveloperMode
     metadata:

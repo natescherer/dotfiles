@@ -48,7 +48,7 @@
 # `pmset -c disablesleep 1` doesn't get reported back under that name —
 # pmset -g custom doesn't list it at all, at least on hardware without a
 # battery. pmset -g (no "custom") shows it as "SleepDisabled" under
-# "System-wide power settings:" instead, confirmed against actual output.
+# "System-wide power settings:" instead.
 - name: Check current SleepDisabled setting
   ansible.builtin.shell: pmset -g | awk '/SleepDisabled/{print $2}'
   register: current_disablesleep

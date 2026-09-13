@@ -67,8 +67,7 @@
 # mailto: URL scheme, with no CFBundleDocumentTypes entry for .ics, so it may
 # not be a registered candidate handler for this UTI yet. failed_when: false
 # means that just shows up as a no-op (utiluti errors, ansible doesn't) until
-# Proton adds that declaration — same tolerance as the Outlook version of
-# this task had for a declined confirmation dialog.
+# Proton adds that declaration.
 - name: Get the UTI for .ics files
   ansible.builtin.command: utiluti get-uti ics
   environment:

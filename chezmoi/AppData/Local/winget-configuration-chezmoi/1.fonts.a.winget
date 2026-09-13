@@ -12,23 +12,18 @@ resources:
     metadata:
       description: >-
         Discovers fonts under %LOCALAPPDATA%\chezmoifonts at winget-configure execution time
-        (Get-ChildItem), not chezmoi template-render time. This file used to be a .tmpl that
-        globbed that directory while chezmoi rendered it, but this file and the
+        (Get-ChildItem), not chezmoi template-render time -- this file and the
         .chezmoiexternal.toml.tmpl downloads that populate that directory are both regular
-        chezmoi targets applied in the same pass, with no guaranteed ordering between them --
-        so on a fresh machine the template sometimes rendered before the fonts were actually
-        downloaded, globbed an empty directory, and produced an empty (schema-invalid)
-        resources list. Discovering fonts when this script actually runs (always after all
-        files are applied) sidesteps that ordering race entirely -- and means this file no
-        longer needs to be a template at all. The registry value name is read
-        from each font's own name table (family + style), matching what right-click "Install"
-        does, rather than derived from the filename. Installs per-user (into
-        %LOCALAPPDATA%\Microsoft\Windows\Fonts and HKCU, not %windir%\Fonts and HKLM) so this
-        needs no elevation -- the same distinction Explorer's right-click "Install" (per-user)
-        makes versus "Install for all users" (elevated). Runs via PowerShellScript (pwsh), not
-        WindowsPowerShellScript -- nothing here (Add-Type -AssemblyName PresentationCore/GlyphTypeface,
-        registry cmdlets, Copy-Item) requires Windows PowerShell 5.1; verified PresentationCore
-        loads identically under both hosts.
+        chezmoi targets applied in the same pass with no guaranteed ordering between them, so
+        discovering fonts at template-render time could glob an empty directory on a fresh
+        machine. The registry value name is read from each font's own name table (family +
+        style), matching what right-click "Install" does, rather than derived from the filename.
+        Installs per-user (into %LOCALAPPDATA%\Microsoft\Windows\Fonts and HKCU, not
+        %windir%\Fonts and HKLM) so this needs no elevation -- the same distinction Explorer's
+        right-click "Install" (per-user) makes versus "Install for all users" (elevated). Runs
+        via PowerShellScript (pwsh), not WindowsPowerShellScript, since nothing here (Add-Type
+        -AssemblyName PresentationCore/GlyphTypeface, registry cmdlets, Copy-Item) requires
+        Windows PowerShell 5.1.
     properties:
       getScript: |
         $FontsDir = Join-Path $env:LOCALAPPDATA 'chezmoifonts'

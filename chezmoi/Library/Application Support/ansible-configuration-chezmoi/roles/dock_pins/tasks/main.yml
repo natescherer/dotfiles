@@ -45,15 +45,11 @@
     label: "{{ item.original }}"
   when: not item.exists
 
-# `dockutil --list` prints one tab-separated line per Dock item:
-# label, url, section, plist path, bundle identifier (confirmed against
-# dockutil's own source — Sources/DockUtil/Dock.swift's printList()). The
-# section value is "persistentApps" (camelCase, dockutil's own label for
-# the section — not the underlying plist key), and the url is percent-
-# encoded (spaces show up as %20), both confirmed against real output.
-# Comparing the current persistent-apps paths against what we want lets the
-# clear+repin below be skipped entirely when nothing actually needs to
-# change, instead of doing it unconditionally on every run.
+# `dockutil --list` prints one tab-separated line per Dock item: label, url, section, plist path,
+# bundle identifier. The section value is "persistentApps" (camelCase, dockutil's own label -- not
+# the underlying plist key), and the url is percent-encoded (spaces show up as %20). Comparing the
+# current persistent-apps paths against what we want lets the clear+repin below be skipped entirely
+# when nothing actually needs to change, instead of doing it unconditionally on every run.
 - name: Check current Dock pins
   ansible.builtin.command: dockutil --list
   environment:

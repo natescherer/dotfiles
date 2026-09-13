@@ -27,16 +27,11 @@
 # RegisteredApplications\...\Capabilities\FileAssociations or \URLAssociations registry entry (not
 # hardcoded here, since a ProgId can drift between app versions) -- appNameMatch is matched
 # (-match, so it's a regex) against RegisteredApplications entry names and must match exactly one
-# installed app.
+# installed app. An entry that matches nothing (app not installed yet, or not yet registered) is
+# skipped with a warning rather than failing, and picks itself up on a later apply.
 [[windows_default_app_associations]]
 identifier = ".pdf"
-# Acrobat isn't installed yet as of writing (it'll come from a Creative Cloud sign-in, not
-# winget) -- until then this just resolves to nothing every apply (a skipped-with-warning
-# no-op, not a failure) and picks itself up automatically on whichever later `chezmoi apply`
-# runs after it's actually installed. Not yet confirmed against a real
-# RegisteredApplications entry -- adjust this regex if Acrobat registers under a different
-# name than expected (check via `Get-ItemProperty HKLM:\SOFTWARE\RegisteredApplications`
-# once it's installed).
+# Acrobat comes from a Creative Cloud sign-in, not winget, so it may not be installed yet.
 appNameMatch = "Acrobat"
 
 [[windows_default_app_associations]]
@@ -53,11 +48,6 @@ appNameMatch = "BrowserPicker"
 
 [[windows_default_app_associations]]
 identifier = ".ics"
-# Speculative, like the Acrobat entry above: Proton Mail's Windows build (a Squirrel installer)
-# doesn't declare any file associations in its own packaging config as of writing, so it may not
-# register a RegisteredApplications\...\Capabilities\FileAssociations entry for .ics at all yet.
-# Until it does, this just resolves to nothing every apply (skipped-with-warning, not a failure)
-# and picks itself up automatically once it's actually registered -- adjust appNameMatch if Proton
-# Mail registers under a different name than expected (check via
-# `Get-ItemProperty HKLM:\SOFTWARE\RegisteredApplications`).
+# Proton Mail's Windows build (a Squirrel installer) doesn't declare any file associations in its
+# own packaging config as of writing, so it may not register a FileAssociations entry for .ics yet.
 appNameMatch = "Proton Mail"
