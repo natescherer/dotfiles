@@ -34,3 +34,11 @@ if (Get-Command mise -ErrorAction SilentlyContinue) {
 if (Get-Command starship -ErrorAction SilentlyContinue) {
   Invoke-Expression (&starship init powershell)
 }
+
+# Activate PSFzf (Ctrl+T file search, Ctrl+R history search, fuzzy tab completion --
+# mirrors the zsh setup's fzf-tab + fzf --zsh)
+if (Get-Module -ListAvailable -Name PSFzf) {
+  Import-Module PSFzf
+  Set-PsFzfOption -PSReadlineChordProvider 'Ctrl+t' -PSReadlineChordReverseHistory 'Ctrl+r'
+  Set-PsFzfOption -TabExpansion
+}

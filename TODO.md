@@ -6,7 +6,6 @@
 
 ## Winget Configuration
 
-- Implement PSFzf (after maybe removing PWSH support on macOS and Linux)
 - Test in a no-admin-rights scenario
 - Set Control Panel to Small Icons
 
