@@ -12,8 +12,8 @@ function Invoke-LsWithOptions {
 }
 
 function mkdircd([string]$Path) {
-    mkdir $Path
-    cd $Path
+    New-Item -ItemType Directory -Path $Path -Force -ErrorAction Stop | Out-Null
+    Set-Location -Path $Path -ErrorAction Stop
 }
 
 Set-Alias -Name cl -Value clear
