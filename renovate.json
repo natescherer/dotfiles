@@ -37,7 +37,8 @@
       ],
       "matchStrings": [
         "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)( registryUrl=(?<registryUrl>\\S+))?\\s*\\n\\s*version: \"(?<currentValue>[^\"]+)\""
-      ]
+      ],
+      "extractVersionTemplate": "^v?(?<version>.*)$"
     }
   ],
   "mise": {

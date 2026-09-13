@@ -36,5 +36,5 @@ resources:
       repositoryName: PSGallery
       resources:
         - name: PSFzf
-          # renovate: datasource=nuget depName=PSFzf registryUrl=https://www.powershellgallery.com/api/v2
+          # renovate: datasource=github-releases depName=kelleyma49/PSFzf
           version: "2.5.14"
