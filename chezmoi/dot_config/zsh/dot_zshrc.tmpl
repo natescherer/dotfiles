@@ -1,5 +1,8 @@
 ## WARNING: This file is chezmoi-managed and should not be manually edited!
 
+# Activate sheldon (early: fpath-only plugins that must load before compinit)
+eval "$(sheldon --profile early source)"
+
 # Set up shell completions
 [ -d "$XDG_CACHE_HOME"/zsh ] || mkdir -p "$XDG_CACHE_HOME"/zsh
 autoload -Uz compinit
@@ -12,6 +15,7 @@ fi
 zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'
 zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
 zstyle ':completion:*' cache-path "$XDG_CACHE_HOME"/zsh/zcompcache
+zstyle ':fzf-tab:complete:cd:*' fzf-preview 'ls --color $realpath'
 
 # Set history options
 [ -d "$XDG_STATE_HOME"/zsh ] || mkdir -p "$XDG_STATE_HOME"/zsh
@@ -50,7 +54,7 @@ eval "$(mise activate zsh)"
 eval "$(starship init zsh)"
 
 # Activate sheldon
-eval "$(sheldon source)"
+eval "$(sheldon --profile default source)"
 
 # Activate fzf
 source <(fzf --zsh)
