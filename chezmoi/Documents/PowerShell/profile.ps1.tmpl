@@ -20,16 +20,17 @@ if (Test-Path $(Join-Path $PSScriptRoot "aliases-local.ps1")) {
   . $(Join-Path $PSScriptRoot "aliases-local.ps1")
 }
 
-{{ if lookPath "mise" -}}
-# Activate mise
-mise activate pwsh | Out-String | Invoke-Expression
+# Runtime checks (not template-time {{"{{"}} if lookPath }} gates): winget configure installs
+# mise and Starship later in the same chezmoi apply run, so a template-time check would
+# bake in "not found" on a fresh machine and require a second apply to pick it up. Checking
+# at the moment each shell starts means it self-heals as soon as each tool lands on PATH.
 
-{{ end -}}
+# Activate mise
+if (Get-Command mise -ErrorAction SilentlyContinue) {
+  mise activate pwsh | Out-String | Invoke-Expression
+}
+
 # Activate Starship
-# Runtime check (not a template-time {{"{{"}} if lookPath }} gate): winget configure installs
-# Starship later in the same chezmoi apply run, so a template-time check would bake in "not
-# found" on a fresh machine and require a second apply to pick it up. Checking at the moment
-# each shell starts means it self-heals as soon as Starship lands on PATH, no re-apply needed.
 if (Get-Command starship -ErrorAction SilentlyContinue) {
   Invoke-Expression (&starship init powershell)
 }
