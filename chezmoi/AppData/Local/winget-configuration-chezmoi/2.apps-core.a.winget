@@ -43,18 +43,6 @@ resources:
       id: jdx.mise
       source: winget
       installMode: silent
-  # trustedRepository avoids needing a separate Microsoft.PowerShell.PSResourceGet/Repository
-  # resource just for this -- PSGallery is trusted globally (persisted to the PSResourceRepository
-  # store, not just this process) by TrustPSGallery in 2.pwsh.a.winget, but that file runs after
-  # this one (alphabetically "apps-core" < "pwsh"), so this resource can't rely on it yet.
-  - type: Microsoft.PowerShell.PSResourceGet/PSResourceList
-    name: PSFzf
-    properties:
-      repositoryName: PSGallery
-      trustedRepository: true
-      resources:
-        - name: PSFzf
-          version: "2.5.14"
   - type: Microsoft.WinGet/Package
     name: VSCode
     properties:

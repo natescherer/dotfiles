@@ -1,0 +1,46 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "semanticCommits": "enabled",
+  "schedule": ["* 0 1 * *"],
+  "packageRules": [
+    {
+      "description": "community.general is pinned to an open floor (>=X); bump the floor itself on new releases instead of leaving it permanently 'satisfied'",
+      "matchManagers": ["ansible-galaxy"],
+      "rangeStrategy": "bump"
+    }
+  ],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "sheldon zsh plugin git tags",
+      "managerFilePatterns": ["chezmoi/dot_config/sheldon/plugins.toml"],
+      "matchStrings": [
+        "github\\s*=\\s*[\"'](?<depName>[^\"']+)[\"']\\s*\\ntag\\s*=\\s*[\"'](?<currentValue>[^\"']+)[\"']"
+      ],
+      "datasourceTemplate": "github-tags"
+    },
+    {
+      "customType": "regex",
+      "description": "chezmoiexternal template version variables, each declared with a preceding '{{- /* renovate: ... */ -}}' comment giving datasource+depName",
+      "managerFilePatterns": ["chezmoi/.chezmoiexternal.toml.tmpl"],
+      "matchStrings": [
+        "\\{\\{-\\s*/\\*\\s*renovate:\\s*datasource=(?<datasource>\\S+)\\s+depName=(?<depName>\\S+)\\s*\\*/\\s*-\\}\\}\\s*\\n\\{\\{-\\s*\\$\\w+\\s*:=\\s*\"(?<currentValue>[^\"]+)\"\\s*\\}\\}"
+      ],
+      "extractVersionTemplate": "^v?(?<version>.*)$"
+    },
+    {
+      "customType": "regex",
+      "description": "Values annotated with a preceding '# renovate: ...' comment giving datasource+depName(+registryUrl), tracking the 'key: \"value\"' line right after it",
+      "managerFilePatterns": [
+        "chezmoi/AppData/Local/winget-configuration-chezmoi/2.pwsh.a.winget"
+      ],
+      "matchStrings": [
+        "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)( registryUrl=(?<registryUrl>\\S+))?\\s*\\n\\s*version: \"(?<currentValue>[^\"]+)\""
+      ]
+    }
+  ],
+  "mise": {
+    "managerFilePatterns": ["chezmoi/dot_config/mise/config.toml"]
+  }
+}

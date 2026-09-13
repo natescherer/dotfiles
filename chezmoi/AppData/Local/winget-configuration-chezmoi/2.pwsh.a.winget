@@ -25,13 +25,16 @@ resources:
         - -NoLogo
         - -Command
         - "Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope CurrentUser -Force"
-  # Persists PSGallery as trusted (Set-PSResourceRepository -Trusted, saved to the
-  # PSResourceRepository store) for every later file's Microsoft.PowerShell.PSResourceGet/PSResourceList
-  # resources that don't set trustedRepository inline themselves -- e.g. BurntToast in
-  # 3.taskbarpins.e.winget. WindowsDscModules in 1.requirements.a.winget runs before this file, so
-  # it sets trustedRepository: true on itself instead of depending on this.
   - type: Microsoft.PowerShell.PSResourceGet/Repository
     name: TrustPSGallery
     properties:
       name: PSGallery
       trusted: true
+  - type: Microsoft.PowerShell.PSResourceGet/PSResourceList
+    name: PSFzf
+    properties:
+      repositoryName: PSGallery
+      resources:
+        - name: PSFzf
+          # renovate: datasource=nuget depName=PSFzf registryUrl=https://www.powershellgallery.com/api/v2
+          version: "2.5.14"

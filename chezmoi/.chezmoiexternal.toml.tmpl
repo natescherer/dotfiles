@@ -6,11 +6,15 @@
 {{- else if eq .chezmoi.os "windows" }}
     {{- $fontDir = "AppData/Local/chezmoifonts" }} ##@ This is a staging directory, fonts deposited here will be later installed as part of winget configure
 {{- end }}
+{{- /* renovate: datasource=github-releases depName=microsoft/cascadia-code */ -}}
+{{- $cascadiaVersion := "2407.24" }}
+{{- /* renovate: datasource=github-releases depName=RedHatOfficial/Overpass */ -}}
+{{- $overpassVersion := "3.0.5" }}
 ["{{ $fontDir }}/CascadiaMonoNF-Regular.otf"]
     type = "archive-file"
-    url = "https://github.com/microsoft/cascadia-code/releases/download/v2407.24/CascadiaCode-2407.24.zip"
+    url = "https://github.com/microsoft/cascadia-code/releases/download/v{{ $cascadiaVersion }}/CascadiaCode-{{ $cascadiaVersion }}.zip"
     path = "otf/static/CascadiaMonoNF-Regular.otf"
 ["{{ $fontDir }}/overpass-regular.otf"]
     type = "archive-file"
-    url = "https://github.com/RedHatOfficial/Overpass/releases/download/v3.0.5/overpass-3.0.5.zip"
-    path = "Overpass-3.0.5/desktop-fonts/overpass/overpass-regular.otf"
+    url = "https://github.com/RedHatOfficial/Overpass/releases/download/v{{ $overpassVersion }}/overpass-{{ $overpassVersion }}.zip"
+    path = "Overpass-{{ $overpassVersion }}/desktop-fonts/overpass/overpass-regular.otf"
