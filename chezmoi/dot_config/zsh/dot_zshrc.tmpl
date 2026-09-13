@@ -22,10 +22,12 @@ setopt EXTENDED_HISTORY         # include timestamp
 setopt HIST_BEEP                # beep if attempting to access a history entry which isn’t there
 setopt HIST_EXPIRE_DUPS_FIRST   # trim dupes first if history is full
 setopt HIST_FIND_NO_DUPS        # do not display previously found command
+setopt HIST_IGNORE_ALL_DUPS     # remove older dupe when a repeated command is added
 setopt HIST_IGNORE_DUPS         # do not save duplicate of prior command
 setopt HIST_IGNORE_SPACE        # do not save if line starts with space
 setopt HIST_NO_STORE            # do not save history commands
 setopt HIST_REDUCE_BLANKS       # strip superfluous blanks
+setopt HIST_SAVE_NO_DUPS        # do not write duplicate entries to the history file
 setopt INC_APPEND_HISTORY       # don't wait for shell to exit to save history lines
 
 # Source aliases
