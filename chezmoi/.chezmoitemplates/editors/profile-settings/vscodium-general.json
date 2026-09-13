@@ -1,0 +1,12 @@
+{
+    "[markdown]": {
+        "editor.defaultFormatter": "rvben.rumdl"
+    },
+    "[toml]": {
+        "editor.defaultFormatter": "tombi-toml.tombi"
+    },
+    "[yaml]": {
+        "editor.defaultFormatter": "redhat.vscode-yaml"
+    },
+    "workbench.colorTheme": "Dracula"
+}

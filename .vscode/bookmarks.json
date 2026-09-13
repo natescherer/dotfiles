@@ -1,20 +1,20 @@
 {
 	"files": [
 		{
-			"path": "chezmoi/.chezmoitemplates/vscode/reusable-settings/core.json",
+			"path": "chezmoi/.chezmoitemplates/editors/reusable-settings/core.json",
 			"bookmarks": [
 				{
 					"line": 0,
 					"column": 0,
-					"label": "VSCode Core Settings"
+					"label": "Editor Core Settings"
 				}
 			]
 		},
 		{
-			"path": "chezmoi/.chezmoidata/vscode.toml",
+			"path": "chezmoi/.chezmoidata/editors.toml",
 			"bookmarks": [
 				{
-					"line": 7,
+					"line": 12,
 					"column": 0,
 					"label": "VSCode Extensions"
 				}

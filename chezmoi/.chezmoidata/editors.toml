@@ -1,5 +1,10 @@
 [vscode]
 
+# VS Code's Default profile is deliberately kept minimal (see its "Default" profile entry below)
+# to nudge you into picking a real profile instead of leaving everything piled into one, so it's
+# the one profile excluded from all_profile_extensions.
+default_profile_is_placeholder = true
+
 # Extensions applied to every profile except Default (which is deliberately kept minimal -- see
 # its comment below). An entry can optionally gate itself with whenTrue and/or whenFalse, same
 # semantics as .chezmoidata/windows-ini-patches.toml: each is a list of top-level chezmoi variable
@@ -51,7 +56,7 @@ containers = [
 [[vscode.profiles]]
 name = "Default"
 # Default profile doesn't have a custom icon in the VS Code UI
-settings_files = [".chezmoitemplates/vscode/reusable-settings/core.json", ".chezmoitemplates/vscode/profile-settings/default.json"]
+settings_files = [".chezmoitemplates/editors/reusable-settings/core.json", ".chezmoitemplates/editors/profile-settings/default.json"]
 extension_sets = []
 extensions = [
   "bardleware.sandstorm",  # Red theme to act as an indicator that you need to choose a profile
@@ -60,7 +65,7 @@ extensions = [
 [[vscode.profiles]]
 name = "Chezmoi"
 icon = "home"
-settings_files = [".chezmoitemplates/vscode/reusable-settings/core.json", ".chezmoitemplates/vscode/profile-settings/python.json"]
+settings_files = [".chezmoitemplates/editors/reusable-settings/core.json", ".chezmoitemplates/editors/profile-settings/python.json"]
 extension_sets = ["python"]
 extensions = [
   "ms-vscode.powershell",  # PowerShell extension
@@ -70,7 +75,7 @@ extensions = [
 [[vscode.profiles]]
 name = "Kubernetes"
 icon = "server"
-settings_files = [".chezmoitemplates/vscode/reusable-settings/core.json", ".chezmoitemplates/vscode/profile-settings/python.json", ".chezmoitemplates/vscode/profile-settings/kubernetes.json"]
+settings_files = [".chezmoitemplates/editors/reusable-settings/core.json", ".chezmoitemplates/editors/profile-settings/python.json", ".chezmoitemplates/editors/profile-settings/kubernetes.json"]
 extension_sets = ["python"]
 extensions = [
   "ms-kubernetes-tools.vscode-kubernetes-tools",
@@ -80,7 +85,7 @@ extensions = [
 [[vscode.profiles]]
 name = "Nix"
 icon = "terminal-linux"
-settings_files = [".chezmoitemplates/vscode/reusable-settings/core.json", ".chezmoitemplates/vscode/profile-settings/nix.json"]
+settings_files = [".chezmoitemplates/editors/reusable-settings/core.json", ".chezmoitemplates/editors/profile-settings/nix.json"]
 extension_sets = ["containers"]
 extensions = [
   "jnoortheen.nix-ide",  # Nix language server
@@ -90,7 +95,7 @@ extensions = [
 [[vscode.profiles]]
 name = "PowerShell"
 icon = "terminal"
-settings_files = [".chezmoitemplates/vscode/reusable-settings/core.json", ".chezmoitemplates/vscode/profile-settings/powershell.json"]
+settings_files = [".chezmoitemplates/editors/reusable-settings/core.json", ".chezmoitemplates/editors/profile-settings/powershell.json"]
 extension_sets = []
 extensions = [
   "ms-vscode.powershell",  # PowerShell extension
@@ -99,14 +104,14 @@ extensions = [
 [[vscode.profiles]]
 name = "Python"
 icon = "snake"
-settings_files = [".chezmoitemplates/vscode/reusable-settings/core.json", ".chezmoitemplates/vscode/profile-settings/python.json"]
+settings_files = [".chezmoitemplates/editors/reusable-settings/core.json", ".chezmoitemplates/editors/profile-settings/python.json"]
 extension_sets = ["python", "jupyter"]
 extensions = []
 
 [[vscode.profiles]]
 name = "Terraform"
 icon = "paintcan"
-settings_files = [".chezmoitemplates/vscode/reusable-settings/core.json", ".chezmoitemplates/vscode/profile-settings/python.json", ".chezmoitemplates/vscode/profile-settings/terraform.json"]
+settings_files = [".chezmoitemplates/editors/reusable-settings/core.json", ".chezmoitemplates/editors/profile-settings/python.json", ".chezmoitemplates/editors/profile-settings/terraform.json"]
 extension_sets = ["python"]
 extensions =  [
   "hashicorp.terraform",
@@ -115,10 +120,46 @@ extensions =  [
 [[vscode.profiles]]
 name = "Web"
 icon = "compass"
-settings_files = [".chezmoitemplates/vscode/reusable-settings/core.json", ".chezmoitemplates/vscode/profile-settings/web.json"]
+settings_files = [".chezmoitemplates/editors/reusable-settings/core.json", ".chezmoitemplates/editors/profile-settings/web.json"]
 extension_sets = []
 extensions = [
   "biomejs.biome",
   "deque-systems.vscode-axe-linter",
   "ms-vscode.live-server",
+]
+
+# VSCodium is a lightweight, cross-platform, general-purpose text editor -- unlike the VS Code
+# profiles above, it's not meant for per-language IDE work (that's what VS Code's profiles are
+# for), so it gets just one profile with a small, generalist extension set. It also can't use most
+# of VS Code's IDE tooling anyway: VSCodium points at Open VSX instead of the Microsoft Marketplace
+# by default, and Microsoft-published extensions (Pylance, the Kubernetes tools, Remote-SSH, etc.)
+# aren't published there.
+#
+# Its "Default" profile is the one VSCodium actually opens into, unlike VS Code's -- so, unlike
+# there, it's real and gets the full all_profile_extensions treatment.
+[vscodium]
+default_profile_is_placeholder = false
+
+all_profile_extensions = [
+  { id = "anthropic.claude-code", whenTrue = ["isPersonal"] },  # Claude Code
+]
+
+[vscodium.extension_sets]
+
+[[vscodium.profiles]]
+name = "Default"
+settings_files = [".chezmoitemplates/editors/reusable-settings/core.json", ".chezmoitemplates/editors/profile-settings/vscodium-general.json"]
+extension_sets = []
+extensions = [
+  "alefragnani.bookmarks",  # Code Bookmarks
+  "dracula-theme.theme-dracula",  # Distinct dark theme, so a VSCodium window is recognizable at a glance next to VS Code
+  "editorconfig.editorconfig",  # EditorConfig support, see https://editorconfig.org/
+  "mechatroner.rainbow-csv",  # Improves CSV viewing
+  "oderwat.indent-rainbow",  # Improves indent visibility
+  "owenlamont.ryl",  # YAML linter/formatter
+  "redhat.vscode-yaml",  # Core YAML support
+  "rvben.rumdl",  # Markdown linter/formatter
+  "tekumara.typos-vscode",  # Intelligent spell checker
+  "tombi-toml.tombi",  # TOML linter/formatter
+  "usernamehw.errorlens",  # Highlights errors and warnings inline
 ]

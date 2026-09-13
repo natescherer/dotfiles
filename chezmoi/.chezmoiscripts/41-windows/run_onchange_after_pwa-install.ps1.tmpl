@@ -10,7 +10,7 @@
 
 {{/* PWA entries are embedded directly below, so this run_onchange_ script's own rendered content
      changes whenever .chezmoidata/pwas.toml changes -- no separate hash-embedding trick needed
-     (same reasoning as run_onchange_after_vscode-profiles.py.tmpl's embedded PROFILES data).
+     (same reasoning as run_onchange_after_editor-profiles.py.tmpl's embedded EDITORS data).
      Entries with ignore_on containing "windows" are dropped here (and the key itself stripped)
      so they're never counted as expected installs on this platform. */}}
 {{- $pwas := list }}

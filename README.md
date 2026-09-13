@@ -120,16 +120,28 @@ Currently managed:
     - Uses an unusual model of one-file-per-setting, there are many files under the below directory
   - Config Files
     - [chezmoi/AppData/Local/UniGetUI/Configuration](chezmoi/AppData/Local/UniGetUI/Configuration)
+- [VSCodium](https://vscodium.com/) 🐧 🍎 🪟
+  - Notes
+    - Configured as a single, lightweight general-purpose profile; Visual Studio Code below covers the language-specific IDE profiles, since VSCodium's default Open VSX registry doesn't carry Microsoft's own extensions (Pylance, the Kubernetes tools, etc.)
+    - Shares its profile-provisioning data/templates/script with Visual Studio Code below
+  - Config Files
+    - [chezmoi/.chezmoidata/editors.toml](chezmoi/.chezmoidata/editors.toml)
+      - Defines data used to provision profiles (the `[vscodium]` table)
+    - [chezmoi/.chezmoitemplates/editors](chezmoi/.chezmoitemplates/editors)
+      - Each file in this directory defines the settings for a profile
+    - [chezmoi/.chezmoiscripts/90-all/run_onchange_after_editor-profiles.py.tmpl](chezmoi/.chezmoiscripts/90-all/run_onchange_after_editor-profiles.py.tmpl)
+      - Performs profile provisioning and updating for both editors
 - [Visual Studio Code](https://code.visualstudio.com/) 🐧 🍎 🪟
   - Notes
     - Configured to support the syncing of profiles
+    - Shares its profile-provisioning data/templates/script with VSCodium above
   - Config Files
-    - [chezmoi/.chezmoidata/vscode.toml](chezmoi/.chezmoidata/vscode.toml)
-      - Defines data used to provision profiles
-    - [chezmoi/.chezmoitemplates/vscode](chezmoi/.chezmoitemplates/vscode)
+    - [chezmoi/.chezmoidata/editors.toml](chezmoi/.chezmoidata/editors.toml)
+      - Defines data used to provision profiles (the `[vscode]` table)
+    - [chezmoi/.chezmoitemplates/editors](chezmoi/.chezmoitemplates/editors)
       - Each file in this directory defines the settings for a profile
-    - [chezmoi/.chezmoiscripts/90-all/run_onchange_after_vscode-profiles.py.tmpl](chezmoi/.chezmoiscripts/90-all/run_onchange_after_vscode-profiles.py.tmpl)
-      - Performs profile provisioning and updating
+    - [chezmoi/.chezmoiscripts/90-all/run_onchange_after_editor-profiles.py.tmpl](chezmoi/.chezmoiscripts/90-all/run_onchange_after_editor-profiles.py.tmpl)
+      - Performs profile provisioning and updating for both editors
 - [VMware Workstation](https://www.vmware.com/products/workstation-pro.html) 🪟
   - Notes
     - VMware stores its session state in the same INI file as its settings, so needed settings are patched in-place via script

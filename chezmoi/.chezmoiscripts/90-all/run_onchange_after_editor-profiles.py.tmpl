@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
-# Installs each VS Code profile's extensions (from .chezmoidata/vscode.toml) and syncs its
-# settings.json into VS Code's own profile folder - user_dir itself for Default, or the
-# machine-generated User/profiles/<hash>/ folder for named profiles.
+# Installs each profile's extensions (from .chezmoidata/editors.toml) and syncs its settings.json
+# into the relevant editor's own profile folder - user_dir itself for Default, or the
+# machine-generated User/profiles/<hash>/ folder for named profiles. Drives both VS Code and
+# VSCodium, since both are VS Code-family editors with identical profile/extension/settings.json
+# mechanics -- just a different binary name and user-data folder.
 #
 # A profile's settings.json is only overwritten if it's untouched since the last time this
 # script wrote it (tracked via a settings.json.chezmoi-hash sidecar file), so local customizations
@@ -23,12 +25,17 @@ import subprocess
 import sys
 import time
 
-{{/* The section below embeds the content of .chezmoidata/vscode.toml as well as the files under
-.chezmoitemplates/vscode, ensuring changes to those files will cause the hash of this files to change,
-triggering the run_onchange_. */}}
+{{/* The section below embeds the content of .chezmoidata/editors.toml as well as the files under
+.chezmoitemplates/editors, ensuring changes to those files will cause the hash of this file to
+change, triggering the run_onchange_. */}}
+{{- $editorDataList := list (dict "key" "vscode" "data" .vscode) (dict "key" "vscodium" "data" .vscodium) }}
+{{- $editors := list }}
+{{- range $editorDataList }}
+{{- $editorKey := .key }}
+{{- $editorData := .data }}
 {{- $profiles := list }}
-{{- $extensionSetDefns := .vscode.extension_sets | default (dict) }}
-{{- range .vscode.profiles }}
+{{- $extensionSetDefns := $editorData.extension_sets | default (dict) }}
+{{- range $editorData.profiles }}
 {{- $icon := "" }}
 {{- if ne .name "Default" }}
 {{- $icon = .icon }}
@@ -50,18 +57,24 @@ triggering the run_onchange_. */}}
 {{- end }}
 {{- $profiles = append $profiles (dict "name" .name "extensions" $extensions "settings_files" $settingsEntries "icon" $icon) }}
 {{- end }}
+{{- $editors = append $editors (dict
+    "key" $editorKey
+    "profiles" $profiles
+    "all_profile_extensions" ($editorData.all_profile_extensions | default (list))
+    "default_profile_is_placeholder" ($editorData.default_profile_is_placeholder | default false)
+) }}
+{{- end }}
 # toJson renders true/false/null, which aren't valid Python literals (unlike True/False/None) --
 # each embed below is wrapped as a raw string and parsed with json.loads instead of splicing it in
 # as Python source directly, so booleans and backslashes in the data can't break the syntax.
-PROFILES = json.loads(r'''{{ $profiles | toJson }}''')
+EDITORS = json.loads(r'''{{ $editors | toJson }}''')
 
 # .chezmoidata files can't be templated (data has to be loaded before the template engine has
-# anything to execute templates with), so vscode.toml's all_profile_extensions entries express
+# anything to execute templates with), so editors.toml's all_profile_extensions entries express
 # their whenTrue/whenFalse gates as top-level chezmoi variable names rather than real template
 # conditionals -- same convention windows-ini-patches.toml uses. The full chezmoi variable map is
 # embedded here so those gates can be evaluated once this script actually runs.
 CHEZMOI_DATA = json.loads(r'''{{ . | toJson }}''')
-ALL_PROFILE_EXTENSIONS = json.loads(r'''{{ .vscode.all_profile_extensions | default (list) | toJson }}''')
 
 IS_WINDOWS = platform.system() == "Windows"
 
@@ -70,7 +83,7 @@ if IS_WINDOWS:
     # process's inherited os.environ["PATH"] was captured before those writes happened (env var
     # changes never propagate from a child process backward into an already-running parent).
     # Rebuilding PATH from the registry (Machine + User, same precedence Windows itself uses)
-    # picks up anything installed this run -- see main()'s shutil.which("code") check below.
+    # picks up anything installed this run -- see main()'s shutil.which() checks below.
     import winreg
 
     def _registry_path(hive, subkey):
@@ -87,15 +100,15 @@ if IS_WINDOWS:
 
 # Normally, a profile's settings.json that has drifted from what chezmoi last wrote is left alone
 # (see write_profile_settings) so local customizations never get silently clobbered. Setting this
-# opts back into always overwriting it with what chezmoi wants instead.
-CHEZMOI_VSCODE_CLOBBER = os.environ.get("CHEZMOI_VSCODE_CLOBBER", "").lower() in ("1", "true", "yes")
+# opts back into always overwriting it with what chezmoi wants instead, for both editors.
+CHEZMOI_EDITOR_CLOBBER = os.environ.get("CHEZMOI_EDITOR_CLOBBER", "").lower() in ("1", "true", "yes")
 
 # Setting an env var for a single command differs by shell, so give the warning below a copy-pasteable
 # example matching however this script itself is actually being run.
 CLOBBER_COMMAND = (
-    '$env:CHEZMOI_VSCODE_CLOBBER = "true"; chezmoi apply'
+    '$env:CHEZMOI_EDITOR_CLOBBER = "true"; chezmoi apply'
     if IS_WINDOWS
-    else "CHEZMOI_VSCODE_CLOBBER=true chezmoi apply"
+    else "CHEZMOI_EDITOR_CLOBBER=true chezmoi apply"
 )
 
 CYAN_TERM_COLOR = "\033[0;36m"
@@ -104,35 +117,61 @@ RED_TERM_COLOR = "\033[0;31m"
 YELLOW_TERM_COLOR = "\033[1;33m"
 RESET_TERM_STYLE = "\033[0m"
 
+# Everything that differs between VS Code and VSCodium: the CLI binary name, the user-data folder
+# name, and how to recognize the app's running processes (used by provision_profile to decide
+# whether auto-closing a provisioning window is safe). Both editors otherwise share every code path
+# below -- profile/extension/settings.json handling is identical VS Code-family machinery.
+EDITORS_META = {
+    "vscode": {
+        "display_name": "VS Code",
+        "binary": "code",
+        "folder_name": "Code",
+        "windows_process_image": "Code.exe",
+        "macos_bundle_path": "Visual Studio Code.app/Contents/MacOS",
+        "linux_process_pattern": r"/code(\s|$)",
+    },
+    "vscodium": {
+        "display_name": "VSCodium",
+        "binary": "codium",
+        "folder_name": "VSCodium",
+        "windows_process_image": "VSCodium.exe",
+        "macos_bundle_path": "VSCodium.app/Contents/MacOS",
+        "linux_process_pattern": r"/codium(\s|$)",
+    },
+}
 
-def vscode_user_dir():
+
+def editor_user_dir(editor_key):
+    folder_name = EDITORS_META[editor_key]["folder_name"]
     system = platform.system()
     if system == "Windows":
-        return os.path.join(os.environ["APPDATA"], "Code", "User")
+        return os.path.join(os.environ["APPDATA"], folder_name, "User")
     if system == "Darwin":
-        return os.path.join(os.path.expanduser("~"), "Library", "Application Support", "Code", "User")
-    return os.path.join(os.path.expanduser("~"), ".config", "Code", "User")
+        return os.path.join(os.path.expanduser("~"), "Library", "Application Support", folder_name, "User")
+    return os.path.join(os.path.expanduser("~"), ".config", folder_name, "User")
 
 
-def run_code(*args):
-    # 'code' needs launched through a shell on Windows.
-    cmd = ["cmd", "/c", "code", *args] if IS_WINDOWS else ["code", *args]
+def run_editor(editor_key, *args):
+    # The editor's CLI needs launched through a shell on Windows.
+    binary = EDITORS_META[editor_key]["binary"]
+    cmd = ["cmd", "/c", binary, *args] if IS_WINDOWS else [binary, *args]
     return subprocess.run(cmd, capture_output=True, text=True)
 
 
-def list_extensions(profile_name):
+def list_extensions(editor_key, profile_name):
     profile_args = () if profile_name == "Default" else ("--profile", profile_name)
-    result = run_code(*profile_args, "--list-extensions")
+    result = run_editor(editor_key, *profile_args, "--list-extensions")
     return {line.strip() for line in result.stdout.splitlines() if line.strip()}
 
 
-def install_extension(profile_name, extension_id):
+def install_extension(editor_key, profile_name, extension_id):
+    display_name = EDITORS_META[editor_key]["display_name"]
     profile_args = () if profile_name == "Default" else ("--profile", profile_name)
-    print(f"{CYAN_TERM_COLOR}Installing '{extension_id}' into VS Code profile '{profile_name}'...{RESET_TERM_STYLE}")
-    result = run_code(*profile_args, "--install-extension", extension_id)
+    print(f"{CYAN_TERM_COLOR}Installing '{extension_id}' into {display_name} profile '{profile_name}'...{RESET_TERM_STYLE}")
+    result = run_editor(editor_key, *profile_args, "--install-extension", extension_id)
     if result.returncode != 0:
         print(
-            f"{RED_TERM_COLOR}Error: failed to install '{extension_id}' into VS Code profile "
+            f"{RED_TERM_COLOR}Error: failed to install '{extension_id}' into {display_name} profile "
             f"'{profile_name}' (exit code {result.returncode}). Re-run 'chezmoi apply' to try "
             f"again.{RESET_TERM_STYLE}\n{result.stdout}{result.stderr}",
             file=sys.stderr,
@@ -141,21 +180,22 @@ def install_extension(profile_name, extension_id):
     return True
 
 
-def sync_extensions(profile_name, desired_extensions):
+def sync_extensions(editor_key, profile_name, desired_extensions):
+    display_name = EDITORS_META[editor_key]["display_name"]
     desired = set(desired_extensions)
-    installed = list_extensions(profile_name)
+    installed = list_extensions(editor_key, profile_name)
 
     all_succeeded = True
     for extension_id in sorted(desired - installed):
-        if not install_extension(profile_name, extension_id):
+        if not install_extension(editor_key, profile_name, extension_id):
             all_succeeded = False
 
     extra = installed - desired
     if extra:
         print(
-            f"{YELLOW_TERM_COLOR}Warning: VS Code profile '{profile_name}' has the following extensions "
+            f"{YELLOW_TERM_COLOR}Warning: {display_name} profile '{profile_name}' has the following extensions "
             f"installed that aren't tracked by chezmoi. They have not been uninstalled, but you "
-            f"should consider adding them to '.chezmoidata/vscode.toml': "
+            f"should consider adding them to '.chezmoidata/editors.toml': "
             f"{', '.join(sorted(extra))}{RESET_TERM_STYLE}\n",
             file=sys.stderr,
         )
@@ -239,16 +279,17 @@ def hash_string(value):
     return hashlib.sha256(value.encode("utf-8")).hexdigest()
 
 
-def find_code_processes():
-    # Best-effort snapshot of every currently-running VS Code process (main window(s) plus
+def find_editor_processes(editor_key):
+    # Best-effort snapshot of every currently-running process for this editor (main window(s) plus
     # helpers), used by provision_profile to decide whether auto-closing a provisioning window is
-    # safe. Returns None -- treated by callers the same as "VS Code is already running" -- if the
-    # platform's process-listing tool isn't available, since being wrong in that direction just
+    # safe. Returns None -- treated by callers the same as "the editor is already running" -- if
+    # the platform's process-listing tool isn't available, since being wrong in that direction just
     # means falling back to the manual prompt below, not risking killing something we shouldn't.
+    meta = EDITORS_META[editor_key]
     try:
         if IS_WINDOWS:
             result = subprocess.run(
-                ["tasklist", "/FO", "CSV", "/FI", "IMAGENAME eq Code.exe", "/NH"],
+                ["tasklist", "/FO", "CSV", "/FI", f"IMAGENAME eq {meta['windows_process_image']}", "/NH"],
                 capture_output=True, text=True,
             )
             pids = set()
@@ -257,19 +298,15 @@ def find_code_processes():
                 # Mem Usage field itself contains a comma (e.g. "123,456 K"), but that's past the
                 # PID we care about so a naive split still lands on the right field.
                 fields = line.strip().split(",")
-                if len(fields) >= 2 and fields[0].strip('"') == "Code.exe":
+                if len(fields) >= 2 and fields[0].strip('"') == meta["windows_process_image"]:
                     pids.add(fields[1].strip('"'))
             return pids
 
-        # On macOS every VS Code process -- main window and helpers alike -- has the .app bundle
-        # path somewhere in its full command line, even though their process names differ. Linux
-        # Electron helper processes re-exec the same "code" binary, so matching the bare name
+        # On macOS every process for this editor -- main window and helpers alike -- has the .app
+        # bundle path somewhere in its full command line, even though their process names differ.
+        # Linux Electron helper processes re-exec the same CLI binary, so matching the bare name
         # catches those too.
-        pattern = (
-            "Visual Studio Code.app/Contents/MacOS"
-            if platform.system() == "Darwin"
-            else r"/code(\s|$)"
-        )
+        pattern = meta["macos_bundle_path"] if platform.system() == "Darwin" else meta["linux_process_pattern"]
         result = subprocess.run(["pgrep", "-f", pattern], capture_output=True, text=True)
         return {line.strip() for line in result.stdout.splitlines() if line.strip()}
     except FileNotFoundError:
@@ -289,48 +326,50 @@ def kill_pids(pids):
             pass
 
 
-def wait_for_profile_registration(user_dir, profile_name, retries=30, delay=2):
+def wait_for_profile_registration(editor_key, user_dir, profile_name, retries=30, delay=2):
+    display_name = EDITORS_META[editor_key]["display_name"]
     for attempt in range(retries):
         if get_profile_location(user_dir, profile_name) is not None:
             return True
         if attempt and attempt % 10 == 0:
-            print(f"{CYAN_TERM_COLOR}Still waiting for VS Code profile '{profile_name}' to register "
+            print(f"{CYAN_TERM_COLOR}Still waiting for {display_name} profile '{profile_name}' to register "
                   f"({attempt * delay}s elapsed)...{RESET_TERM_STYLE}")
         time.sleep(delay)
     return False
 
 
-def provision_profile(user_dir, profile_name):
-    # VS Code only registers a new profile in storage.json when it's opened as a real window, so
-    # there's no way to create one headlessly. If no VS Code window is open anywhere on the
+def provision_profile(editor_key, user_dir, profile_name):
+    # The editor only registers a new profile in storage.json when it's opened as a real window, so
+    # there's no way to create one headlessly. If no window for this editor is open anywhere on the
     # machine, we can launch one ourselves, wait for the registration to land, and close exactly
     # what we opened -- the same launch/wait/close-it-ourselves pattern
-    # run_onchange_after_pwa-install.ps1.tmpl uses for Chromium. But if VS Code is already
+    # run_onchange_after_pwa-install.ps1.tmpl uses for Chromium. But if the editor is already
     # running (or we can't tell), a new profile just opens as another window inside that same
     # instance -- there's no way to single out and close only our new window without risking the
     # user's other open windows and unsaved work, so fall back to asking them to close it
     # themselves.
-    preexisting_processes = find_code_processes()
+    display_name = EDITORS_META[editor_key]["display_name"]
+    preexisting_processes = find_editor_processes(editor_key)
     if preexisting_processes is None or preexisting_processes:
         print(
-            f"\n{YELLOW_TERM_COLOR}VS Code profile '{profile_name}' needs to be provisioned before chezmoi can manage "
-            f"it. After you press Enter, VS Code will open with this profile. Close it once it appears. "
+            f"\n{YELLOW_TERM_COLOR}{display_name} profile '{profile_name}' needs to be provisioned before chezmoi can manage "
+            f"it. After you press Enter, {display_name} will open with this profile. Close it once it appears. "
             f"This is a one-time process on this machine.{RESET_TERM_STYLE}"
         )
         input("Press Enter to continue... ")
-        run_code("--profile", profile_name, "--wait")
+        run_editor(editor_key, "--profile", profile_name, "--wait")
         return
 
     print(
-        f"\n{CYAN_TERM_COLOR}VS Code profile '{profile_name}' needs to be provisioned before chezmoi can manage "
-        f"it; no VS Code window is currently open, so provisioning it automatically (one-time process on this "
+        f"\n{CYAN_TERM_COLOR}{display_name} profile '{profile_name}' needs to be provisioned before chezmoi can manage "
+        f"it; no {display_name} window is currently open, so provisioning it automatically (one-time process on this "
         f"machine)...{RESET_TERM_STYLE}"
     )
-    run_code("--profile", profile_name)
-    if not wait_for_profile_registration(user_dir, profile_name):
-        print(f"{YELLOW_TERM_COLOR}VS Code profile '{profile_name}' still hasn't registered after waiting; "
+    run_editor(editor_key, "--profile", profile_name)
+    if not wait_for_profile_registration(editor_key, user_dir, profile_name):
+        print(f"{YELLOW_TERM_COLOR}{display_name} profile '{profile_name}' still hasn't registered after waiting; "
               f"closing the window anyway and leaving the retry to the caller.{RESET_TERM_STYLE}")
-    kill_pids(find_code_processes())
+    kill_pids(find_editor_processes(editor_key))
 
 
 def get_profile_location(user_dir, profile_name):
@@ -346,8 +385,8 @@ def get_profile_location(user_dir, profile_name):
 
 
 def set_profile_icon(user_dir, profile_name, icon):
-    # `code --profile "Name"` creates the profile but doesn't set its icon (it defaults to VS
-    # Code's generic profile icon), so this patches it into storage.json to match vscode.toml.
+    # `<editor> --profile "Name"` creates the profile but doesn't set its icon (it defaults to the
+    # editor's generic profile icon), so this patches it into storage.json to match editors.toml.
     if not icon:
         return
 
@@ -374,7 +413,9 @@ def set_profile_icon(user_dir, profile_name, icon):
     os.replace(tmp_path, storage_path)
 
 
-def write_profile_settings(profile_name, profile_dir, settings_content):
+def write_profile_settings(editor_key, profile_name, profile_dir, settings_content):
+    meta = EDITORS_META[editor_key]
+    display_name = meta["display_name"]
     os.makedirs(profile_dir, exist_ok=True)
     settings_path = os.path.join(profile_dir, "settings.json")
     hash_path = os.path.join(profile_dir, "settings.json.chezmoi-hash")
@@ -395,10 +436,10 @@ def write_profile_settings(profile_name, profile_dir, settings_content):
         with open(desired_path, "w", encoding="utf-8", newline="") as f:
             f.write(settings_content)
         print(
-            f"{YELLOW_TERM_COLOR}Warning: VS Code profile '{profile_name}' {reason}.\n"
+            f"{YELLOW_TERM_COLOR}Warning: {display_name} profile '{profile_name}' {reason}.\n"
             f"\n"
             f"Compare it against what chezmoi would write with:\n"
-            f"code --diff \"{settings_path}\" \"{desired_path}\"\n"
+            f"{meta['binary']} --diff \"{settings_path}\" \"{desired_path}\"\n"
             f"\n"
             f"Then either reconcile the differences manually, or run the following to have chezmoi\n"
             f"overwrite it automatically:\n"
@@ -411,9 +452,9 @@ def write_profile_settings(profile_name, profile_dir, settings_content):
         return
 
     if not os.path.exists(hash_path):
-        if CHEZMOI_VSCODE_CLOBBER:
-            print(f"{CYAN_TERM_COLOR}VS Code profile '{profile_name}' had an untracked settings.json; "
-                  f"overwriting it since CHEZMOI_VSCODE_CLOBBER is set.{RESET_TERM_STYLE}\n")
+        if CHEZMOI_EDITOR_CLOBBER:
+            print(f"{CYAN_TERM_COLOR}{display_name} profile '{profile_name}' had an untracked settings.json; "
+                  f"overwriting it since CHEZMOI_EDITOR_CLOBBER is set.{RESET_TERM_STYLE}\n")
             write_settings()
             return
         warn_drifted("has a settings.json that is not chezmoi-managed")
@@ -425,9 +466,9 @@ def write_profile_settings(profile_name, profile_dir, settings_content):
         live_hash = hash_string(f.read())
 
     if live_hash != last_written_hash:
-        if CHEZMOI_VSCODE_CLOBBER:
-            print(f"{CYAN_TERM_COLOR}VS Code profile '{profile_name}' had local changes to settings.json; "
-                  f"overwriting them since CHEZMOI_VSCODE_CLOBBER is set.{RESET_TERM_STYLE}\n")
+        if CHEZMOI_EDITOR_CLOBBER:
+            print(f"{CYAN_TERM_COLOR}{display_name} profile '{profile_name}' had local changes to settings.json; "
+                  f"overwriting them since CHEZMOI_EDITOR_CLOBBER is set.{RESET_TERM_STYLE}\n")
             write_settings()
             return
         warn_drifted("has local changes to settings.json that aren't tracked in chezmoi; leaving it as-is")
@@ -440,34 +481,39 @@ def write_profile_settings(profile_name, profile_dir, settings_content):
         write_settings()
 
 
-def main():
-    print(f"{BRIGHT_GREEN_TERM_COLOR}Starting VS Code profile sync...{RESET_TERM_STYLE}\n")
+def sync_editor(editor):
+    key = editor["key"]
+    meta = EDITORS_META[key]
+    display_name = meta["display_name"]
 
-    if shutil.which("code") is None:
-        # Exiting non-zero (not just returning) is deliberate: chezmoi only records a
-        # run_onchange_ script as applied when it exits 0, so a non-zero exit here means chezmoi
-        # retries this script on every future `chezmoi apply` -- even with this file's content
-        # otherwise unchanged -- until VS Code is actually on PATH. That's a more reliable "run
-        # once VS Code becomes available" trigger than a chezmoi-template-time lookPath check
-        # would be, since chezmoi's own process can't see a PATH change from a script it spawned
-        # earlier in this same apply run -- a template-time check here would wrongly skip the
-        # sync on the very run that just installed VS Code.
-        print(f"{YELLOW_TERM_COLOR}VS Code ('code' command) not found; skipping VS Code profile/extension sync.{RESET_TERM_STYLE}\n", file=sys.stderr)
-        sys.exit(1)
+    if shutil.which(meta["binary"]) is None:
+        # Returning False (not exiting) here is deliberate: main() exits non-zero at the end if any
+        # editor returned False, which is what makes chezmoi retry this script on every future
+        # `chezmoi apply` -- even with this file's content otherwise unchanged -- until every editor
+        # is actually on PATH. That's a more reliable "run once the editor becomes available"
+        # trigger than a chezmoi-template-time lookPath check would be, since chezmoi's own process
+        # can't see a PATH change from a script it spawned earlier in this same apply run -- a
+        # template-time check here would wrongly skip the sync on the very run that just installed
+        # the editor. Other editors still get synced this run regardless.
+        print(f"{YELLOW_TERM_COLOR}{display_name} ('{meta['binary']}' command) not found; skipping its profile/extension sync.{RESET_TERM_STYLE}\n", file=sys.stderr)
+        return False
 
-    user_dir = vscode_user_dir()
+    user_dir = editor_user_dir(key)
 
-    # Default is deliberately kept minimal (see its comment in vscode.toml) to nudge you into
-    # picking a real profile, so it's excluded from all_profile_extensions.
+    # A profile named "Default" whose editor sets default_profile_is_placeholder is deliberately
+    # kept minimal (see the comment in editors.toml) to nudge you into picking a real profile, so
+    # it's excluded from all_profile_extensions. VSCodium's "Default" is a real, actively-used
+    # profile instead, so it doesn't set that flag and gets the full treatment.
     gated_extensions = [
-        entry["id"] for entry in ALL_PROFILE_EXTENSIONS if extension_conditions_met(entry)
+        entry["id"] for entry in editor["all_profile_extensions"] if extension_conditions_met(entry)
     ]
 
     all_succeeded = True
 
-    for profile in PROFILES:
+    for profile in editor["profiles"]:
         name = profile["name"]
-        extensions = profile["extensions"] if name == "Default" else profile["extensions"] + gated_extensions
+        skip_gated_extensions = name == "Default" and editor["default_profile_is_placeholder"]
+        extensions = profile["extensions"] if skip_gated_extensions else profile["extensions"] + gated_extensions
 
         if name == "Default":
             # Default always exists at a fixed path - no storage.json lookup, provisioning, or
@@ -476,12 +522,12 @@ def main():
         else:
             location = get_profile_location(user_dir, name)
             if location is None:
-                provision_profile(user_dir, name)
-                # On macOS, `code --wait` resolves to a shell script that polls for the Electron
-                # process to exit; it can return a moment before VS Code's debounced write of
-                # storage.json (where profile registration lands) actually reaches disk. Windows'
-                # wait mechanism blocks until the process fully exits, so it doesn't race this --
-                # this retry is only ever needed on macOS, but it's harmless elsewhere.
+                provision_profile(key, user_dir, name)
+                # On macOS, `<editor> --wait` resolves to a shell script that polls for the
+                # Electron process to exit; it can return a moment before the editor's debounced
+                # write of storage.json (where profile registration lands) actually reaches disk.
+                # Windows' wait mechanism blocks until the process fully exits, so it doesn't race
+                # this -- this retry is only ever needed on macOS, but it's harmless elsewhere.
                 # The automatic path in provision_profile already polls for registration itself,
                 # so this loop mainly exists for that macOS lag on the manual-close fallback.
                 for attempt in range(10):
@@ -492,7 +538,7 @@ def main():
 
             if location is None:
                 print(
-                    f"{RED_TERM_COLOR}Error: VS Code profile '{name}' still isn't registered; skipping its "
+                    f"{RED_TERM_COLOR}Error: {display_name} profile '{name}' still isn't registered; skipping its "
                     f"extension and settings sync this run. Re-run 'chezmoi apply' to try again.{RESET_TERM_STYLE}\n",
                     file=sys.stderr,
                 )
@@ -502,14 +548,14 @@ def main():
             set_profile_icon(user_dir, name, profile["icon"])
             profile_dir = os.path.join(user_dir, "profiles", location)
 
-        if not sync_extensions(name, extensions):
+        if not sync_extensions(key, name, extensions):
             all_succeeded = False
 
         try:
             settings = merge_settings(profile["settings_files"])
         except SettingsConflictError as exc:
             print(
-                f"{RED_TERM_COLOR}Error: VS Code profile '{name}' has conflicting settings -- {exc}. "
+                f"{RED_TERM_COLOR}Error: {display_name} profile '{name}' has conflicting settings -- {exc}. "
                 f"Resolve the conflict in the source files, then re-run 'chezmoi apply'.{RESET_TERM_STYLE}\n",
                 file=sys.stderr,
             )
@@ -517,15 +563,26 @@ def main():
             continue
 
         settings_content = json.dumps(settings, indent=2, sort_keys=True) + "\n"
-        write_profile_settings(name, profile_dir, settings_content)
+        write_profile_settings(key, name, profile_dir, settings_content)
+
+    return all_succeeded
+
+
+def main():
+    print(f"{BRIGHT_GREEN_TERM_COLOR}Starting editor profile sync...{RESET_TERM_STYLE}\n")
+
+    all_succeeded = True
+    for editor in EDITORS:
+        if not sync_editor(editor):
+            all_succeeded = False
 
     if not all_succeeded:
-        # Exiting non-zero (see the shutil.which("code") check above for why) so chezmoi retries
-        # this script on the next apply instead of marking it done despite unsynced extensions.
-        print(f"{RED_TERM_COLOR}VS Code profile sync finished with errors; re-run 'chezmoi apply' to retry.{RESET_TERM_STYLE}\n", file=sys.stderr)
+        # Exiting non-zero (see sync_editor's shutil.which() check for why) so chezmoi retries this
+        # script on the next apply instead of marking it done despite unsynced editors/extensions.
+        print(f"{RED_TERM_COLOR}Editor profile sync finished with errors; re-run 'chezmoi apply' to retry.{RESET_TERM_STYLE}\n", file=sys.stderr)
         sys.exit(1)
 
-    print(f"{BRIGHT_GREEN_TERM_COLOR}VS Code profile sync complete!{RESET_TERM_STYLE}\n")
+    print(f"{BRIGHT_GREEN_TERM_COLOR}Editor profile sync complete!{RESET_TERM_STYLE}\n")
 
 
 if __name__ == "__main__":

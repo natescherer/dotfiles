@@ -1,9 +1,5 @@
 # TODO
 
-## General
-
-- Set up text editing config for VSCodium
-
 ## Winget Configuration
 
 - Test in a no-admin-rights scenario
