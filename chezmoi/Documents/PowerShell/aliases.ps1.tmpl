@@ -3,7 +3,12 @@
 #Requires -Version 7.0
 
 function Invoke-LsWithOptions {
-    & "{{ lookPath "ls" }}" -AFGhl --group-directories-first --color=auto
+    $lsPath = (Get-Command ls -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1).Source
+    if (-not $lsPath) {
+        Write-Error "ll: no 'ls' executable found on PATH"
+        return
+    }
+    & $lsPath -AFGhl --group-directories-first --color=auto @args
 }
 
 function mkdircd([string]$Path) {
