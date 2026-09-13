@@ -58,10 +58,7 @@ $Targets = @(
   # through Get-StartApps/shell:AppsFolder like every other target.
   @{ Label = 'VMware Workstation'; RunKeyName = 'vmware-tray.exe'; IconPathLike = '*\VMware\VMware Workstation\vmware-tray.exe' }
   # winget's Anthropic.Claude package is a per-user Squirrel-style installer (same pattern as
-  # Discord/Slack), not a Store/MSIX package -- confirmed against an actual winget-provisioned VM,
-  # after an earlier version of this pattern (based on this machine's own Claude install, which
-  # turned out to be a different, unrelated Store install) never matched and made the script
-  # falsely conclude Claude was never running. IconPathLike has a wildcard version segment
+  # Discord/Slack), not a Store/MSIX package. IconPathLike has a wildcard version segment
   # ("app-1.24012.9") since that folder name changes on every app update.
   @{ Label = 'Claude'; StartAppName = 'Claude'; IconPathLike = '*\AnthropicClaude\app-*\claude.exe' }
 )

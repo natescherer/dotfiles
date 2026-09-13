@@ -1,10 +1,6 @@
 ---
-# Hand-rolled `defaults write com.apple.dock persistent-apps ...` (both the
-# -array-of-separate-elements form and the single "( {...}, {...} )"
-# collection-literal form) reliably produced "?" icons — the Dock never
-# resolved the tiles either way. dockutil is a small, actively-maintained
-# tool purpose-built for this exact job (https://github.com/dockutil/dockutil)
-# and sidesteps the whole class of ASCII-plist-literal guesswork.
+# `defaults write com.apple.dock persistent-apps ...` produces "?" icons the Dock never resolves.
+# dockutil (https://github.com/dockutil/dockutil) handles the plist correctly instead.
 #
 # Apple's own bundled apps (Music, Messages, System Settings, Activity
 # Monitor, etc.) don't actually live at /Applications/Foo.app since Big Sur

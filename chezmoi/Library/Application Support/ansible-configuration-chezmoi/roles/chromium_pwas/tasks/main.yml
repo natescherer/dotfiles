@@ -38,17 +38,9 @@
   register: chromium_policy
   when: chromium_app.stat.exists and chromium_web_apps | length > 0
 
-# The install-attempt/placeholder-repair chain below used to run only
-# `when: chromium_policy is changed`. That's wrong on its own: once the
-# plist has been written once, its content stays the same on every later
-# run even if a given PWA never actually finished installing (e.g. a
-# heavier site than the others doesn't fail over to a placeholder before
-# the timeout further down kills Chromium). With only the "changed" gate,
-# such a PWA would be stuck forever with nothing installed and no error,
-# since every subsequent run would see no plist diff and skip the whole
-# chain. Counting actual installed bundles and re-attempting whenever
-# there are fewer than expected means a slow/failed entry keeps getting
-# retried on future runs instead of going silently stale.
+# Gated on install count rather than just `chromium_policy is changed`, since the plist's content
+# stays the same on later runs even if a PWA never finished installing -- this way a stalled entry
+# keeps getting retried instead of going silently stale.
 - name: Count already-installed (non-placeholder) PWAs
   ansible.builtin.find:
     paths: "{{ ansible_facts.env.HOME }}/Applications/Chromium Apps.localized"
@@ -63,20 +55,13 @@
     chromium_pwas_need_attempt: "{{ chromium_policy is changed or (chromium_existing_pwas.matched | default(0)) < (chromium_web_apps | length) }}"
   when: chromium_app.stat.exists and chromium_web_apps | length > 0
 
-# cfprefsd (the daemon every app, including Chromium, actually queries for
-# preference values -- including the Managed Preferences domain) caches
-# values in memory and doesn't reliably notice a plist being overwritten by
-# a plain file write rather than through the normal preferences API.
-# Confirmed on-device: after adding paramountplus.com, the plist on disk
-# had the new entry (verified with `plutil -p`), but chrome://policy kept
-# showing only the old (youtube-only) list -- Chromium was reading
-# cfprefsd's stale cache, not the file. This isn't limited to the run that
-# actually wrote the change, either: a stale cache from an earlier run
-# stays stale forever since the plist's on-disk content won't change again
-# on its own -- so this is gated on chromium_pwas_need_attempt (not
-# `chromium_policy is changed`) to also cover exactly that already-stale
-# case. Killing cfprefsd forces it to reread from disk; it's relaunched on
-# demand automatically.
+# cfprefsd (the daemon every app, including Chromium, actually queries for preference values --
+# including the Managed Preferences domain) caches values in memory and doesn't reliably notice a
+# plist being overwritten by a plain file write rather than through the normal preferences API, so
+# Chromium can keep reading a stale policy even once the file on disk is correct. That staleness
+# persists indefinitely once it happens, which is why this is gated on chromium_pwas_need_attempt
+# rather than `chromium_policy is changed` -- it needs to also catch an already-stale cache from an
+# earlier run. Killing cfprefsd forces it to reread from disk; it's relaunched on demand.
 - name: Restart cfprefsd so Chromium picks up the current policy
   ansible.builtin.command: killall cfprefsd
   become: true
@@ -97,12 +82,9 @@
   ansible.builtin.command: open -g -a Chromium
   when: chromium_pwas_need_attempt | default(false) | bool
 
-# Confirmed on-device: ungoogled-chromium uses "Chromium Apps.localized"
-# here (unlike upstream Chromium/Chrome, which hardcodes "Chrome Apps" per
-# its source — this fork apparently derives it from the product name
-# instead). If a future build ever changes this, the task will just retry
-# for a couple of minutes and move on (failed_when: false below) rather
-# than blocking the whole run on it.
+# ungoogled-chromium uses "Chromium Apps.localized" here, unlike upstream Chromium/Chrome, which
+# hardcodes "Chrome Apps". If a future build ever changes this, the task will just retry for a
+# couple of minutes and move on (failed_when: false below) rather than blocking the whole run.
 - name: Wait for Chromium's initial install attempt to finish
   ansible.builtin.find:
     paths: "{{ ansible_facts.env.HOME }}/Applications/Chromium Apps.localized"

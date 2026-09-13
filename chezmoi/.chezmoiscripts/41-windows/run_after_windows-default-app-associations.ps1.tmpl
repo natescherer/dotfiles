@@ -101,8 +101,8 @@ New-Item -ItemType Directory -Path (Split-Path $XmlPath) -Force | Out-Null
 Set-Content -Path $XmlPath -Value $NewContent -NoNewline
 
 # DefaultAssociationsConfiguration is documented by Microsoft as applying at sign-in -- unlike
-# taskbar pins (a different policy/subsystem, confirmed by hand to apply instantly on recent
-# builds), there's no known way to force this one to take effect within the current session.
+# taskbar pins (a different policy/subsystem, which applies instantly on recent builds), there's
+# no known way to force this one to take effect within the current session.
 # gpupdate /force at least ensures the Group Policy engine has the current pointer/content cached
 # ahead of the next sign-in, rather than waiting out its own background refresh interval too.
 Write-Host "Refreshing Group Policy (association will take effect at next sign-in)..." -ForegroundColor Cyan

@@ -7,9 +7,7 @@
 # apps are currently misbehaving -- this sweeps every shortcut off the Desktop unconditionally,
 # every time it runs, regardless of what put it there (winget-installed or not). Sent to the
 # Recycle Bin rather than permanently deleted, so a shortcut that turns out to matter is a Recycle
-# Bin restore away, not gone -- confirmed by hand this genuinely matters: an earlier hand-test of
-# the recycle-bin API against a live Public Desktop shortcut worked, i.e. this really does touch
-# real files, not just ones this repo happens to manage.
+# Bin restore away, not gone.
 #
 # A standalone, self-contained script -- no chezmoi-specific assumptions (no `chezmoi apply`
 # invocations, no chezmoi source-dir references). It's installed at a stable path
@@ -23,19 +21,18 @@
 Write-Host "`nCleaning up desktop icons..." -ForegroundColor Green
 
 # Microsoft.VisualBasic.FileIO.FileSystem, not Remove-Item -- the only built-in way to send a file
-# to the Recycle Bin instead of deleting it outright. Confirmed by hand this works fine under pwsh
-# 7 (the assembly ships as part of the shared .NET framework, not something Windows-PowerShell-only
-# like the WinRT toast trick Send-Toast.ps1 has to work around).
+# to the Recycle Bin instead of deleting it outright. Works fine under pwsh 7 since the assembly
+# ships as part of the shared .NET framework (unlike the WinRT toast trick Send-Toast.ps1 has to
+# work around).
 Add-Type -AssemblyName Microsoft.VisualBasic
 
 # Per-user (non-elevated) installs land their shortcut on the current user's own Desktop.
-# All-users/elevated installs land theirs on the Public Desktop instead -- confirmed by hand that
-# an unelevated login session (how this script normally runs -- see pins-autostart.ps1) *can*
-# delete an existing shortcut there via the Recycle Bin API even though it can't create a new file
-# there (that asymmetry is real, not a guess: hand-verified both directions against a live Public
-# Desktop shortcut). So no elevation gating is needed here -- every shortcut on both roots is a
-# fair target, and any that genuinely can't be removed (locked file, unexpected ACL, etc.) is
-# caught and reported below rather than assumed away.
+# All-users/elevated installs land theirs on the Public Desktop instead. An unelevated login
+# session (how this script normally runs -- see pins-autostart.ps1) *can* delete an existing
+# shortcut there via the Recycle Bin API even though it can't create a new file there, so no
+# elevation gating is needed here -- every shortcut on both roots is a fair target, and any that
+# genuinely can't be removed (locked file, unexpected ACL, etc.) is caught and reported below
+# rather than assumed away.
 $DesktopRoots = @(
   (Join-Path $env:USERPROFILE 'Desktop')
   'C:\Users\Public\Desktop'

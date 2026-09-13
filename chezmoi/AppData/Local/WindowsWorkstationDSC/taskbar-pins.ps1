@@ -2,29 +2,14 @@
 
 # Sets the taskbar pin order via the "Start Layout" Group Policy setting (User Configuration >
 # Administrative Templates > Start Menu and Taskbar > Start Layout), which under the hood is just
-# HKCU:\SOFTWARE\Policies\Microsoft\Windows\Explorer\StartLayoutFile pointing at an XML file --
-# this is Local Group Policy, not Active Directory: Microsoft's own docs
-# (https://learn.microsoft.com/en-us/windows/configuration/taskbar/pinned-apps) explicitly
-# distinguish "use the Local Group Policy Editor" (standalone machines) from "create/edit a GPO"
-# (AD-joined machines) as two separate deployment options for the exact same registry-backed
-# setting -- no domain needed to just write the registry value by hand. That registry value itself
-# still needs to be set by an elevated process even though it's under HKCU, though: confirmed by
-# hand that HKCU:\SOFTWARE\Policies\* is ACL'd to ReadKey-only for the owning user, full control
-# is SYSTEM/Administrators-only, on every Windows install regardless of whether any GPO is
-# actually configured. That one-time pointer is set by winget configuration's
+# HKCU:\SOFTWARE\Policies\Microsoft\Windows\Explorer\StartLayoutFile pointing at an XML file. This
+# is Local Group Policy, not Active Directory -- no domain needed to just write the registry value
+# by hand. That value still needs an elevated process to set even though it's under HKCU: that key
+# is ACL'd to ReadKey-only for the owning user on every Windows install, regardless of whether any
+# GPO is configured. The one-time pointer itself is set by winget configuration's
 # TaskbarStartLayoutFile resource, not by this script, which only ever writes the XML file content
-# it points at (an unprivileged operation).
-#
-# This replaces an earlier version that dropped a LayoutModification.xml file directly into
-# %LOCALAPPDATA%\Microsoft\Windows\Shell\ and restarted Explorer -- confirmed by hand (both on
-# this machine and a fresh VM) that this no longer does anything at all on modern Windows 11:
-# that specific file-drop mechanism has been broken/ignored since Windows 11 24H2 (build 26100+),
-# per multiple corroborating community reports. The Group Policy path above is the one Microsoft
-# still actively documents and patches (e.g. the PinGeneration attribute below, added in 2025).
-#
-# Unlike the old file-drop method (a one-time seed, deleted after applying), the XML file here
-# must persist at a stable path indefinitely -- the registry value is a standing pointer to it,
-# re-read on every policy refresh, not a one-shot trigger.
+# it points at (an unprivileged operation) and must keep that file present at a stable path
+# indefinitely, since the registry value is a standing pointer re-read on every policy refresh.
 #
 # A standalone, self-contained script -- no chezmoi-specific assumptions (no `chezmoi apply`
 # invocations, no chezmoi source-dir references). It's installed at a stable path
@@ -62,23 +47,18 @@ $Pins = @(
   @{ Label = 'YouTube'; Name = 'YouTube' }
 )
 
-# Get-StartApps' AppID comes in three different shapes, not two -- confirmed by hand
-# (Get-StartApps on this machine):
+# Get-StartApps' AppID comes in three different shapes, each needing its own XML element:
 #   1. A packaged (MSIX/UWP) app's AUMID, PackageFamilyName!AppId -- e.g. Windows Terminal's
-#      "Microsoft.WindowsTerminal_8wekyb3d8bbwe!App". The "!" is the reliable signal for this;
-#      it's a real requirement of the PackageFamilyName!AppId format, not just a convention.
+#      "Microsoft.WindowsTerminal_8wekyb3d8bbwe!App". The "!" reliably signals this shape.
+#      XML element: UWA.
 #   2. A literal path to a classic .lnk shortcut file (drive-letter or UNC prefix).
+#      XML element: DesktopApplicationLinkPath.
 #   3. A classic (non-packaged) app's own self-registered AUMID, which looks nothing like either
 #      of the above -- e.g. Discord ("com.squirrel.Discord.Discord"), Firefox
 #      ("308046B0AF4A39CB"), Brave ("Brave.AKBOGHEVCXMTZPESA6L3C34SMA"), Obsidian ("md.obsidian").
-# An earlier version of this function only distinguished (1) vs "everything else is a file path"
-# (garbage for every case-3 app: none of those strings are real filesystem paths, so nothing
-# resolved and they silently failed to pin), then a later fix only distinguished (2) vs "everything
-# else is UWA/AppUserModelID" -- which mis-tags case-3 AUMIDs as packaged-app identifiers, equally
-# unresolvable. All three cases need their own XML shape: UWA for (1), DesktopApplicationLinkPath
-# for (2), and DesktopApplicationID for (3) -- confirmed DesktopApplicationID isn't limited to
-# Microsoft's own hardcoded names (its use for plain "Microsoft.Windows.Explorer" below made that
-# look like the case), it's the general slot for any non-path, non-packaged app identifier.
+#      XML element: DesktopApplicationID (not limited to Microsoft's own hardcoded names, despite
+#      its use for plain "Microsoft.Windows.Explorer" below -- it's the general slot for any
+#      non-path, non-packaged app identifier).
 function Resolve-Pin {
   param($Pin, $StartApps)
 
@@ -166,11 +146,8 @@ foreach ($Target in $Resolved) {
   $PinList.AppendChild($Element) | Out-Null
 }
 
-# Must persist indefinitely at this exact path -- unlike the old LayoutModification.xml file-drop
-# approach, HKCU:\SOFTWARE\Policies\Microsoft\Windows\Explorer\StartLayoutFile (set once, elevated,
-# by winget configuration's TaskbarStartLayoutFile resource -- not here, since
-# HKCU:\SOFTWARE\Policies\* is locked down against unelevated writes even for the owning user,
-# confirmed by hand) is a standing pointer re-read on every policy refresh, not a one-shot trigger.
+# Must persist indefinitely at this exact path -- see the StartLayoutFile note at the top of the
+# file.
 New-Item -ItemType Directory -Path $StateDir -Force | Out-Null
 $LayoutPath = Join-Path $StateDir 'TaskbarLayout.xml'
 $Xml.Save($LayoutPath)
