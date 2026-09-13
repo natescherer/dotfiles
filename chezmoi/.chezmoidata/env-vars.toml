@@ -1,6 +1,6 @@
 # All variables specified in this file are included automatically in PowerShell and Zsh via these files:
-# PowerShell: Documents/PowerShell/env.ps1.tmpl
-# Zsh: dot_zshenv.tmpl
+# PowerShell: chezmoi/Documents/PowerShell/env.ps1.tmpl
+# Zsh: chezmoi/dot_zshenv.tmpl
 
 # Note that EDITOR is being set in the per-shell env files
 
