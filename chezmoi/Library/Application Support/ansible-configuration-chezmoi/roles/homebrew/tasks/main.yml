@@ -1,11 +1,7 @@
 ---
-- name: Determine Homebrew prefix for this CPU architecture
-  ansible.builtin.set_fact:
-    homebrew_prefix: "{{ '/opt/homebrew' if ansible_facts.machine == 'arm64' else '/usr/local' }}"
-
 - name: Check whether Homebrew is already installed
   ansible.builtin.stat:
-    path: "{{ homebrew_prefix }}/bin/brew"
+    path: "/opt/homebrew/bin/brew"
   register: homebrew_bin
 
 - name: Install Homebrew
@@ -19,7 +15,7 @@
 # `brew shellenv` normally patches hasn't been sourced in this process yet.
 - name: Run remaining Homebrew tasks with brew on PATH
   environment:
-    PATH: "{{ homebrew_prefix }}/bin:{{ homebrew_prefix }}/sbin:{{ ansible_facts.env.PATH }}"
+    PATH: "/opt/homebrew/bin:/opt/homebrew/sbin:{{ ansible_facts.env.PATH }}"
   block:
     - name: Tap additional Homebrew repositories
       community.general.homebrew_tap:

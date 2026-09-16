@@ -53,7 +53,7 @@
 - name: Check current Dock pins
   ansible.builtin.command: dockutil --list
   environment:
-    PATH: "{{ homebrew_prefix }}/bin:{{ ansible_facts.env.PATH }}"
+    PATH: "/opt/homebrew/bin:{{ ansible_facts.env.PATH }}"
   register: dock_current_list
   changed_when: false
 
@@ -84,14 +84,14 @@
 - name: Clear existing Dock pins
   ansible.builtin.command: dockutil --remove all --no-restart
   environment:
-    PATH: "{{ homebrew_prefix }}/bin:{{ ansible_facts.env.PATH }}"
+    PATH: "/opt/homebrew/bin:{{ ansible_facts.env.PATH }}"
   when: dock_pins_need_update and dock_pinned_apps_resolved | selectattr('exists') | list | length > 0
   changed_when: true
 
 - name: Pin apps to the Dock
   ansible.builtin.command: dockutil --add "{{ item.path }}" --no-restart
   environment:
-    PATH: "{{ homebrew_prefix }}/bin:{{ ansible_facts.env.PATH }}"
+    PATH: "/opt/homebrew/bin:{{ ansible_facts.env.PATH }}"
   loop: "{{ dock_pinned_apps_resolved }}"
   loop_control:
     label: "{{ item.original }}"

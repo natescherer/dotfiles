@@ -19,7 +19,7 @@
 - name: Check current default browser
   ansible.builtin.command: utiluti url http --bundle-id
   environment:
-    PATH: "{{ homebrew_prefix }}/bin:{{ ansible_facts.env.PATH }}"
+    PATH: "/opt/homebrew/bin:{{ ansible_facts.env.PATH }}"
   register: current_default_browser
   when: browsers_app.stat.exists
   changed_when: false
@@ -33,7 +33,7 @@
 - name: Set Browsers as the default browser
   ansible.builtin.command: utiluti url set http software.Browsers
   environment:
-    PATH: "{{ homebrew_prefix }}/bin:{{ ansible_facts.env.PATH }}"
+    PATH: "/opt/homebrew/bin:{{ ansible_facts.env.PATH }}"
   when: browsers_app.stat.exists and current_default_browser.stdout | trim != 'software.Browsers'
   changed_when: true
   failed_when: false
@@ -46,7 +46,7 @@
 - name: Check current default mail app
   ansible.builtin.command: utiluti url mailto --bundle-id
   environment:
-    PATH: "{{ homebrew_prefix }}/bin:{{ ansible_facts.env.PATH }}"
+    PATH: "/opt/homebrew/bin:{{ ansible_facts.env.PATH }}"
   register: current_default_mail_app
   when: proton_mail_app.stat.exists
   changed_when: false
@@ -55,7 +55,7 @@
 - name: Set Proton Mail as the default mail app
   ansible.builtin.command: utiluti url set mailto ch.protonmail.desktop
   environment:
-    PATH: "{{ homebrew_prefix }}/bin:{{ ansible_facts.env.PATH }}"
+    PATH: "/opt/homebrew/bin:{{ ansible_facts.env.PATH }}"
   when: proton_mail_app.stat.exists and is_personal_machine and current_default_mail_app.stdout | trim != 'ch.protonmail.desktop'
   changed_when: true
   failed_when: false
@@ -73,7 +73,7 @@
 - name: Get the UTI for .ics files
   ansible.builtin.command: utiluti get-uti ics
   environment:
-    PATH: "{{ homebrew_prefix }}/bin:{{ ansible_facts.env.PATH }}"
+    PATH: "/opt/homebrew/bin:{{ ansible_facts.env.PATH }}"
   register: ics_uti
   when: proton_mail_app.stat.exists
   changed_when: false
@@ -82,7 +82,7 @@
 - name: Check current handler for .ics files
   ansible.builtin.command: "utiluti type {{ ics_uti.stdout | trim }} --bundle-id"
   environment:
-    PATH: "{{ homebrew_prefix }}/bin:{{ ansible_facts.env.PATH }}"
+    PATH: "/opt/homebrew/bin:{{ ansible_facts.env.PATH }}"
   register: current_ics_handler
   when: proton_mail_app.stat.exists
   changed_when: false
@@ -91,7 +91,7 @@
 - name: Associate .ics files with Proton Mail
   ansible.builtin.command: utiluti type set extension:ics ch.protonmail.desktop
   environment:
-    PATH: "{{ homebrew_prefix }}/bin:{{ ansible_facts.env.PATH }}"
+    PATH: "/opt/homebrew/bin:{{ ansible_facts.env.PATH }}"
   when: proton_mail_app.stat.exists and is_personal_machine and current_ics_handler.stdout | trim != 'ch.protonmail.desktop'
   changed_when: true
   failed_when: false

@@ -2,7 +2,7 @@
 - name: Check Mac App Store sign-in status
   ansible.builtin.command: mas account
   environment:
-    PATH: "{{ homebrew_prefix }}/bin:{{ ansible_facts.env.PATH }}"
+    PATH: "/opt/homebrew/bin:{{ ansible_facts.env.PATH }}"
   register: mas_account
   changed_when: false
   failed_when: false
@@ -20,5 +20,5 @@
     id: "{{ (mac_app_store_apps | combine(mac_app_store_apps_personal | default({}))).values() | list }}"
     state: present
   environment:
-    PATH: "{{ homebrew_prefix }}/bin:{{ ansible_facts.env.PATH }}"
+    PATH: "/opt/homebrew/bin:{{ ansible_facts.env.PATH }}"
   when: mas_account.rc == 0 and 'Not signed in' not in mas_account.stdout
