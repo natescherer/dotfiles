@@ -13,8 +13,14 @@
 status=$?
 if [ "$status" -eq 0 ]; then
   rm -f "$HOME/.cache/mpm/plan.error"
+  total=$(/opt/homebrew/bin/jq '[.[].packages | length] | add // 0' "$HOME/.cache/mpm/plan.json")
+  if [ "$total" -gt 0 ]; then
+    managers=$(/opt/homebrew/bin/jq '[.[] | select((.packages | length) &gt; 0)] | length' "$HOME/.cache/mpm/plan.json")
+    /opt/homebrew/bin/terminal-notifier -title "mpm-plan" -subtitle "Run 'mpm upgrade --all' to apply" -message "$total package update(s) across $managers manager(s)" -group "local.mpm-plan"
+  fi
 else
   printf 'mpm outdated failed (exit %s) at %s -- see ~/.cache/mpm/plan.log\n' "$status" "$(date)" &gt; "$HOME/.cache/mpm/plan.error"
+  /opt/homebrew/bin/terminal-notifier -title "mpm-plan" -message "Check failed (exit $status) -- see ~/.cache/mpm/plan.log" -group "local.mpm-plan"
 fi</string>
     </array>
     <key>RunAtLoad</key>

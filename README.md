@@ -74,10 +74,12 @@ Currently managed:
 - [mpm](https://github.com/kdeldycke/meta-package-manager) 🍎
   - Notes
     - Unified upgrade CLI for every package manager on the machine; it shells out to [topgrade](https://github.com/topgrade-rs/topgrade) automatically for ecosystems it doesn't natively cover, so topgrade needs no separate configuration of its own. A LaunchAgent runs `mpm outdated` (read-only, no privilege escalation) every 12h to cache a plan of pending updates; the pending-update summary (or a check-failed warning) is then surfaced at interactive zsh startup. Run `mpm upgrade --all` manually to apply.
+    - Also posts a [terminal-notifier](https://github.com/julienXX/terminal-notifier) notification on every run that finds pending updates or fails, so it's not tied to opening a terminal. Notification permissions are pre-granted via a configuration profile, since macOS has no supported way to grant them silently. Installed via script [chezmoi/.chezmoiscripts/30-macos/run_onchange_profiles-importer.sh.tmpl](chezmoi/.chezmoiscripts/30-macos/run_onchange_profiles-importer.sh.tmpl)
   - Config Files
     - [chezmoi/Library/Application Support/ansible-configuration-chezmoi/group_vars/all/homebrew.a.yml](<chezmoi/Library/Application Support/ansible-configuration-chezmoi/group_vars/all/homebrew.a.yml>)
     - [chezmoi/Library/LaunchAgents/local.mpm-plan.plist](chezmoi/Library/LaunchAgents/local.mpm-plan.plist)
     - [chezmoi/dot_config/zsh/dot_zshrc.tmpl](chezmoi/dot_config/zsh/dot_zshrc.tmpl)
+    - [chezmoi/.scriptdata/macos-profiles/notifications.mobileconfig](chezmoi/.scriptdata/macos-profiles/notifications.mobileconfig)
 - [npm](https://www.npmjs.com/) 🐧 🍎 🪟
   - Config Files
     - [chezmoi/.chezmoidata/env-vars.toml](chezmoi/.chezmoidata/env-vars.toml)

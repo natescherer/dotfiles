@@ -61,6 +61,22 @@
                     <key>NotificationsEnabled</key>
                     <true/>
                 </dict>
+                <dict>
+                    <key>BundleIdentifier</key>
+                    <string>fr.julienxx.oss.terminal-notifier</string>
+                    <key>NotificationsEnabled</key>
+                    <true/>
+                    <key>ShowInNotificationCenter</key>
+                    <true/>
+                    <key>AlertType</key>
+                    <integer>2</integer>
+                    <key>SoundsEnabled</key>
+                    <false/>
+                    <key>BadgesEnabled</key>
+                    <false/>
+                    <key>CriticalAlertEnabled</key>
+                    <false/>
+                </dict>
             </array>
         </dict>
     </array>

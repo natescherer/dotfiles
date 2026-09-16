@@ -20,6 +20,7 @@ homebrew_formulas:
   - pinentry-mac
   - sheldon
   - starship
+  - terminal-notifier
   - topgrade
   - utiluti
   - yq
