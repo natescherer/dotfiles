@@ -55,11 +55,6 @@ Currently managed:
 - [Go](https://https://go.dev/) 🐧 🍎 🪟
   - Config Files
     - [chezmoi/.chezmoidata/env-vars.toml](chezmoi/.chezmoidata/env-vars.toml)
-- [Homebrew Autoupdate](https://github.com/DomT4/homebrew-autoupdate) 🍎
-  - Notes
-    - Notification permissions are pre-granted via a configuration profile, since macOS has no supported way to grant them silently. Installed via script [chezmoi/.chezmoiscripts/30-macos/run_onchange_profiles-importer.sh.tmpl](chezmoi/.chezmoiscripts/30-macos/run_onchange_profiles-importer.sh.tmpl)
-  - Config Files
-    - [chezmoi/.scriptdata/macos-profiles/notifications.mobileconfig](chezmoi/.scriptdata/macos-profiles/notifications.mobileconfig)
 - [k9s](https://github.com/derailed/k9s) 🐧 🍎 🪟
   - Config Files
     - [chezmoi/dot_config/k9s/config.yaml.tmpl](chezmoi/dot_config/k9s/config.yaml.tmpl)
@@ -76,6 +71,13 @@ Currently managed:
 - [mise](https://mise.jdx.dev) 🐧 🍎 🪟
   - Config Files
     - [chezmoi/dot_config/mise/config.toml](chezmoi/dot_config/mise/config.toml)
+- [mpm](https://github.com/kdeldycke/meta-package-manager) 🍎
+  - Notes
+    - Unified upgrade CLI for every package manager on the machine; it shells out to [topgrade](https://github.com/topgrade-rs/topgrade) automatically for ecosystems it doesn't natively cover, so topgrade needs no separate configuration of its own. A LaunchAgent runs `mpm outdated` (read-only, no privilege escalation) every 12h to cache a plan of pending updates; the pending-update summary (or a check-failed warning) is then surfaced at interactive zsh startup. Run `mpm upgrade --all` manually to apply.
+  - Config Files
+    - [chezmoi/Library/Application Support/ansible-configuration-chezmoi/group_vars/all/homebrew.a.yml](<chezmoi/Library/Application Support/ansible-configuration-chezmoi/group_vars/all/homebrew.a.yml>)
+    - [chezmoi/Library/LaunchAgents/local.mpm-plan.plist](chezmoi/Library/LaunchAgents/local.mpm-plan.plist)
+    - [chezmoi/dot_config/zsh/dot_zshrc.tmpl](chezmoi/dot_config/zsh/dot_zshrc.tmpl)
 - [npm](https://www.npmjs.com/) 🐧 🍎 🪟
   - Config Files
     - [chezmoi/.chezmoidata/env-vars.toml](chezmoi/.chezmoidata/env-vars.toml)

@@ -58,3 +58,54 @@ eval "$(sheldon --profile default source)"
 
 # Activate fzf
 source <(fzf --zsh)
+
+{{ if eq .chezmoi.os "darwin" -}}
+# Surface any pending package updates the mpm-plan LaunchAgent found (it only
+# checks and caches a plan -- applying is always a manual, explicit step)
+() {
+  local error_file="$HOME/.cache/mpm/plan.error"
+  if [[ -r "$error_file" ]]; then
+    print -P "%F{red}%B⚠ mpm-plan check failed%b%f %F{bright-black}($(<"$error_file"))%f"
+    return
+  fi
+
+  local plan_file="$HOME/.cache/mpm/plan.json"
+  [[ -r "$plan_file" ]] || return
+
+  local plan_rows
+  plan_rows=$(jq -r '
+    to_entries
+    | map(select((.value.packages | length) > 0))
+    | sort_by(-(.value.packages | length))
+    | .[]
+    | "\(.key)\t\(.value.name)\t\(.value.packages | length)"
+  ' "$plan_file" 2>/dev/null)
+  [[ -n "$plan_rows" ]] || return
+
+  local -a rows
+  rows=("${(@f)plan_rows}")
+
+  local -A icons=(
+    npm   ""
+    pip   ""
+    pipx  ""
+    uv    ""
+    uvx   ""
+    conda ""
+    cargo "󱘗"
+    mise  "󰭼"
+    mas   ""
+  )
+
+  print -P "%F{yellow}%B↑ Package updates available%b%f"
+  local row id name count
+  for row in $rows; do
+    id="${row%%$'\t'*}"
+    name="${${row#*$'\t'}%%$'\t'*}"
+    count="${row##*$'\t'}"
+    print -P "  %F{cyan}${icons[$id]:-󰏗}%f %F{white}${name}%f %F{bright-black}(${count})%f"
+  done
+  print -P "%F{bright-black}  Run 'mpm upgrade --all' to apply · last checked $(date -r "$plan_file" '+%a %H:%M')%f"
+}
+
+{{ end -}}

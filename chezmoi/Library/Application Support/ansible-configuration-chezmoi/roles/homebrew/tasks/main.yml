@@ -27,9 +27,8 @@
         state: present
 
     # Homebrew 6.0+ requires taps to be explicitly trusted before it'll load
-    # their formulae/casks/commands — domt4/autoupdate ships the `brew
-    # autoupdate` external command, which is exactly the kind of thing this
-    # gates. See https://github.com/Homebrew/brew/blob/main/docs/Tap-Trust.md
+    # their formulae/casks/commands. See
+    # https://github.com/Homebrew/brew/blob/main/docs/Tap-Trust.md
     - name: List currently trusted Homebrew taps/items
       ansible.builtin.command: brew trust
       register: homebrew_trusted
@@ -51,23 +50,3 @@
       community.general.homebrew_cask:
         name: "{{ homebrew_casks + (homebrew_casks_personal | default([])) }}"
         state: present
-
-    - name: Check whether homebrew-autoupdate is already scheduled
-      ansible.builtin.stat:
-        path: "{{ homebrew_autoupdate_plist }}"
-      register: homebrew_autoupdate_status
-
-    # ~/Library/LaunchAgents isn't guaranteed to exist on a fresh account —
-    # it's normally created the first time something writes to it, which on
-    # a freshly-provisioned VM may not have happened yet. `brew autoupdate
-    # start` needs it to already be there to drop its plist into.
-    - name: Ensure ~/Library/LaunchAgents exists
-      ansible.builtin.file:
-        path: "{{ ansible_facts.env.HOME }}/Library/LaunchAgents"
-        state: directory
-        mode: "0755"
-      when: not homebrew_autoupdate_status.stat.exists
-
-    - name: Start homebrew-autoupdate on a schedule
-      ansible.builtin.command: "brew autoupdate start {{ homebrew_autoupdate_args }}"
-      when: not homebrew_autoupdate_status.stat.exists

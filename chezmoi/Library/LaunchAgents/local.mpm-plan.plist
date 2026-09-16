@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>local.mpm-plan</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/sh</string>
+        <string>-c</string>
+        <string>mkdir -p "$HOME/.cache/mpm"
+/opt/homebrew/bin/mpm --no-color --table-format json outdated &gt; "$HOME/.cache/mpm/plan.json" 2&gt; "$HOME/.cache/mpm/plan.log"
+status=$?
+if [ "$status" -eq 0 ]; then
+  rm -f "$HOME/.cache/mpm/plan.error"
+else
+  printf 'mpm outdated failed (exit %s) at %s -- see ~/.cache/mpm/plan.log\n' "$status" "$(date)" &gt; "$HOME/.cache/mpm/plan.error"
+fi</string>
+    </array>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>StartInterval</key>
+    <integer>43200</integer>
+</dict>
+</plist>

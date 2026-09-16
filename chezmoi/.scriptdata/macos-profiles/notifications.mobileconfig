@@ -27,22 +27,6 @@
                 </dict>
                 <dict>
                     <key>BundleIdentifier</key>
-                    <string>com.github.domt4.homebrew-autoupdate.autoupdater</string>
-                    <key>NotificationsEnabled</key>
-                    <true/>
-                    <key>ShowInNotificationCenter</key>
-                    <true/>
-                    <key>AlertType</key>
-                    <integer>2</integer>
-                    <key>SoundsEnabled</key>
-                    <false/>
-                    <key>BadgesEnabled</key>
-                    <false/>
-                    <key>CriticalAlertEnabled</key>
-                    <false/>
-                </dict>
-                <dict>
-                    <key>BundleIdentifier</key>
                     <string>com.mitchellh.ghostty</string>
                     <key>NotificationsEnabled</key>
                     <true/>

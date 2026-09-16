@@ -1,13 +1,7 @@
 ---
 # Homebrew taps
 homebrew_taps:
-  - domt4/autoupdate
   - browsers-software/tap
-
-# homebrew-autoupdate schedule/flags — see https://github.com/DomT4/homebrew-autoupdate
-# Runs every 43200 seconds (12h), upgrading + cleaning up automatically.
-homebrew_autoupdate_args: "43200 --upgrade --cleanup --immediate --sudo"
-homebrew_autoupdate_plist: "{{ ansible_facts.env.HOME }}/Library/LaunchAgents/com.github.domt4.homebrew-autoupdate.plist"
 
 # Formulas (CLI tools / non-GUI packages)
 homebrew_formulas:
@@ -20,11 +14,13 @@ homebrew_formulas:
   - git-delta
   - jq
   - mas
+  - meta-package-manager
   - micro
   - mise
   - pinentry-mac
   - sheldon
   - starship
+  - topgrade
   - utiluti
   - yq
 
