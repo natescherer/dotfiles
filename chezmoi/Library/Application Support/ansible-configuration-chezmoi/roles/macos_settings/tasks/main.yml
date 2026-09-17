@@ -132,13 +132,14 @@
     state: present
   notify: Restart Finder
 
-- name: Enable trackpad tap-to-click
-  community.general.osx_defaults:
-    domain: com.apple.AppleMultitouchTrackpad
-    key: Clicking
-    type: bool
-    value: true
-    state: present
+# Temp disable, doesn't work on macOS 27
+# - name: Enable trackpad tap-to-click
+#   community.general.osx_defaults:
+#     domain: com.apple.AppleMultitouchTrackpad
+#     key: Clicking
+#     type: bool
+#     value: true
+#     state: present
 
 - name: Enable Touch ID for sudo
   ansible.builtin.shell: |
