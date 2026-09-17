@@ -10,6 +10,8 @@
 {{- $cascadiaVersion := "2407.24" }}
 {{- /* renovate: datasource=github-releases depName=RedHatOfficial/Overpass */ -}}
 {{- $overpassVersion := "3.0.5" }}
+{{- if not eq .chezmoi.os "darwin" }}
+{{- /* Both of these fonts are Homebrew-installable */ -}}
 ["{{ $fontDir }}/CascadiaMonoNF-Regular.otf"]
     type = "archive-file"
     url = "https://github.com/microsoft/cascadia-code/releases/download/v{{ $cascadiaVersion }}/CascadiaCode-{{ $cascadiaVersion }}.zip"
@@ -18,3 +20,4 @@
     type = "archive-file"
     url = "https://github.com/RedHatOfficial/Overpass/releases/download/v{{ $overpassVersion }}/overpass-{{ $overpassVersion }}.zip"
     path = "Overpass-{{ $overpassVersion }}/desktop-fonts/overpass/overpass-regular.otf"
+{{- end }}
