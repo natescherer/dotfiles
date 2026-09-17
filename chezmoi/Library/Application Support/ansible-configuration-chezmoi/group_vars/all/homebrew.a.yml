@@ -29,7 +29,7 @@ homebrew_formulas:
 homebrew_casks:
   - alt-tab
   - brave-browser
-  - browsers
+#  - browsers # disabled until https://github.com/Browsers-software/homebrew-tap/pull/3 is merged
   - firefox
   - font-cascadia-mono-nf
   - font-overpass

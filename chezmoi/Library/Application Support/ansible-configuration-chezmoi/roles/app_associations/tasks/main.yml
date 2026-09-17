@@ -25,18 +25,14 @@
   changed_when: false
   failed_when: false
 
-# Skipped entirely (not just reported as unchanged) when Browsers is
-# already the default, so a re-run doesn't pop the confirmation dialog for
-# no reason. Browsers.app (https://browsers.software) is a link-routing
-# picker, not a browser itself -- Firefox/Brave stay installed as its
-# pickable targets rather than being the direct OS default.
-- name: Set Browsers as the default browser
-  ansible.builtin.command: utiluti url set http software.Browsers
-  environment:
-    PATH: "/opt/homebrew/bin:{{ ansible_facts.env.PATH }}"
-  when: browsers_app.stat.exists and current_default_browser.stdout | trim != 'software.Browsers'
-  changed_when: true
-  failed_when: false
+# Disabled until https://github.com/Browsers-software/homebrew-tap/pull/3 is merged
+# - name: Set Browsers as the default browser
+#   ansible.builtin.command: utiluti url set http software.Browsers
+#   environment:
+#     PATH: "/opt/homebrew/bin:{{ ansible_facts.env.PATH }}"
+#   when: browsers_app.stat.exists and current_default_browser.stdout | trim != 'software.Browsers'
+#   changed_when: true
+#   failed_when: false
 
 - name: Check whether Proton Mail is installed
   ansible.builtin.stat:
