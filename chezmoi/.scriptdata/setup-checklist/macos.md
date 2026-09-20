@@ -35,18 +35,33 @@ file is only written once.
 - [ ] Proton Pass
   - [ ] Open on Startup
   - [ ] Enable SSH Agent
-  - [ ] Enable CLI
-  - [ ] Enable Safari extension (Safari > Settings > Extensions)
-- [ ] Brave
-  - [ ] Set up sync
-  - [ ] Set search engine
 - [ ] Firefox
+  - [ ] Install Proton Pass & Login
+  - Proton Pass Extension Settings
+    - [ ] Auto-copy 2FA Code
+    - [ ] Basic auth autofill
+    - [ ] Use Proton Pass as your browser's default password manager
+    - [ ] Unlock with PIN Code
+  - [ ] Set up Sync
+  - [ ] Set search engine
+  - [ ] Remove VPN from toolbar and pin extensions
+  - [ ] Dark Reader extension settings
+  - [ ] Disable `Save and autofill payment info`
+  - [ ] Disable `Save and autofill addresses`
+  - [ ] Disable all under `Firefox data collection and use`
+- [ ] Brave
+  - Appearance
+    - Customize your toolbar
+      - [ ] Disable VPN
+      - [ ] Disable Leo AI
+      - [ ] Disable Wallet
+      - [ ] Disable Rewards
   - [ ] Set up sync
   - [ ] Set search engine
+- [ ] Ghostty
+  - [ ] Enable self update
 - [ ] Proton VPN
   - [ ] Set to run on startup
-- [ ] NVIDIA App
-  - [ ] Install drivers
 - [ ] Obsidian
   - [ ] Sync Main vault to ~\obsidian
   - [ ] Set up backup in Proton Drive
