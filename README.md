@@ -55,6 +55,12 @@ Currently managed:
 - [Go](https://https://go.dev/) 🐧 🍎 🪟
   - Config Files
     - [chezmoi/.chezmoidata/env-vars.toml](chezmoi/.chezmoidata/env-vars.toml)
+- [Google Chrome](https://www.google.com/chrome/) 🍎 🪟
+  - Notes
+    - Dedicated PWA host (kept separate from the daily browsers, and ships Widevine DRM); the PWA list in [chezmoi/.chezmoidata/pwas.toml](chezmoi/.chezmoidata/pwas.toml) is force-installed via the `WebAppInstallForceList` policy on both platforms
+    - Notification permissions are pre-granted via a configuration profile, since macOS has no supported way to grant them silently. Installed via script [chezmoi/.chezmoiscripts/30-macos/run_onchange_profiles-importer.sh.tmpl](chezmoi/.chezmoiscripts/30-macos/run_onchange_profiles-importer.sh.tmpl)
+  - Config Files
+    - [chezmoi/.scriptdata/macos-profiles/notifications.mobileconfig](chezmoi/.scriptdata/macos-profiles/notifications.mobileconfig)
 - [k9s](https://github.com/derailed/k9s) 🐧 🍎 🪟
   - Config Files
     - [chezmoi/dot_config/k9s/config.yaml.tmpl](chezmoi/dot_config/k9s/config.yaml.tmpl)
@@ -114,11 +120,6 @@ Currently managed:
   - Config Files
     - [chezmoi/.scriptdata/macos-defaults/eu.exelban.Stats.plist](chezmoi/.scriptdata/macos-defaults/eu.exelban.Stats.plist)
       - Note this is a non-editable binary file, made via `defaults export eu.exelban.Stats eu.exelban.Stats.plist`
-- [Ungoogled Chromium](https://github.com/ungoogled-software/ungoogled-chromium) 🍎
-  - Notes
-    - Notification permissions are pre-granted via a configuration profile, since macOS has no supported way to grant them silently. Installed via script [chezmoi/.chezmoiscripts/30-macos/run_onchange_profiles-importer.sh.tmpl](chezmoi/.chezmoiscripts/30-macos/run_onchange_profiles-importer.sh.tmpl)
-  - Config Files
-    - [chezmoi/.scriptdata/macos-profiles/notifications.mobileconfig](chezmoi/.scriptdata/macos-profiles/notifications.mobileconfig)
 - [UniGetUI](https://www.marticliment.com/unigetui/) 🪟
   - Notes
     - Uses an unusual model of one-file-per-setting, there are many files under the below directory

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Applies the vendored Ansible playbook that declaratively configures this Mac: Homebrew
-# formulas/casks/taps, Mac App Store apps, Chromium PWAs, macOS system settings, default app
+# formulas/casks/taps, Mac App Store apps, Chrome PWAs, macOS system settings, default app
 # associations, and Dock pins. Self-heals its own Ansible/Galaxy dependencies, then runs
 # `ansible-playbook -K` once -- interactive, since the playbook's own sudoers-bootstrap task
 # needs a become password and Ansible only prompts for it once per run, reusing it for every

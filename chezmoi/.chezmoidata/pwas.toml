@@ -1,20 +1,20 @@
 [pwas]
 
-# PWAs to force-install into ungoogled-chromium (macOS and Windows both use the same browser for
-# this) via the WebAppInstallForceList enterprise policy. Each entry accepts any key
+# PWAs to force-install into Chrome (macOS and Windows both use the same browser for this) via the
+# WebAppInstallForceList enterprise policy. Each entry accepts any key
 # WebAppInstallForceList supports -- see https://chromeenterprise.google/policies/#WebAppInstallForceList
 #
 # Name and icon come from the site's web app manifest; only set custom_name/custom_icon when the
 # site has no manifest (some streaming sites omit one to push their native app instead), since
 # without one the entry falls back to the page's <title> as its name. A failed background install
 # (redirect, timeout, browser quit mid-load) instead produces a URL-named placeholder with no icon;
-# the macOS chromium_pwas role and the Windows pwa-install script both detect placeholders and
+# the macOS chrome_pwas role and the Windows pwa-install script both detect placeholders and
 # reload the install URL to swap in the real app -- that repair can't help the no-manifest case
 # above, since there's no manifest name to recover.
 #
 # ignore_on is an optional array of .chezmoi.os values ("darwin", "windows"); the templates that
 # consume this data filter out entries on a matching OS (and strip the key before it reaches the
-# actual WebAppInstallForceList payload -- Chromium doesn't know about it).
+# actual WebAppInstallForceList payload -- Chrome doesn't know about it).
 [[pwas.entries]]
 url = "https://www.appletv.com"
 default_launch_container = "window"

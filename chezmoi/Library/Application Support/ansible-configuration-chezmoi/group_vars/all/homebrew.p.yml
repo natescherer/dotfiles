@@ -10,10 +10,10 @@ homebrew_casks_personal:
   - claude
   - discord
   - docker-desktop
+  - google-chrome
   - localsend
   - obsidian
   - proton-drive
   - proton-mail
   - proton-pass
   - protonvpn
-  - ungoogled-chromium

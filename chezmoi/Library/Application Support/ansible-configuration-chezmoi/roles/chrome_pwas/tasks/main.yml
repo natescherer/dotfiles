@@ -1,0 +1,139 @@
+---
+- name: Check whether Chrome is installed
+  ansible.builtin.stat:
+    path: "/Applications/Google Chrome.app"
+  register: chrome_app
+
+# Chrome reads WebAppInstallForceList (and other enterprise policies) only
+# from the "Managed Preferences" domain, not a regular ~/Library/Preferences
+# plist — a plain `defaults write com.google.Chrome ...` would land in
+# the wrong domain and Chrome would silently ignore it. Writing the plist
+# straight to /Library/Managed Preferences/ is the same thing an MDM profile
+# would ultimately deliver, just without needing MDM. This is a *forced*
+# install — Chrome will show "managed by your organization" and the app
+# can't be freely removed the normal way — traded deliberately for getting
+# a real, manifest-icon-having, chrome://apps-tracked install out of a
+# script.
+# /Library/Managed Preferences isn't guaranteed to exist — it's normally
+# created the first time a configuration profile/MDM enrollment lands on
+# the Mac, which may never have happened on a fresh install.
+- name: Ensure /Library/Managed Preferences exists
+  ansible.builtin.file:
+    path: "/Library/Managed Preferences"
+    state: directory
+    owner: root
+    group: wheel
+    mode: "0755"
+  become: true
+  when: chrome_app.stat.exists and chrome_web_apps | length > 0
+
+- name: Force-install PWAs in Chrome
+  ansible.builtin.template:
+    src: com.google.Chrome.plist.j2
+    dest: "/Library/Managed Preferences/com.google.Chrome.plist"
+    owner: root
+    group: wheel
+    mode: "0644"
+  become: true
+  register: chrome_policy
+  when: chrome_app.stat.exists and chrome_web_apps | length > 0
+
+# Gated on install count rather than just `chrome_policy is changed`, since the plist's content
+# stays the same on later runs even if a PWA never finished installing -- this way a stalled entry
+# keeps getting retried instead of going silently stale.
+- name: Count already-installed (non-placeholder) PWAs
+  ansible.builtin.find:
+    paths: "{{ ansible_facts.env.HOME }}/Applications/Chrome Apps.localized"
+    patterns: "*.app"
+    excludes: "http*.app"
+    file_type: directory
+  register: chrome_existing_pwas
+  when: chrome_app.stat.exists and chrome_web_apps | length > 0
+
+- name: Determine whether Chrome needs to (re)attempt installing PWAs
+  ansible.builtin.set_fact:
+    chrome_pwas_need_attempt: "{{ chrome_policy is changed or (chrome_existing_pwas.matched | default(0)) < (chrome_web_apps | length) }}"
+  when: chrome_app.stat.exists and chrome_web_apps | length > 0
+
+# cfprefsd (the daemon every app, including Chrome, actually queries for preference values --
+# including the Managed Preferences domain) caches values in memory and doesn't reliably notice a
+# plist being overwritten by a plain file write rather than through the normal preferences API, so
+# Chrome can keep reading a stale policy even once the file on disk is correct. That staleness
+# persists indefinitely once it happens, which is why this is gated on chrome_pwas_need_attempt
+# rather than `chrome_policy is changed` -- it needs to also catch an already-stale cache from an
+# earlier run. Killing cfprefsd forces it to reread from disk; it's relaunched on demand.
+- name: Restart cfprefsd so Chrome picks up the current policy
+  ansible.builtin.command: killall cfprefsd
+  become: true
+  when: chrome_pwas_need_attempt | default(false) | bool
+  changed_when: true
+  failed_when: false
+
+# Chrome only actually acts on WebAppInstallForceList — downloading each
+# app's manifest/icon and creating the installed web app — once it's
+# actually running. Launching it in the background, waiting for the
+# installed .app bundles to actually show up, then quitting is the least
+# disruptive way to make this happen non-interactively, rather than
+# requiring someone to open the browser by hand after every run. Only
+# bother doing this when there's actually something left to install, so a
+# re-run where every PWA already installed successfully doesn't interrupt
+# an already-running Chrome for no reason.
+- name: Launch Chrome so it installs the forced PWAs
+  ansible.builtin.command: open -g -a "Google Chrome"
+  when: chrome_pwas_need_attempt | default(false) | bool
+
+# If a future Chrome build ever renames "Chrome Apps.localized", the task will just retry for a
+# couple of minutes and move on (failed_when: false below) rather than blocking the whole run.
+- name: Wait for Chrome's initial install attempt to finish
+  ansible.builtin.find:
+    paths: "{{ ansible_facts.env.HOME }}/Applications/Chrome Apps.localized"
+    patterns: "*.app"
+    file_type: directory
+  register: chrome_installed_pwas
+  until: chrome_installed_pwas.matched | default(0) >= (chrome_web_apps | length)
+  retries: 24
+  delay: 5
+  when: chrome_pwas_need_attempt | default(false) | bool
+  failed_when: false
+
+# When the hidden background page load behind a forced install fails
+# (timeout, redirect, or the browser being quit mid-load), Chrome falls
+# back to installing a "placeholder" app named after the install URL (e.g.
+# `https/www.youtube.com.app`), with no manifest name or icon. Chrome
+# replaces a placeholder with the real manifest-derived app as soon as any
+# tab successfully navigates to the placeholder's install URL — the same
+# fully-rendered path a manual "Install" click uses. See
+# https://chromium.googlesource.com/chromium/src/+/main/docs/webapps/concepts.md
+# So: detect URL-named bundles, and if any exist, open every install URL in
+# a background tab to trigger that replacement.
+- name: Check for placeholder PWA installs
+  ansible.builtin.find:
+    paths: "{{ ansible_facts.env.HOME }}/Applications/Chrome Apps.localized"
+    patterns: "http*.app"
+    file_type: directory
+  register: chrome_placeholder_pwas
+  when: chrome_pwas_need_attempt | default(false) | bool
+
+- name: Open install URLs in tabs so Chrome replaces the placeholders
+  ansible.builtin.command:
+    argv: "{{ ['open', '-g', '-a', 'Google Chrome'] + (chrome_web_apps | map(attribute='url') | list) }}"
+  when: (chrome_pwas_need_attempt | default(false) | bool) and (chrome_placeholder_pwas.matched | default(0) > 0)
+  changed_when: true
+
+- name: Wait for placeholders to be replaced by real apps
+  ansible.builtin.find:
+    paths: "{{ ansible_facts.env.HOME }}/Applications/Chrome Apps.localized"
+    patterns: "http*.app"
+    file_type: directory
+  register: chrome_remaining_placeholders
+  until: chrome_remaining_placeholders.matched | default(0) == 0
+  retries: 24
+  delay: 5
+  when: (chrome_pwas_need_attempt | default(false) | bool) and (chrome_placeholder_pwas.matched | default(0) > 0)
+  failed_when: false
+
+- name: Quit Chrome
+  ansible.builtin.command: killall "Google Chrome"
+  when: chrome_pwas_need_attempt | default(false) | bool
+  changed_when: true
+  failed_when: false

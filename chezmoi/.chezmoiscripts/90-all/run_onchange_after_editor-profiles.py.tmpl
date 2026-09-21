@@ -351,7 +351,7 @@ def provision_profile(editor_key, user_dir, profile_name):
     # there's no way to create one headlessly. If no window for this editor is open anywhere on the
     # machine, we can launch one ourselves, wait for the registration to land, and close exactly
     # what we opened -- the same launch/wait/close-it-ourselves pattern
-    # run_onchange_after_pwa-install.ps1.tmpl uses for Chromium. But if the editor is already
+    # run_onchange_after_pwa-install.ps1.tmpl uses for Chrome. But if the editor is already
     # running (or we can't tell), a new profile just opens as another window inside that same
     # instance -- there's no way to single out and close only our new window without risking the
     # user's other open windows and unsaved work, so fall back to asking them to close it

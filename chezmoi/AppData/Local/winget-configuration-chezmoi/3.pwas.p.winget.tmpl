@@ -7,19 +7,18 @@ metadata:
     processor:
       identifier: dscv3
 resources:
-  # Chromium OSS builds (unlike Google-branded Chrome) read enterprise policy from
-  # SOFTWARE\Policies\Chromium rather than SOFTWARE\Policies\Google\Chrome. List-of-dict
-  # policies like WebAppInstallForceList are stored as a single REG_SZ JSON-array string.
-  # Sourced from .chezmoidata/pwas.toml, shared with the macOS ansible chromium_pwas role so
+  # Chrome reads enterprise policy from SOFTWARE\Policies\Google\Chrome. List-of-dict policies
+  # like WebAppInstallForceList are stored as a single REG_SZ JSON-array string.
+  # Sourced from .chezmoidata/pwas.toml, shared with the macOS ansible chrome_pwas role so
   # both platforms force-install the same PWAs into the same browser.
   # {{ $pwas := list }}{{ range .pwas.entries }}{{ if not (has "windows" (index . "ignore_on" | default list)) }}{{ $pwas = append $pwas (omit . "ignore_on") }}{{ end }}{{ end }}
   - type: Microsoft.Windows/Registry
-    name: ChromiumWebAppInstallForceList
+    name: ChromeWebAppInstallForceList
     metadata:
       winget:
         securityContext: elevated
     properties:
-      keyPath: HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Chromium
+      keyPath: HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Google\Chrome
       valueName: WebAppInstallForceList
       valueData:
         String: {{ $pwas | toJson | quote }}

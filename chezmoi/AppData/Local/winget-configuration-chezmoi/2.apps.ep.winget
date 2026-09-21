@@ -66,6 +66,15 @@ resources:
       source: msstore
       installMode: silent
   - type: Microsoft.WinGet/Package
+    name: GoogleChrome
+    metadata:
+      winget:
+        securityContext: elevated
+    properties:
+      id: Google.Chrome
+      source: winget
+      installMode: silent
+  - type: Microsoft.WinGet/Package
     name: LocalSend
     properties:
       id: LocalSend.LocalSend
@@ -135,12 +144,6 @@ resources:
         securityContext: elevated
     properties:
       id: Appest.TickTick
-      source: winget
-      installMode: silent
-  - type: Microsoft.WinGet/Package
-    name: UngoogledChromium
-    properties:
-      id: eloston.ungoogled-chromium
       source: winget
       installMode: silent
   - type: Microsoft.WinGet/Package

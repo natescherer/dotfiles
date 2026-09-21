@@ -1,6 +1,6 @@
 ---
-# chromium_web_apps is defined in group_vars/all/pwas.p.yml.tmpl, which is
+# chrome_web_apps is defined in group_vars/all/pwas.p.yml.tmpl, which is
 # personal-machines-only (excluded via .chezmoiignore.tmpl). This default
 # keeps every task in this role a no-op on non-personal machines instead of
 # failing on an undefined variable.
-chromium_web_apps: []
+chrome_web_apps: []

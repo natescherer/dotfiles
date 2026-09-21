@@ -1,11 +1,11 @@
 #Requires -Version 7.0
 
-# Force-installs PWAs into ungoogled-chromium via the WebAppInstallForceList registry policy --
-# the winget configuration sets installs chromium and sets the policy, this applies it
+# Force-installs PWAs into Chrome via the WebAppInstallForceList registry policy --
+# the winget configuration installs Chrome and sets the policy, this applies it
 
 # Why is this in a folder called '41-windows' instead of '40-windows' with the other Windows
 # scripts? This needs to run after run_onchange_after_winget-configure.ps1.tmpl (in 40-windows/),
-# which is what applies the WebAppInstallForceList registry policy and installs ungoogled-chromium
+# which is what applies the WebAppInstallForceList registry policy and installs Chrome
 # in the first place.
 
 {{/* PWA entries are embedded directly below, so this run_onchange_ script's own rendered content
@@ -25,18 +25,16 @@ if ($PwaEntries.Count -eq 0) {
     exit 0
 }
 
-Write-Host "`nInstalling PWAs into ungoogled-chromium..." -ForegroundColor Green
+Write-Host "`nInstalling PWAs into Chrome..." -ForegroundColor Green
 
 # Installers write PATH changes to the registry, but this process's inherited $env:Path was
-# captured before those writes happened -- rebuild it so a chromium.exe installed moments ago in
+# captured before those writes happened -- rebuild it so a chrome.exe installed moments ago in
 # this same apply run is actually resolvable (same trick as run_after_dependency-checker.ps1).
 $env:Path = [System.Environment]::GetEnvironmentVariable('Path', 'Machine') + ';' + [System.Environment]::GetEnvironmentVariable('Path', 'User')
 
-# ungoogled-chromium-windows deliberately keeps upstream Chromium's branding/paths (see its
-# project docs: "will not modify the Chromium browser outside of the project's goals"), so an
-# unbranded Chromium build's defaults apply: binary is chrome.exe, and -- since GOOGLE_CHROME_BUILD
-# isn't defined -- its user-data dir is "Chromium", not "Google\Chrome" or "Google\ungoogled-chromium".
-function Find-ChromiumExe {
+# Chrome's binary is chrome.exe, installed under Program Files\Google\Chrome\Application; its
+# user-data dir is %LOCALAPPDATA%\Google\Chrome\User Data.
+function Find-ChromeExe {
     $Cmd = Get-Command chrome.exe -ErrorAction SilentlyContinue
     if ($Cmd) { return $Cmd.Source }
 
@@ -47,7 +45,7 @@ function Find-ChromiumExe {
         'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*'
     )
     $Entry = Get-ItemProperty -Path $UninstallRoots -ErrorAction SilentlyContinue |
-        Where-Object { $_.DisplayName -like '*Chromium*' -and $_.InstallLocation } |
+        Where-Object { $_.DisplayName -eq 'Google Chrome' -and $_.InstallLocation } |
         Select-Object -First 1
     if ($Entry) {
         $Candidate = Join-Path $Entry.InstallLocation 'chrome.exe'
@@ -56,28 +54,26 @@ function Find-ChromiumExe {
 
     foreach ($Root in @($env:ProgramFiles, ${env:ProgramFiles(x86)}, $env:LOCALAPPDATA)) {
         if (-not $Root) { continue }
-        $Candidate = Join-Path $Root 'Chromium\Application\chrome.exe'
+        $Candidate = Join-Path $Root 'Google\Chrome\Application\chrome.exe'
         if (Test-Path $Candidate) { return $Candidate }
     }
 
     return $null
 }
 
-$ChromiumExe = Find-ChromiumExe
-if (-not $ChromiumExe) {
-    Write-Host "Warning: could not find ungoogled-chromium's chrome.exe -- skipping PWA install. It should have been installed by winget configure; rerun 'chezmoi apply' once it is." -ForegroundColor Yellow
+$ChromeExe = Find-ChromeExe
+if (-not $ChromeExe) {
+    Write-Host "Warning: could not find Chrome's chrome.exe -- skipping PWA install. It should have been installed by winget configure; rerun 'chezmoi apply' once it is." -ForegroundColor Yellow
     exit 0
 }
 
-$ProfileDir = Join-Path $env:LOCALAPPDATA 'Chromium\User Data\Default'
+$ProfileDir = Join-Path $env:LOCALAPPDATA 'Google\Chrome\User Data\Default'
 $WebAppsDir = Join-Path $ProfileDir 'Web Applications'
 
-# Chromium is now also this machine's general-purpose backup browser (installed via winget
-# configuration), not a headless PWA host dedicated to just this list -- so
 # Web Applications can accumulate folders for apps the user installed by hand, from a URL that
-# later got removed from .chezmoidata/pwas.toml, or (during iterative testing of this very
-# script) from earlier runs. An absolute folder count conflates all of that with genuinely new
-# installs from *this* run, so snapshot what's there before launching and diff against it instead.
+# later got removed from .chezmoidata/pwas.toml, or from earlier runs. An absolute folder count
+# conflates all of that with genuinely new installs from *this* run, so snapshot what's there
+# before launching and diff against it instead.
 $BaselineFolders = if (Test-Path $WebAppsDir) { @((Get-ChildItem -Path $WebAppsDir -Directory -ErrorAction SilentlyContinue).Name) } else { @() }
 
 function Get-NewPwaCount {
@@ -87,7 +83,7 @@ function Get-NewPwaCount {
 }
 
 # When the hidden background page load behind a forced install fails (timeout, redirect, or the
-# browser being quit mid-load), Chromium falls back to installing a manifest-less, iconless
+# browser being quit mid-load), Chrome falls back to installing a manifest-less, iconless
 # placeholder app literally named after the install URL (e.g. a "https www.youtube.com" shortcut
 # for https://www.youtube.com) -- the Windows equivalent of macOS's URL-named
 # `https/www.youtube.com.app` placeholder bundles. Its folder under Web Applications
@@ -101,26 +97,26 @@ function Get-PlaceholderShortcutCount {
 }
 
 # Registry policy is only guaranteed to be read fresh at process *startup* -- a running instance
-# reloading WebAppInstallForceList live isn't reliable. Since Chromium is single-instance
+# reloading WebAppInstallForceList live isn't reliable. Since Chrome is single-instance
 # (launching chrome.exe while one is already running just forwards the args via IPC to it rather
 # than starting a new process), any already-running instance -- left over from an earlier run of
-# this very script, from manual testing, or from the user's own regular browsing, since Chromium
-# is also this machine's general backup browser now -- would silently swallow every Start-Process
-# call below into its own stale in-memory policy instead of actually picking up the new one. Force
-# a truly fresh process by killing anything already running first, not just cleaning up after.
-function Stop-ChromiumProcesses {
-    $ChromiumDir = Split-Path $ChromiumExe
+# this very script, from manual testing, or from the user's own browsing -- would silently
+# swallow every Start-Process call below into its own stale in-memory policy instead of actually
+# picking up the new one. Force a truly fresh process by killing anything already running first,
+# not just cleaning up after.
+function Stop-ChromeProcesses {
+    $ChromeDir = Split-Path $ChromeExe
     Get-Process -Name 'chrome*' -ErrorAction SilentlyContinue |
-        Where-Object { $_.Path -and $_.Path.StartsWith($ChromiumDir, [StringComparison]::OrdinalIgnoreCase) } |
+        Where-Object { $_.Path -and $_.Path.StartsWith($ChromeDir, [StringComparison]::OrdinalIgnoreCase) } |
         Stop-Process -Force -ErrorAction SilentlyContinue
 }
-Stop-ChromiumProcesses
+Stop-ChromeProcesses
 Start-Sleep -Seconds 2  # let Windows release the profile's singleton lock before relaunching
 
 # Launch minimized rather than bringing it to the foreground -- same non-disruptive intent as
-# `open -g -a Chromium` on macOS. Chromium only actually acts on WebAppInstallForceList --
+# `open -g -a "Google Chrome"` on macOS. Chrome only actually acts on WebAppInstallForceList --
 # downloading each app's manifest/icon and creating the installed web app -- once it's running.
-Start-Process -FilePath $ChromiumExe -ArgumentList '--no-first-run' -WindowStyle Minimized
+Start-Process -FilePath $ChromeExe -ArgumentList '--no-first-run' -WindowStyle Minimized
 
 # This script can rerun for reasons other than the PWA list actually changing (e.g. an edit to
 # this script's own content, which is also what its run_onchange_ gate keys off of) -- so a "warm"
@@ -140,9 +136,9 @@ function Wait-ForCondition {
     return $false
 }
 
-# Capped at $PwaEntries.Count since unrelated pre-existing folders (the browser is also a general
-# daily-use browser now) would otherwise inflate the count -- this is still just an estimate, not
-# per-URL verification, since folder names are opaque app ids.
+# Capped at $PwaEntries.Count since unrelated pre-existing folders (e.g. apps installed by hand)
+# would otherwise inflate the count -- this is still just an estimate, not per-URL verification,
+# since folder names are opaque app ids.
 function Get-AccountedForCount { [Math]::Min($PwaEntries.Count, $BaselineFolders.Count + (Get-NewPwaCount)) }
 function Test-AllPwasRegistered { (Get-AccountedForCount) -ge $PwaEntries.Count -and (Get-PlaceholderShortcutCount) -eq 0 }
 
@@ -151,33 +147,33 @@ function Test-AllPwasRegistered { (Get-AccountedForCount) -ge $PwaEntries.Count 
 # forever -- that's not a failure, it's nothing left to do. $BaselineFolders.Count already meeting
 # the target up front is exactly that case, and is checked first so it short-circuits immediately
 # instead of waiting out the full retry budget for installs that were never going to happen.
-Wait-ForCondition -Condition { Test-AllPwasRegistered } -ProgressLabel "Waiting for Chromium's initial install attempt to finish" | Out-Null
+Wait-ForCondition -Condition { Test-AllPwasRegistered } -ProgressLabel "Waiting for Chrome's initial install attempt to finish" | Out-Null
 
-# A never-started PWA entry (Chromium processes WebAppInstallForceList roughly in list order, so a
+# A never-started PWA entry (Chrome processes WebAppInstallForceList roughly in list order, so a
 # slower machine may not reach every entry before the wait above times out) leaves no folder and no
 # placeholder shortcut at all, unlike a failed-manifest-fetch placeholder -- so a single
-# placeholder-only repair pass can miss it entirely. Restarting Chromium fresh gives never-started
+# placeholder-only repair pass can miss it entirely. Restarting Chrome fresh gives never-started
 # entries a real turn at the startup-time WebAppInstallForceList pass (opening a URL in an
 # already-running instance's tab does not re-trigger that pass -- it only replaces an *existing*
 # placeholder, keyed off a tab successfully loading the install URL, not off the browser starting
 # up); re-opening every install URL afterward also swaps out any remaining placeholders (the same
-# remedy the macOS chromium_pwas role uses). Hence bounded rounds, checking every entry is
-# accounted for before killing Chromium rather than trusting one pass to have caught everything.
+# remedy the macOS chrome_pwas role uses). Hence bounded rounds, checking every entry is
+# accounted for before killing Chrome rather than trusting one pass to have caught everything.
 $MaxRepairRounds = 5
 for ($Round = 1; $Round -le $MaxRepairRounds -and -not (Test-AllPwasRegistered); $Round++) {
-    Write-Host "Round $Round/$MaxRepairRounds -- $(Get-AccountedForCount)/$($PwaEntries.Count) accounted for, $(Get-PlaceholderShortcutCount) still placeholder. Restarting Chromium..." -ForegroundColor DarkGray
-    Stop-ChromiumProcesses
+    Write-Host "Round $Round/$MaxRepairRounds -- $(Get-AccountedForCount)/$($PwaEntries.Count) accounted for, $(Get-PlaceholderShortcutCount) still placeholder. Restarting Chrome..." -ForegroundColor DarkGray
+    Stop-ChromeProcesses
     Start-Sleep -Seconds 2  # let Windows release the profile's singleton lock before relaunching
-    Start-Process -FilePath $ChromiumExe -ArgumentList '--no-first-run' -WindowStyle Minimized
+    Start-Process -FilePath $ChromeExe -ArgumentList '--no-first-run' -WindowStyle Minimized
     Start-Sleep -Seconds 3  # give the fresh process a moment to start its WebAppInstallForceList pass before piling tabs onto it
     foreach ($Entry in $PwaEntries) {
-        Start-Process -FilePath $ChromiumExe -ArgumentList '--no-first-run', $Entry.url -WindowStyle Minimized
+        Start-Process -FilePath $ChromeExe -ArgumentList '--no-first-run', $Entry.url -WindowStyle Minimized
         Start-Sleep -Seconds 1
     }
     Wait-ForCondition -Condition { Test-AllPwasRegistered } -ProgressLabel "Waiting for round $Round's installs to finish" | Out-Null
 }
 
-Stop-ChromiumProcesses
+Stop-ChromeProcesses
 
 $PlaceholderCount = Get-PlaceholderShortcutCount
 $AccountedForCount = Get-AccountedForCount

@@ -33,13 +33,13 @@
                 </dict>
                 <dict>
                     <key>BundleIdentifier</key>
-                    <string>org.chromium.Chromium</string>
+                    <string>com.google.Chrome</string>
                     <key>NotificationsEnabled</key>
                     <true/>
                 </dict>
                 <dict>
                     <key>BundleIdentifier</key>
-                    <string>org.chromium.Chromium.framework.AlertNotificationService</string>
+                    <string>com.google.Chrome.framework.AlertNotificationService</string>
                     <key>NotificationsEnabled</key>
                     <true/>
                 </dict>
