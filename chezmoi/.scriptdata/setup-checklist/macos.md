@@ -80,8 +80,3 @@ file is only written once.
 - [ ] Prime Video
 - [ ] Proton VPN
 - [ ] VSCode
-
-## Manual Config
-
-- VLC
-  - [ ] Interface > Use Dark Pallete

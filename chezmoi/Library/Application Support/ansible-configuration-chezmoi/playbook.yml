@@ -50,6 +50,10 @@
           tags: macos_settings
 
         - ansible.builtin.include_role:
+            name: app_settings
+          tags: app_settings
+
+        - ansible.builtin.include_role:
             name: app_associations
           tags: app_associations
 

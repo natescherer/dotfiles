@@ -1,0 +1,34 @@
+---
+# Settings for individual apps that live in the app's own config files rather than in macOS
+# preferences domains. The apps themselves are installed earlier in the run (homebrew,
+# mac_app_store), so each block here can assume its app is present.
+
+# VLC keeps its settings in a plain-text vlcrc (not a defaults domain), which it only creates on
+# first launch. macosx-interfacestyle is a boolean: 1 is the dark interface style. VLC writes every
+# option into vlcrc commented out at its default, so an existing file gets that line replaced in
+# place; on a Mac where VLC has never run, a minimal file is seeded instead and VLC fills in the
+# rest itself. force: false keeps the seed from ever overwriting a real vlcrc.
+- name: Configure VLC
+  vars:
+    vlc_config_dir: "{{ ansible_facts.env.HOME }}/Library/Preferences/org.videolan.vlc"
+  block:
+    - name: Ensure VLC's preferences directory exists
+      ansible.builtin.file:
+        path: "{{ vlc_config_dir }}"
+        state: directory
+        mode: "0700"
+
+    - name: Seed VLC's config if it doesn't exist yet
+      ansible.builtin.copy:
+        dest: "{{ vlc_config_dir }}/vlcrc"
+        content: |
+          [macosx]
+          macosx-interfacestyle=1
+        force: false
+        mode: "0600"
+
+    - name: Set VLC to the dark interface style
+      ansible.builtin.lineinfile:
+        path: "{{ vlc_config_dir }}/vlcrc"
+        regexp: '^#?macosx-interfacestyle='
+        line: macosx-interfacestyle=1
