@@ -132,14 +132,29 @@
     state: present
   notify: Restart Finder
 
-# Temp disable, doesn't work on macOS 27
-# - name: Enable trackpad tap-to-click
-#   community.general.osx_defaults:
-#     domain: com.apple.AppleMultitouchTrackpad
-#     key: Clicking
-#     type: bool
-#     value: true
-#     state: present
+# Until System Settings rewrites it as a bool on first toggle, Clicking is stored as integer 0
+# (seen on macOS 27), so the module's default type check fails with "Type mismatch"; hence
+# check_type: false. The built-in and Bluetooth trackpads have separate domains.
+- name: Enable trackpad tap-to-click
+  community.general.osx_defaults:
+    domain: "{{ item }}"
+    key: Clicking
+    type: bool
+    value: true
+    check_type: false
+    state: present
+  loop:
+    - com.apple.AppleMultitouchTrackpad
+    - com.apple.driver.AppleBluetoothMultitouch.trackpad
+
+- name: Enable tap-to-click for the current host
+  community.general.osx_defaults:
+    host: currentHost
+    domain: NSGlobalDomain
+    key: com.apple.mouse.tapBehavior
+    type: int
+    value: 1
+    state: present
 
 - name: Enable Touch ID for sudo
   ansible.builtin.shell: |
