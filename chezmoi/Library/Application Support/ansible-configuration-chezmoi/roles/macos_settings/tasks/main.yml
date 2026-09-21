@@ -11,6 +11,16 @@
     osascript -e 'tell application "System Events" to tell appearance preferences to set dark mode to true'
   when: dark_mode_current.stdout | trim != 'true'
 
+# macOS 26+ "Icon & Widget style" (System Settings > Appearance). Absent until first changed
+# from the default; "RegularDark" is the Dark tile.
+- name: Set icon and widget style to Dark
+  community.general.osx_defaults:
+    domain: NSGlobalDomain
+    key: AppleIconAppearanceTheme
+    type: string
+    value: RegularDark
+    state: present
+
 # Lives at /Library/Preferences rather than a per-user domain -- macOS reads the system-wide
 # copy for this one, not ~/Library/Preferences. Requires Location Services to actually take
 # effect, which isn't itself scriptable (no `defaults`/CLI hook for that toggle).
