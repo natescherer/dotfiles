@@ -58,6 +58,16 @@
     value: true
     state: present
 
+# Absent until first changed from the default ("Automatic based on mouse or trackpad").
+# Other values: WhenScrolling, Automatic.
+- name: Always show scroll bars
+  community.general.osx_defaults:
+    domain: NSGlobalDomain
+    key: AppleShowScrollBars
+    type: string
+    value: Always
+    state: present
+
 - name: Set menu bar clock to analog
   community.general.osx_defaults:
     domain: com.apple.menuextra.clock
