@@ -33,6 +33,10 @@
     state: present
   become: true
 
+# tilesize: icon size in points. mineffect: minimize animation (genie or scale).
+# minimize-to-application: minimize windows into their app's Dock icon instead of a separate tile.
+# launchanim: bounce the icon while an app launches. show-process-indicators: dot under running
+# apps. show-recents: the recent-applications section at the right end of the Dock.
 - name: Configure Dock behavior
   community.general.osx_defaults:
     domain: com.apple.dock
@@ -138,12 +142,18 @@
   register: current_disablesleep
   changed_when: false
 
+# -c applies only to the power-adapter profile. disablesleep 1 stops the system from sleeping at all
+# (lid close included), so the Mac stays reachable while the display is off.
 - name: Prevent sleep on power adapter when display is off
   ansible.builtin.command: pmset -c disablesleep 1
   become: true
   when: current_disablesleep.stdout | trim != '1'
   changed_when: true
 
+# NewWindowTarget PfHm: new Finder windows open the home folder. FXPreferredViewStyle Nlsv: list
+# view (icnv is icon, clmv column, glyv gallery). _FXSortFoldersFirst: folders sort above files.
+# ShowTabView: always show the tab bar. ShowRecentTags: recent tags in the sidebar.
+# AppleShowAllFiles: show hidden files.
 - name: Configure Finder behavior
   community.general.osx_defaults:
     domain: com.apple.finder
@@ -186,6 +196,7 @@
     - com.apple.AppleMultitouchTrackpad
     - com.apple.driver.AppleBluetoothMultitouch.trackpad
 
+# Tap-to-click is also stored in the per-host global domain, alongside the trackpad domains above.
 - name: Enable tap-to-click for the current host
   community.general.osx_defaults:
     host: currentHost
@@ -195,6 +206,9 @@
     value: 1
     state: present
 
+# sudo_local is the supported place for local PAM overrides (unlike /etc/pam.d/sudo, macOS updates
+# don't overwrite it). Its template ships with the pam_tid.so (Touch ID) line commented out; this
+# uncomments it. The creates: guard makes this a one-time setup.
 - name: Enable Touch ID for sudo
   ansible.builtin.shell: |
     sed "s/^#auth/auth/" /etc/pam.d/sudo_local.template > /etc/pam.d/sudo_local
