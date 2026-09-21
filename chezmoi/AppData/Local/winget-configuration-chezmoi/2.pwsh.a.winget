@@ -7,6 +7,8 @@ metadata:
     processor:
       identifier: dscv3
 resources:
+  # Two resources because pwsh and Windows PowerShell 5.1 each keep their own execution policy.
+  # CurrentUser scope means no elevation is needed.
   - type: Microsoft.DSC.Transitional/RunCommandOnSet
     name: ExecutionPolicyPwsh
     properties:

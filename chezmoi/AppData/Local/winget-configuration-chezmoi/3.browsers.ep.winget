@@ -7,6 +7,8 @@ metadata:
     processor:
       identifier: dscv3
 resources:
+  # ExtensionInstallForcelist values are numbered; the value name is just a list index and the data is
+  # "<extension id>;<update url>" (here, Edge's Add-ons store).
   - type: Microsoft.Windows/Registry
     name: EdgeProtonPassExtensionForcelist
     metadata:

@@ -36,6 +36,7 @@ resources:
       valueData:
         ExpandString: "%LOCALAPPDATA%\\WindowsWorkstationDSC\\DefaultAppAssociations.xml"
       _exist: true
+  # Policy "Prevent the usage of OneDrive for file storage".
   - type: Microsoft.Windows/Registry
     name: DisableOneDrive
     metadata:
@@ -47,6 +48,8 @@ resources:
       valueData:
         DWord: 1
       _exist: true
+  # Both values cap diagnostic data at Required only. Levels: 0 Security, 1 Required, 2 Enhanced,
+  # 3 Optional.
   - type: Microsoft.Windows/Registry
     name: DisableOptionalDiagnosticDataAllowTelemetry
     metadata:
@@ -69,6 +72,8 @@ resources:
       valueData:
         DWord: 1
       _exist: true
+  # Policy "Turn off app notifications on the lock screen"; with it on, the lock screen's weather and
+  # more widgets are suppressed too.
   - type: Microsoft.Windows/Registry
     name: DisableWeatherAndMoreOnLockScreen
     metadata:
@@ -102,6 +107,7 @@ resources:
       valueData:
         String: about:blank
       _exist: true
+  # HideFirstRunExperience skips Edge's first-run (out-of-box) setup screens.
   - type: Microsoft.Windows/Registry
     name: EdgeOOBE
     metadata:
@@ -113,6 +119,7 @@ resources:
       valueData:
         DWord: 1
       _exist: true
+  # AllowMUUpdateService (Microsoft Update): "Receive updates for other Microsoft products".
   - type: Microsoft.Windows/Registry
     name: EnableUpdatesForOtherMicrosoftProducts
     metadata:
@@ -124,6 +131,7 @@ resources:
       valueData:
         DWord: 1
       _exist: true
+  # Lifts the 260-character MAX_PATH limit for apps that opt in through their manifest.
   - type: Microsoft.Windows/Registry
     name: LongPaths
     metadata:
@@ -135,6 +143,7 @@ resources:
       valueData:
         DWord: 1
       _exist: true
+  # Windows sudo mode: 0 disabled, 1 new window, 2 input disabled, 3 inline.
   - type: Microsoft.Windows/Registry
     name: Sudo
     metadata:
@@ -146,6 +155,7 @@ resources:
       valueData:
         DWord: 3
       _exist: true
+  # "Allow Widgets" policy (the Dsh key); 0 disables the Widgets board and its taskbar entry.
   - type: Microsoft.Windows/Registry
     name: WidgetServiceOff
     metadata:

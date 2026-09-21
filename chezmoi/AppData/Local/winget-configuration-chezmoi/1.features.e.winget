@@ -17,13 +17,13 @@ resources:
         securityContext: elevated
     properties:
       features:
-        - featureName: NetFx3
+        - featureName: NetFx3 # .NET Framework 3.5 (includes 2.0 and 3.0)
           state: Installed
-        - featureName: SimpleTCP
+        - featureName: SimpleTCP # Simple TCP/IP Services (echo, daytime, chargen, etc.)
           state: Installed
         - featureName: TelnetClient
           state: Installed
-        - featureName: TFTP
+        - featureName: TFTP # TFTP client (tftp.exe)
           state: Installed
         - featureName: VirtualMachinePlatform # For WSL2
           state: Installed

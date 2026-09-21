@@ -12,6 +12,7 @@ resources:
     properties:
       settings:
         enable_warnings_elevated_apps: false
+  # RestartExplorer restarts explorer.exe so the change shows up immediately.
   - type: Microsoft.Windows.Developer/Taskbar
     name: Taskbar
     properties:
@@ -29,6 +30,7 @@ resources:
       AppColorMode: Dark
       SystemColorMode: Dark
       TaskbarAlignment: Left
+  # Start_TrackProgs: "Let Windows improve Start and search results by tracking app launches".
   - type: Microsoft.Windows/Registry
     name: DisableAppLaunchTracking
     properties:
@@ -45,6 +47,7 @@ resources:
       valueData:
         DWord: 0
       _exist: true
+  # "Let Microsoft offer tips, ads, and recommendations tailored to your diagnostic data".
   - type: Microsoft.Windows/Registry
     name: DisableDiagnosticDataForTailoredExperiences
     properties:
@@ -53,6 +56,8 @@ resources:
       valueData:
         DWord: 0
       _exist: true
+  # Enhance pointer precision (mouse acceleration) is off only when all three values below are 0:
+  # MouseSpeed is the on/off flag, MouseThreshold1 and MouseThreshold2 are the acceleration thresholds.
   - type: Microsoft.Windows/Registry
     name: DisableEnhancePointerPrecisionMouseSpeed
     properties:
@@ -77,6 +82,8 @@ resources:
       valueData:
         String: "0"
       _exist: true
+  # Feedback frequency = Never (Settings > Privacy & security > Diagnostics & feedback). Settings
+  # stores this as a zero prompt count with the period value removed.
   - type: Microsoft.Windows/Registry
     name: DisableFeedbackPromptsNumberOfSIUFInPeriod
     properties:
@@ -91,6 +98,7 @@ resources:
       keyPath: HKEY_CURRENT_USER\SOFTWARE\Microsoft\Siuf\Rules
       valueName: PeriodInNanoSeconds
       _exist: false
+  # Lock screen "Get fun facts, tips, tricks, and more" overlay; both values back the same toggle.
   - type: Microsoft.Windows/Registry
     name: DisableFunFactsInStartMenuRotatingLockScreenOverlay
     properties:
@@ -107,6 +115,7 @@ resources:
       valueData:
         DWord: 0
       _exist: true
+  # "Improve inking and typing": sends inking and typing samples to Microsoft.
   - type: Microsoft.Windows/Registry
     name: DisableImproveInkingAndTyping
     properties:
@@ -115,6 +124,9 @@ resources:
       valueData:
         DWord: 0
       _exist: true
+  # "Inking & typing personalization" (custom dictionary): the five entries below turn the toggle off,
+  # stop contact harvesting, restrict implicit ink and text collection, and withdraw the privacy policy
+  # acceptance.
   - type: Microsoft.Windows/Registry
     name: DisableInkingTypingDictionaryContactHarvesting
     properties:
@@ -155,6 +167,8 @@ resources:
       valueData:
         DWord: 0
       _exist: true
+  # Diagnostic level marker Settings writes when optional diagnostic data is off: 1 is Required only,
+  # 3 is Optional. Pairs with the AllowTelemetry policy in 2.settings.e.winget.
   - type: Microsoft.Windows/Registry
     name: DisableOptionalDiagnosticDataShowedToastAtLevel
     properties:
@@ -163,6 +177,7 @@ resources:
       valueData:
         DWord: 1
       _exist: true
+  # Start_TrackDocs: "Show recently opened items in Start, Jump Lists, and File Explorer".
   - type: Microsoft.Windows/Registry
     name: DisableRecentFilesInStartMenu
     properties:
@@ -179,6 +194,8 @@ resources:
       valueData:
         DWord: 0
       _exist: true
+  # "Show suggested content in Settings". Windows stores this one toggle as three separate opaque
+  # content IDs, all set to 0.
   - type: Microsoft.Windows/Registry
     name: DisableSettingsSuggestedContent338393
     properties:
@@ -203,6 +220,7 @@ resources:
       valueData:
         DWord: 0
       _exist: true
+  # "Let websites show me locally relevant content by accessing my language list".
   - type: Microsoft.Windows/Registry
     name: DisableWebsiteLanguageAccess
     properties:
@@ -235,6 +253,8 @@ resources:
       valueData:
         DWord: 1
       _exist: true
+  # Flags is a bitmask. 504 is the default (510) with the available and hotkey bits cleared, which
+  # disables the "press Shift five times" prompt.
   - type: Microsoft.Windows/Registry
     name: StickyKeys
     properties:
@@ -243,6 +263,7 @@ resources:
       valueData:
         String: "504"
       _exist: true
+  # Adds "End task" to the taskbar right-click menu (Settings > System > For developers).
   - type: Microsoft.Windows/Registry
     name: TaskbarEndTask
     properties:
