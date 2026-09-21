@@ -50,25 +50,20 @@ file is only written once.
   - [ ] Disable `Save and autofill addresses`
   - [ ] Disable all under `Firefox data collection and use`
 - [ ] Brave
+  - [ ] Set up sync
+  - [ ] Set search engine
   - Appearance
     - Customize your toolbar
       - [ ] Disable VPN
       - [ ] Disable Leo AI
       - [ ] Disable Wallet
       - [ ] Disable Rewards
-  - [ ] Set up sync
-  - [ ] Set search engine
 - [ ] Ghostty
   - [ ] Enable self update
 - [ ] Proton VPN
   - [ ] Set to run on startup
 - [ ] Obsidian
   - [ ] Sync Main vault to ~\obsidian
-  - [ ] Set up backup in Proton Drive
-- [ ] PrusaSlicer
-  - [ ] Do initial run, then copy over old config
-- [ ] WinRAR
-  - [ ] Do file associations
 
 ## Simple Logins
 
