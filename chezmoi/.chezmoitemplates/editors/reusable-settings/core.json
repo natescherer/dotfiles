@@ -13,6 +13,7 @@
         "~/.config/copilot/instructions": true
     },
     "chat.restoreLastPanelSession": true,
+    "claudeCode.hideOnboarding": true,
     "claudeCode.preferredLocation": "sidebar",
     "diffEditor.codeLens": true,
     "diffEditor.experimental.showMoves": true,
