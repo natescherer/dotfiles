@@ -78,6 +78,15 @@
     value: true
     state: present
 
+# Focus > "Share across devices" is inverted: disableCloudSync true means Off.
+- name: Disable sharing Focus across devices
+  community.general.osx_defaults:
+    domain: com.apple.donotdisturbd
+    key: disableCloudSync
+    type: bool
+    value: true
+    state: present
+
 - name: Set menu bar clock to analog
   community.general.osx_defaults:
     domain: com.apple.menuextra.clock
