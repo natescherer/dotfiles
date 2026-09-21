@@ -68,6 +68,16 @@
     value: Always
     state: present
 
+# "Click in the scroll bar to": true is "Jump to the spot that's clicked", false is "Jump to
+# the next page". Absent until first changed from the default.
+- name: Jump to the clicked spot when clicking in the scroll bar
+  community.general.osx_defaults:
+    domain: NSGlobalDomain
+    key: AppleScrollerPagingBehavior
+    type: bool
+    value: true
+    state: present
+
 - name: Set menu bar clock to analog
   community.general.osx_defaults:
     domain: com.apple.menuextra.clock
