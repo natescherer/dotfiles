@@ -104,9 +104,9 @@
 # default (no key at all until someone explicitly adds them via System Settings), so there's
 # nothing to write for those -- only items that need to move away from their out-of-the-box
 # state get an explicit key below. Wi-Fi and Sound are keyed "VisibleCC" (Control Center) since
-# that's the toggle that actually controls the menu bar icon here; Battery and Now Playing use
-# plain "Visible" instead, matching what's actually in com.apple.controlcenter on an already
-# hand-configured Mac.
+# that's the toggle that actually controls the menu bar icon here; Now Playing uses plain
+# "Visible" instead, matching what's actually in com.apple.controlcenter on an already
+# hand-configured Mac. Battery is handled separately below since it varies by macOS version.
 - name: Configure visible Control Center menu bar items
   community.general.osx_defaults:
     domain: com.apple.controlcenter
@@ -115,21 +115,34 @@
     value: "{{ item.value }}"
     state: present
   loop:
-    - { key: "NSStatusItem Visible Battery", value: false }
     - { key: "NSStatusItem Visible NowPlaying", value: false }
     - { key: "NSStatusItem VisibleCC WiFi", value: true }
     - { key: "NSStatusItem VisibleCC Sound", value: true }
   notify: Restart Control Center
 
+# macOS 27+ shows the battery icon with its percentage; macOS 26 hides the icon entirely.
+- name: Set battery menu bar preference for this macOS version
+  ansible.builtin.set_fact:
+    battery_menu_bar_visible: "{{ ansible_facts.distribution_major_version | int >= 27 }}"
+
+- name: Configure battery menu bar icon visibility
+  community.general.osx_defaults:
+    domain: com.apple.controlcenter
+    key: NSStatusItem Visible Battery
+    type: bool
+    value: "{{ battery_menu_bar_visible }}"
+    state: present
+  notify: Restart Control Center
+
 # BatteryShowPercentage lives in the -currentHost variant of this domain, separate from the
 # item-visibility keys above (which are host-independent).
-- name: Hide battery percentage in the menu bar
+- name: Configure battery percentage in the menu bar
   community.general.osx_defaults:
     host: currentHost
     domain: com.apple.controlcenter
     key: BatteryShowPercentage
     type: bool
-    value: false
+    value: "{{ battery_menu_bar_visible }}"
     state: present
   notify: Restart Control Center
 
