@@ -241,6 +241,12 @@ try {
 }
 Write-Log "Preflight: OS=$OsInfo | PowerShell=$($PSVersionTable.PSVersion) | winget=$((winget --version) 2>$null) | DiskFreeGB(C)=$DiskFreeGB | WingetLogDir=$WingetLogDir"
 
+$MinimumWingetVersion = [version]'1.29.380'
+$WingetVersion = [version]((winget --version).Trim().TrimStart('v'))
+if ($WingetVersion -lt $MinimumWingetVersion) {
+  throw "winget $WingetVersion is unsupported -- winget $MinimumWingetVersion or newer is required. Update App Installer, then rerun."
+}
+
 # A reboot already pending (e.g. from Windows Update) before this script even runs makes
 # applying configuration unreliable -- bail out now.
 if (Test-RebootPending) {
@@ -262,15 +268,26 @@ if ($null -ne $PolicyValue -and [int]$PolicyValue -eq 0) {
 #region Prerequisites and upstream workarounds
 
 # Fresh machines refuse `winget configure` until its extended-features flag is enabled once.
-# `--enable` is idempotent, so run it unconditionally rather than probe for the flag's state --
-# there's no reliable cross-version check for it. Exit code isn't gated on: some winget builds
-# return non-zero even when already enabled, and a real failure here surfaces in the apply loop.
 # `--enable`/`--disable` must be passed alone -- newer winget rejects it combined with any other
 # argument (including --verbose-logs) with "Option '--enable' and '--disable' cannot be used with
 # other arguments."
-Write-Host "`nEnsuring winget configure extended features are enabled..." -ForegroundColor Cyan
-Write-Log "=== winget configure --enable ==="
-winget configure --enable
+$AtomicWingetConfigureKey = 'HKCU:\Software\AtomicWingetConfigure'
+$ExtendedFeaturesValueName = 'ExtendedFeaturesEnabled'
+$ExtendedFeaturesEnabled = (Get-ItemProperty -Path $AtomicWingetConfigureKey -Name $ExtendedFeaturesValueName -ErrorAction SilentlyContinue).$ExtendedFeaturesValueName -eq 1
+if ($ExtendedFeaturesEnabled) {
+  Write-Host "`nwinget configure extended features are already enabled." -ForegroundColor DarkGray
+  Write-Log "=== winget configure extended features already enabled ==="
+} else {
+  Write-Host "`nEnabling winget configure extended features..." -ForegroundColor Cyan
+  Write-Log "=== winget configure --enable ==="
+  winget configure --enable
+  if ($LASTEXITCODE -ne 0) {
+    throw "Failed to enable winget configure extended features (exit code $LASTEXITCODE) -- update App Installer or see $LogPath and rerun."
+  }
+  New-Item -Path $AtomicWingetConfigureKey -Force | Out-Null
+  New-ItemProperty -Path $AtomicWingetConfigureKey -Name $ExtendedFeaturesValueName -Value 1 -PropertyType DWord -Force | Out-Null
+  Write-Log "=== recorded winget configure extended-features enablement in $AtomicWingetConfigureKey ==="
+}
 
 # winget configure needs the VC++ 2015+ x64 redistributable when run non-elevated, and fails
 # with an opaque internal error without it -- self-heal by installing it directly.
@@ -445,7 +462,8 @@ foreach ($File in $ConfigFiles) {
   Invoke-WithRetry -Name $File -ScriptBlock {
     # If https://github.com/microsoft/winget-cli/issues/6419) is ever implemented, we'll want to add its flag here
     # When https://github.com/PowerShell/DSC/issues/1653 is fixed, remove the --processor-path argument and the DSC ZIP workaround above
-    winget configure -f $Path --processor-path $DscZipExe --accept-configuration-agreements --disable-interactivity --suppress-initial-details --verbose-logs --ignore-warnings
+    # winget configure -f $Path --processor-path $DscZipExe --accept-configuration-agreements --disable-interactivity --suppress-initial-details --verbose-logs --ignore-warnings
+    winget configure -f $Path --accept-configuration-agreements --disable-interactivity --suppress-initial-details --verbose-logs --ignore-warnings
   }
   Write-Log "--- exit code: $LASTEXITCODE ---"
   if ($LASTEXITCODE -ne 0) {
