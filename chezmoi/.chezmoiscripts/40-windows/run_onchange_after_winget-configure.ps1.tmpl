@@ -72,7 +72,8 @@ function Invoke-WithRetry {
     $global:LASTEXITCODE = 0  # don't inherit a stale value from an earlier native command
     try {
       & $ScriptBlock
-    } catch {
+    }
+    catch {
       Write-Log "[retry] ${Name}: attempt $Attempt threw: $($_.Exception.Message)"
       $global:LASTEXITCODE = 1
     }
@@ -122,7 +123,8 @@ function Test-RebootPending {
 function Invoke-AlertSound {
   try {
     (New-Object System.Media.SoundPlayer 'C:\Windows\Media\Alarm01.wav').PlaySync()
-  } catch {
+  }
+  catch {
     Write-Log "=== could not play alert sound: $($_.Exception.Message) ==="
   }
 }
@@ -145,7 +147,8 @@ function Test-ConfigFileRequiresElevation {
       return $true
     }
     return $Output.Contains([char]::ConvertFromUtf32(0x1F6E1))
-  } catch {
+  }
+  catch {
     Write-Log "=== 'winget configure show' for $Path threw: $($_.Exception.Message) -- assuming elevation required ==="
     return $true
   }
@@ -166,7 +169,8 @@ function Register-ChezmoiApplyOnNextLogon {
   $PwshExe = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
   $Command = if ($WtExe -and $PwshExe) {
     "`"$WtExe`" -- `"$PwshExe`" -NoExit -Command `"& '$ChezmoiExe' apply`""
-  } else {
+  }
+  else {
     "powershell.exe -NoExit -Command `"& '$ChezmoiExe' apply`""
   }
   Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\RunOnce' -Name 'ChezmoiApply' -Value $Command
@@ -185,7 +189,8 @@ function Stop-ForPendingReboot {
   )
   if (Register-ChezmoiApplyOnNextLogon) {
     Write-Host "`n$Reason Reboot -- 'chezmoi apply' will rerun automatically at next logon to finish applying the configuration." -ForegroundColor Yellow
-  } else {
+  }
+  else {
     Write-Host "`n$Reason Reboot, then rerun 'chezmoi apply' to finish applying the configuration." -ForegroundColor Yellow
   }
   Invoke-AlertSound
@@ -209,7 +214,8 @@ function Get-MsstoreIds {
   foreach ($Line in Get-Content -Path $Path) {
     if ($Line -match '^\s*id:\s*(\S+)\s*$') {
       $PendingId = $Matches[1]
-    } elseif ($Line -match '^\s*source:\s*msstore\s*$' -and $PendingId) {
+    }
+    elseif ($Line -match '^\s*source:\s*msstore\s*$' -and $PendingId) {
       $PendingId
       $PendingId = $null
     }
@@ -220,7 +226,7 @@ function Get-MsstoreIds {
 # Microsoft.PowerShell.PSResourceGet/PSResourceList resource; nothing otherwise.
 function Get-SufficientPSResourceGet {
   Get-PSResource -Name Microsoft.PowerShell.PSResourceGet -ErrorAction SilentlyContinue |
-    Where-Object { $_.Version -ge [version]'1.3.0' }
+  Where-Object { $_.Version -ge [version]'1.3.0' }
 }
 
 #endregion
@@ -231,12 +237,14 @@ function Get-SufficientPSResourceGet {
 try {
   $Os = Get-CimInstance -ClassName Win32_OperatingSystem -ErrorAction Stop
   $OsInfo = "$($Os.Caption) $($Os.Version) build $($Os.BuildNumber)"
-} catch {
+}
+catch {
   $OsInfo = "(unavailable)"
 }
 try {
   $DiskFreeGB = [math]::Round((Get-PSDrive -Name C -ErrorAction Stop).Free / 1GB, 2)
-} catch {
+}
+catch {
   $DiskFreeGB = "(unavailable)"
 }
 Write-Log "Preflight: OS=$OsInfo | PowerShell=$($PSVersionTable.PSVersion) | winget=$((winget --version) 2>$null) | DiskFreeGB(C)=$DiskFreeGB | WingetLogDir=$WingetLogDir"
@@ -277,7 +285,8 @@ $ExtendedFeaturesEnabled = (Get-ItemProperty -Path $AtomicWingetConfigureKey -Na
 if ($ExtendedFeaturesEnabled) {
   Write-Host "`nwinget configure extended features are already enabled." -ForegroundColor DarkGray
   Write-Log "=== winget configure extended features already enabled ==="
-} else {
+}
+else {
   Write-Host "`nEnabling winget configure extended features..." -ForegroundColor Cyan
   Write-Log "=== winget configure --enable ==="
   winget configure --enable
@@ -310,13 +319,15 @@ if (-not (Get-SufficientPSResourceGet)) {
   Write-Log "=== Installing Microsoft.PowerShell.PSResourceGet (prerelease) ==="
   try {
     Install-PSResource -Name Microsoft.PowerShell.PSResourceGet -Prerelease -TrustRepository -Scope CurrentUser -ErrorAction Stop *>&1 | Write-Log
-  } catch {
+  }
+  catch {
     Write-Log "PSResourceGet install threw: $($_.Exception.Message)"
   }
   $PSResourceGetInstalled = Get-SufficientPSResourceGet
   if (-not $PSResourceGetInstalled) {
     Write-Host "Warning: failed to install PSResourceGet 1.3.0+ . See $LogPath" -ForegroundColor Yellow
-  } else {
+  }
+  else {
     Write-Log "=== PSResourceGet install verified: $($PSResourceGetInstalled.Version) $($PSResourceGetInstalled.Prerelease) ==="
     # winget configure runs through WindowsPackageManagerServer, a COM server that stays resident
     # across invocations (confirmed: one ran for over a week) and caches its DSC resource
@@ -341,7 +352,8 @@ $DscZipRoot = Join-Path $ConfigDir 'dsc-zip'
 try {
   $DscLatestRelease = Invoke-RestMethod -Uri 'https://api.github.com/repos/PowerShell/DSC/releases/latest' -ErrorAction Stop
   $DscZipDir = Join-Path $DscZipRoot $DscLatestRelease.tag_name.TrimStart('v')
-} catch {
+}
+catch {
   # The GitHub API can be down or rate-limited -- an already-downloaded copy beats failing.
   $DscLatestRelease = $null
   $DscZipDir = (Get-ChildItem -Path $DscZipRoot -Directory -ErrorAction SilentlyContinue |
