@@ -37,6 +37,7 @@ homebrew_casks:
   - git-credential-manager
   - keka
   - macshot
+  - rectangle
   - stats
   - thaw
   - visual-studio-code
