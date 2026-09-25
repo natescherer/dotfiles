@@ -64,6 +64,9 @@ file is only written once.
   - [ ] Set to run on startup
 - [ ] Obsidian
   - [ ] Sync Main vault to ~\obsidian
+- [ ] Rectangle
+  - [ ] Grant permissions
+  - [ ] Set to open at login
 
 ## Simple Logins
 
