@@ -228,3 +228,16 @@
   become: true
   args:
     creates: /etc/pam.d/sudo_local
+
+# Personal machines only. socketfilterfw reports "State = 0" when disabled, 1 or 2 when on.
+- name: Check current firewall state
+  ansible.builtin.command: /usr/libexec/ApplicationFirewall/socketfilterfw --getglobalstate
+  register: firewall_state
+  changed_when: false
+  when: is_personal_machine
+
+- name: Enable the macOS firewall
+  ansible.builtin.command: /usr/libexec/ApplicationFirewall/socketfilterfw --setglobalstate on
+  become: true
+  when: is_personal_machine and 'State = 0' in firewall_state.stdout
+  changed_when: true

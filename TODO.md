@@ -14,4 +14,3 @@
 ## macOS Ansible Configuration
 
 - Test in a no-admin-rights scenario
-- Enable firewall
