@@ -3,7 +3,8 @@
 # Applies the WinGet Configuration files that declaratively configure this Windows machine.
 # Flow: preflight checks (pending reboot, Group Policy), prerequisite installs and upstream-bug
 # workarounds, then one `winget configure` run per changed *.winget file, with
-# applied-hash sidecars so unchanged files are skipped on later runs.
+# applied-hash sidecars so unchanged files are skipped on later runs. A reboot left pending by a
+# file is reported at the end, or stops the run on the spot when $AtomicReboots is set.
 
 # {{ $wingetConfigDirName := "winget-configuration-chezmoi" }}
 # {{ $wingetConfigSourceDir := joinPath .chezmoi.sourceDir "AppData/Local" $wingetConfigDirName }}
@@ -13,6 +14,11 @@
 #      changes. Squeezed onto one line so "#" it all out to avoid pwsh parser errors */}}
 # {{ "\n" }}{{ range $wingetConfigFiles }}## {{ base . }} hash: {{ include . | sha256sum }}{{ "\n" }}{{ end -}}
 ## pwas.toml hash: {{ joinPath .chezmoi.sourceDir ".chezmoidata/pwas.toml" | include | sha256sum }}
+
+# Whether to stop as soon as a configuration file leaves a reboot pending, and resume at next
+# logon. When $false, every file is applied in one run and a pending reboot is only reported at
+# the end. A reboot already pending at the start stops the run either way.
+$AtomicReboots = $false
 
 # chezmoi apply runs many scripts back to back with no indication which is running -- announce
 # this one, since it can take a while.
@@ -109,7 +115,8 @@ function Set-ConfigFileAppliedHash {
 }
 
 # winget configure gives no indication a resource left a reboot pending, so infer it from the
-# registry. Backs both the upfront check and the per-file check in the apply loop.
+# registry. Backs the upfront check, the per-file check made under $AtomicReboots, and the
+# end-of-run report.
 function Test-RebootPending {
   return (Test-Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending') `
     -or (Test-Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\RebootRequired') `
@@ -267,7 +274,7 @@ if ($WingetVersion -lt $MinimumWingetVersion) {
 }
 
 # A reboot already pending (e.g. from Windows Update) before this script even runs makes
-# applying configuration unreliable -- bail out now.
+# applying configuration unreliable -- bail out now, regardless of $AtomicReboots.
 if (Test-RebootPending) {
   Stop-ForPendingReboot -Reason "A reboot is already pending." `
     -LogMessage "=== reboot already pending before any configuration was applied -- exiting ==="
@@ -512,11 +519,12 @@ foreach ($File in $ConfigFiles) {
   }
 
   # A file's resources (e.g. enabling a feature, WSL setup) can leave a reboot pending that
-  # winget configure won't report -- checked fresh after every file, since any could trigger one.
-  # Checked before recording the hash below: if this file caused it, its effects may not be fully
-  # in place yet, so its hash (and every later file's, never reached this run) stays unrecorded
-  # -- the skip check re-picks them up once chezmoi retries.
-  if (Test-RebootPending) {
+  # winget configure won't report. Under $AtomicReboots, stop as soon as one appears: checked
+  # fresh after every file, since any could trigger one, and before recording the hash below. If
+  # this file caused it, its effects may not be fully in place yet, so its hash (and every later
+  # file's, never reached this run) stays unrecorded, and the skip check re-picks them up once
+  # chezmoi retries.
+  if ($AtomicReboots -and (Test-RebootPending)) {
     Stop-ForPendingReboot -Reason "A reboot is pending after applying $File." `
       -LogMessage "=== reboot pending after ${File}: not recording applied-hash, exiting ==="
   }
@@ -528,7 +536,15 @@ foreach ($File in $ConfigFiles) {
 
 #endregion
 
-Write-Host "`nWindows configuration applied -- no reboot needed." -ForegroundColor Green
+# Only reachable with a reboot pending when $AtomicReboots is off (otherwise the script has
+# already stopped for it). Every file's hash is recorded, so there is nothing to rerun afterwards.
+if (Test-RebootPending) {
+  Write-Host "`nWindows configuration applied. A reboot is needed to finish putting it into effect." -ForegroundColor Yellow
+  Write-Log "=== reboot pending at end of run ==="
+}
+else {
+  Write-Host "`nWindows configuration applied -- no reboot needed." -ForegroundColor Green
+}
 
 # winget's exit code isn't reliable even on success (e.g. benign "module not provided" warnings)
 # -- real failures are already visible above and logged to $LogPath.
