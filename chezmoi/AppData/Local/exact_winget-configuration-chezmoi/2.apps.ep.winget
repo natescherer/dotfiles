@@ -164,12 +164,3 @@ resources:
       id: Yubico.Authenticator
       source: winget
       installMode: silent
-  - type: Microsoft.WinGet/Package
-    name: YubikeyManager
-    metadata:
-      winget:
-        securityContext: elevated
-    properties:
-      id: Yubico.YubikeyManager
-      source: winget
-      installMode: silent
