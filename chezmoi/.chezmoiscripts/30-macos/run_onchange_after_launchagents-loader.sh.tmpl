@@ -1,0 +1,32 @@
+#!/usr/bin/env zsh
+
+# (Re)loads every LaunchAgent in Library/LaunchAgents whenever its content changes. launchd only
+# reads ~/Library/LaunchAgents at login, so without this a new or edited agent does nothing until
+# the next logout.
+
+failed=0
+domain="gui/$(id -u)"
+
+{{ $globOutput := joinPath .chezmoi.sourceDir "Library/LaunchAgents/*.plist" | glob }}
+{{ range $sourceDirPlistPath := $globOutput -}}
+{{ $plistFile := base $sourceDirPlistPath -}}
+{{ $label := trimSuffix ".plist" $plistFile -}}
+# The below ensures that this file will change when the hashed file changes, triggering this script to execute
+## {{ $plistFile }} hash: {{ include $sourceDirPlistPath | sha256sum }}
+echo "\033[1;34mLoading LaunchAgent {{ $label }}...\033[0m"
+launchctl bootout "$domain/{{ $label }}" 2>/dev/null
+# bootout is asynchronous; bootstrapping before the old job is gone fails with an I/O error
+for _ in {1..20}; do
+  launchctl print "$domain/{{ $label }}" &>/dev/null || break
+  sleep 0.25
+done
+if ! launchctl bootstrap "$domain" "$HOME/Library/LaunchAgents/{{ $plistFile }}"; then
+  echo "\033[0;31mWarning: 'launchctl bootstrap' failed for {{ $plistFile }}\033[0m" >&2
+  failed=1
+fi
+
+{{ end -}}
+# Exiting non-zero makes chezmoi retry this run_onchange_ script on every apply until every agent loads.
+if [ "$failed" -ne 0 ]; then
+  exit 1
+fi
