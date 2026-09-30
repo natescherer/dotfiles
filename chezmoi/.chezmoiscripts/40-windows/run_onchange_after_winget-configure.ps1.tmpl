@@ -206,6 +206,14 @@ function Find-DscZipExe {
     Select-Object -First 1).FullName
 }
 
+# Whether a configuration file declares a resource type that only works under the DSC ZIP
+# package (see the DSC ZIP workaround below). Line-based scan for a matching "type:".
+function Test-ConfigFileNeedsDscZip {
+  param([string] $Path)
+  $TypePattern = ($DscZipResourceTypes | ForEach-Object { [regex]::Escape($_) }) -join '|'
+  return [bool](Select-String -Path $Path -Pattern "^\s*(-\s*)?type:\s*[`"']?($TypePattern)[`"']?\s*(#.*)?$" -Quiet)
+}
+
 # Emits package ids whose source is msstore from a configuration file (see the msstore
 # pre-install workaround below). Line-based scan: an "id:" followed later by "source: msstore".
 function Get-MsstoreIds {
@@ -346,67 +354,80 @@ if (-not (Get-SufficientPSResourceGet)) {
 # errors outright ("This resource currently is not supported when installed via Appx") under the
 # Appx-packaged dsc.exe that winget configure uses by default; per DSC v3.2.0's release notes the
 # resource "requires using the ZIP package of DSC for now". Downloading that ZIP release once and
-# pointing every `winget configure` call at it via --processor-path sidesteps the limitation for
-# all files, not just the one that needs it -- there's no per-resource processor override. Always
+# pointing `winget configure` at it via --processor-path sidesteps the limitation. The processor
+# applies to a whole file (there's no per-resource override), so only changed files declaring one
+# of $DscZipResourceTypes get it, and the setup below is skipped when there are none. Always
 # resolved to GitHub's "latest" release (which already excludes pre-releases/drafts) rather than
-# pinned, so this self-updates. Remove this block, Find-DscZipExe above, and the --processor-path
-# argument in the apply loop once the linked issue is fixed upstream.
-$DscZipRoot = Join-Path $ConfigDir 'dsc-zip'
-try {
-  $DscLatestRelease = Invoke-RestMethod -Uri 'https://api.github.com/repos/PowerShell/DSC/releases/latest' -ErrorAction Stop
-  $DscZipDir = Join-Path $DscZipRoot $DscLatestRelease.tag_name.TrimStart('v')
+# pinned, so this self-updates. Remove this block, Find-DscZipExe and Test-ConfigFileNeedsDscZip
+# above, and the --processor-path handling in the apply loop once the linked issue is fixed
+# upstream.
+$DscZipResourceTypes = @('Microsoft.Windows/OptionalFeatureList')
+$DscZipFiles = @($ConfigFiles | Where-Object {
+    $Path = Join-Path $ConfigDir $_
+    (Test-ConfigFileChanged -Path $Path) -and (Test-ConfigFileNeedsDscZip -Path $Path)
+  })
+if ($DscZipFiles.Count -eq 0) {
+  Write-Log "=== no changed *.winget files need the DSC ZIP package, skipping its setup ==="
 }
-catch {
-  # The GitHub API can be down or rate-limited -- an already-downloaded copy beats failing.
-  $DscLatestRelease = $null
-  $DscZipDir = (Get-ChildItem -Path $DscZipRoot -Directory -ErrorAction SilentlyContinue |
-    Sort-Object LastWriteTime -Descending | Select-Object -First 1).FullName
-  Write-Log "=== GitHub latest-release lookup failed ($($_.Exception.Message)) -- falling back to cached DSC ZIP package at: $DscZipDir ==="
-}
-$DscZipExe = if ($DscZipDir) { Find-DscZipExe -Dir $DscZipDir }
+else {
+  Write-Log "=== changed *.winget files needing the DSC ZIP package: $($DscZipFiles -join ', ') ==="
+  $DscZipRoot = Join-Path $ConfigDir 'dsc-zip'
+  try {
+    $DscLatestRelease = Invoke-RestMethod -Uri 'https://api.github.com/repos/PowerShell/DSC/releases/latest' -ErrorAction Stop
+    $DscZipDir = Join-Path $DscZipRoot $DscLatestRelease.tag_name.TrimStart('v')
+  }
+  catch {
+    # The GitHub API can be down or rate-limited -- an already-downloaded copy beats failing.
+    $DscLatestRelease = $null
+    $DscZipDir = (Get-ChildItem -Path $DscZipRoot -Directory -ErrorAction SilentlyContinue |
+      Sort-Object LastWriteTime -Descending | Select-Object -First 1).FullName
+    Write-Log "=== GitHub latest-release lookup failed ($($_.Exception.Message)) -- falling back to cached DSC ZIP package at: $DscZipDir ==="
+  }
+  $DscZipExe = if ($DscZipDir) { Find-DscZipExe -Dir $DscZipDir }
 
-if (-not $DscZipExe) {
-  if (-not $DscLatestRelease) {
-    throw "Could not resolve the latest DSC release from GitHub and no cached DSC ZIP package exists -- Microsoft.Windows/OptionalFeatureList resources will fail. See $LogPath and rerun."
-  }
-  $DscZipAsset = $DscLatestRelease.assets | Where-Object { $_.name -match 'x86_64-pc-windows-msvc\.zip$' } | Select-Object -First 1
-  if (-not $DscZipAsset) {
-    throw "Could not find an x86_64-pc-windows-msvc.zip asset in the latest DSC release ($($DscLatestRelease.tag_name)) -- release layout may have changed. See $LogPath."
-  }
-  Write-Host "Downloading DSC $($DscLatestRelease.tag_name) ZIP package..." -ForegroundColor Cyan
-  Write-Log "=== Downloading DSC $($DscLatestRelease.tag_name) ZIP package ==="
-  $DscZipDownloadPath = Join-Path $env:TEMP "dsc-$($DscLatestRelease.tag_name.TrimStart('v')).zip"
-  Invoke-WithRetry -Name 'DSC ZIP download' -ScriptBlock {
-    Invoke-WebRequest -Uri $DscZipAsset.browser_download_url -OutFile $DscZipDownloadPath -ErrorAction Stop
-  }
-  if ($LASTEXITCODE -ne 0) {
-    throw "Failed to download DSC $($DscLatestRelease.tag_name) ZIP package after retries -- Microsoft.Windows/OptionalFeatureList resources will fail. See $LogPath and rerun."
-  }
-
-  New-Item -ItemType Directory -Path $DscZipDir -Force | Out-Null
-  Expand-Archive -Path $DscZipDownloadPath -DestinationPath $DscZipDir -Force
-  Remove-Item -Path $DscZipDownloadPath -Force -ErrorAction SilentlyContinue
-  $DscZipExe = Find-DscZipExe -Dir $DscZipDir
   if (-not $DscZipExe) {
-    throw "dsc.exe not found after extracting the DSC $($DscLatestRelease.tag_name) ZIP package -- release layout may have changed. See $LogPath."
-  }
-  Write-Log "=== DSC $($DscLatestRelease.tag_name) ZIP package extracted to $DscZipExe ==="
-}
+    if (-not $DscLatestRelease) {
+      throw "Could not resolve the latest DSC release from GitHub and no cached DSC ZIP package exists -- Microsoft.Windows/OptionalFeatureList resources will fail. See $LogPath and rerun."
+    }
+    $DscZipAsset = $DscLatestRelease.assets | Where-Object { $_.name -match 'x86_64-pc-windows-msvc\.zip$' } | Select-Object -First 1
+    if (-not $DscZipAsset) {
+      throw "Could not find an x86_64-pc-windows-msvc.zip asset in the latest DSC release ($($DscLatestRelease.tag_name)) -- release layout may have changed. See $LogPath."
+    }
+    Write-Host "Downloading DSC $($DscLatestRelease.tag_name) ZIP package..." -ForegroundColor Cyan
+    Write-Log "=== Downloading DSC $($DscLatestRelease.tag_name) ZIP package ==="
+    $DscZipDownloadPath = Join-Path $env:TEMP "dsc-$($DscLatestRelease.tag_name.TrimStart('v')).zip"
+    Invoke-WithRetry -Name 'DSC ZIP download' -ScriptBlock {
+      Invoke-WebRequest -Uri $DscZipAsset.browser_download_url -OutFile $DscZipDownloadPath -ErrorAction Stop
+    }
+    if ($LASTEXITCODE -ne 0) {
+      throw "Failed to download DSC $($DscLatestRelease.tag_name) ZIP package after retries -- Microsoft.Windows/OptionalFeatureList resources will fail. See $LogPath and rerun."
+    }
 
-# winget refuses --processor-path without this admin setting enabled first ("This feature needs
-# to be enabled by administrators"). `winget settings export` gives a reliable unelevated read of
-# its current state; enabling it needs its own elevated process (a plain `winget settings
-# --enable` from this unelevated script fails the same way), so this only prompts UAC the first
-# time -- or after whatever store backs admin settings gets reset.
-$AdminSettings = (winget settings export 2>$null | ConvertFrom-Json).adminSettings
-if (-not $AdminSettings.ConfigurationProcessorPath) {
-  Write-Host "`nEnabling winget's ConfigurationProcessorPath admin setting (requires elevation -- expect a UAC prompt)..." -ForegroundColor Cyan
-  Write-Log "=== Enabling ConfigurationProcessorPath admin setting (elevated) ==="
-  $Proc = Start-Process -FilePath 'winget' -ArgumentList 'settings', '--enable', 'ConfigurationProcessorPath' -Verb RunAs -Wait -PassThru
-  if ($Proc.ExitCode -ne 0) {
-    throw "Failed to enable ConfigurationProcessorPath admin setting (exit code $($Proc.ExitCode)) -- Microsoft.Windows/OptionalFeatureList resources will fail. Enable it manually by running 'winget settings --enable ConfigurationProcessorPath' as administrator, then rerun."
+    New-Item -ItemType Directory -Path $DscZipDir -Force | Out-Null
+    Expand-Archive -Path $DscZipDownloadPath -DestinationPath $DscZipDir -Force
+    Remove-Item -Path $DscZipDownloadPath -Force -ErrorAction SilentlyContinue
+    $DscZipExe = Find-DscZipExe -Dir $DscZipDir
+    if (-not $DscZipExe) {
+      throw "dsc.exe not found after extracting the DSC $($DscLatestRelease.tag_name) ZIP package -- release layout may have changed. See $LogPath."
+    }
+    Write-Log "=== DSC $($DscLatestRelease.tag_name) ZIP package extracted to $DscZipExe ==="
   }
-  Write-Log "=== ConfigurationProcessorPath admin setting enabled ==="
+
+  # winget refuses --processor-path without this admin setting enabled first ("This feature needs
+  # to be enabled by administrators"). `winget settings export` gives a reliable unelevated read of
+  # its current state; enabling it needs its own elevated process (a plain `winget settings
+  # --enable` from this unelevated script fails the same way), so this only prompts UAC the first
+  # time -- or after whatever store backs admin settings gets reset.
+  $AdminSettings = (winget settings export 2>$null | ConvertFrom-Json).adminSettings
+  if (-not $AdminSettings.ConfigurationProcessorPath) {
+    Write-Host "`nEnabling winget's ConfigurationProcessorPath admin setting (requires elevation -- expect a UAC prompt)..." -ForegroundColor Cyan
+    Write-Log "=== Enabling ConfigurationProcessorPath admin setting (elevated) ==="
+    $Proc = Start-Process -FilePath 'winget' -ArgumentList 'settings', '--enable', 'ConfigurationProcessorPath' -Verb RunAs -Wait -PassThru
+    if ($Proc.ExitCode -ne 0) {
+      throw "Failed to enable ConfigurationProcessorPath admin setting (exit code $($Proc.ExitCode)) -- Microsoft.Windows/OptionalFeatureList resources will fail. Enable it manually by running 'winget settings --enable ConfigurationProcessorPath' as administrator, then rerun."
+    }
+    Write-Log "=== ConfigurationProcessorPath admin setting enabled ==="
+  }
 }
 
 # Workaround for https://github.com/microsoft/winget-cli/issues/6091, which prevents winget
@@ -474,11 +495,15 @@ foreach ($File in $ConfigFiles) {
 
   Write-Host "`nApplying $File via 'winget configure'..." -ForegroundColor Cyan
   Write-Log "=== $File ==="
+  # If https://github.com/microsoft/winget-cli/issues/6419) is ever implemented, we'll want to add its flag here
+  $ConfigureArgs = @('-f', $Path, '--accept-configuration-agreements', '--disable-interactivity', '--suppress-initial-details', '--verbose-logs', '--ignore-warnings')
+  # When https://github.com/PowerShell/DSC/issues/1653 is fixed, remove this and the DSC ZIP workaround above
+  if ($File -in $DscZipFiles) {
+    $ConfigureArgs += '--processor-path', $DscZipExe
+    Write-Log "=== ${File}: using the DSC ZIP package at $DscZipExe ==="
+  }
   Invoke-WithRetry -Name $File -ScriptBlock {
-    # If https://github.com/microsoft/winget-cli/issues/6419) is ever implemented, we'll want to add its flag here
-    # When https://github.com/PowerShell/DSC/issues/1653 is fixed, remove the --processor-path argument and the DSC ZIP workaround above
-    # winget configure -f $Path --processor-path $DscZipExe --accept-configuration-agreements --disable-interactivity --suppress-initial-details --verbose-logs --ignore-warnings
-    winget configure -f $Path --accept-configuration-agreements --disable-interactivity --suppress-initial-details --verbose-logs --ignore-warnings
+    winget configure @ConfigureArgs
   }
   Write-Log "--- exit code: $LASTEXITCODE ---"
   if ($LASTEXITCODE -ne 0) {
