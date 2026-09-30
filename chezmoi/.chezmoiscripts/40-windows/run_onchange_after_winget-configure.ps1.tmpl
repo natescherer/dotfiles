@@ -43,8 +43,9 @@ $ConfigFiles = (Get-ChildItem -Path $ConfigDir -Filter "*.winget" -File | Sort-O
 # everything -- otherwise a real failure leaves no record once the terminal closes. Timestamped
 # per run, in its own subdirectory, rather than one path every run overwrites -- otherwise the
 # evidence for a failure is gone as soon as a second run (even a successful one) happens before
-# anyone looks.
-$LogDir = Join-Path $ConfigDir "logs"
+# anyone looks. Kept outside $ConfigDir, which chezmoi manages in exact mode and so purges of
+# anything it doesn't own.
+$LogDir = Join-Path $env:LOCALAPPDATA 'AtomicWingetConfigure\Logs'
 New-Item -ItemType Directory -Path $LogDir -Force | Out-Null
 $LogPath = Join-Path $LogDir "winget-configure_$(Get-Date -Format 'yyyy-MM-dd_HHmmss').log"
 "Run started $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')" | Set-Content -Path $LogPath
