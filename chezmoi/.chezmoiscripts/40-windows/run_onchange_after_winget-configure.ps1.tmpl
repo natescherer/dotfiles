@@ -3,7 +3,7 @@
 # Applies the WinGet Configuration files that declaratively configure this Windows machine.
 # Flow: preflight checks (pending reboot, Group Policy), prerequisite installs and upstream-bug
 # workarounds, then one `winget configure` run per changed *.winget file, with
-# applied-hash sidecars so unchanged files are skipped on later runs. A reboot left pending by a
+# recorded applied hashes so unchanged files are skipped on later runs. A reboot left pending by a
 # file is reported at the end, or stops the run on the spot when $AtomicReboots is set.
 
 # {{ $wingetConfigDirName := "winget-configuration-chezmoi" }}
@@ -39,13 +39,17 @@ New-Item -ItemType Directory -Path $ConfigDir -Force | Out-Null
 # copies only to trigger reruns.
 $ConfigFiles = (Get-ChildItem -Path $ConfigDir -Filter "*.winget" -File | Sort-Object Name).Name
 
+# Everything this script writes (logs, applied hashes, the DSC ZIP package) lives here, outside
+# $ConfigDir, which chezmoi manages in exact mode and so purges of anything it doesn't own.
+$StateDir = Join-Path $env:LOCALAPPDATA 'AtomicWingetConfigure'
+$AppliedHashesPath = Join-Path $StateDir 'applied-hashes.json'
+
 # winget's exit code isn't reliable (see bottom of script) and this runs unattended, so log
 # everything -- otherwise a real failure leaves no record once the terminal closes. Timestamped
 # per run, in its own subdirectory, rather than one path every run overwrites -- otherwise the
 # evidence for a failure is gone as soon as a second run (even a successful one) happens before
-# anyone looks. Kept outside $ConfigDir, which chezmoi manages in exact mode and so purges of
-# anything it doesn't own.
-$LogDir = Join-Path $env:LOCALAPPDATA 'AtomicWingetConfigure\Logs'
+# anyone looks.
+$LogDir = Join-Path $StateDir 'Logs'
 New-Item -ItemType Directory -Path $LogDir -Force | Out-Null
 $LogPath = Join-Path $LogDir "winget-configure_$(Get-Date -Format 'yyyy-MM-dd_HHmmss').log"
 "Run started $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')" | Set-Content -Path $LogPath
@@ -92,7 +96,7 @@ function Invoke-WithRetry {
   }
 }
 
-# "<file>.chezmoi-hash" sidecars record the hash each config file was last applied against, so
+# $AppliedHashesPath maps each config file's path to the hash it was last applied against, so
 # the apply loop can skip unchanged files.
 function Get-ConfigFileHash {
   param([string] $Path)
@@ -100,18 +104,31 @@ function Get-ConfigFileHash {
   return (Get-FileHash -Path $Path -Algorithm SHA256).Hash
 }
 
+# A missing or unreadable file yields an empty map, i.e. every config file counts as changed.
+function Get-AppliedHashes {
+  try {
+    $Hashes = Get-Content -Path $AppliedHashesPath -Raw -ErrorAction Stop | ConvertFrom-Json -AsHashtable
+  }
+  catch {
+    $Hashes = $null
+  }
+  if ($Hashes -is [System.Collections.IDictionary]) { return $Hashes }
+  return [ordered]@{}
+}
+
 function Test-ConfigFileChanged {
   param([string] $Path)
-  $HashPath = "$Path.chezmoi-hash"
-  if (-not (Test-Path $HashPath)) { return $true }
-  return (Get-ConfigFileHash -Path $Path) -ne (Get-Content -Path $HashPath -Raw).Trim()
+  $AppliedHash = (Get-AppliedHashes)[$Path]
+  return (-not $AppliedHash) -or ((Get-ConfigFileHash -Path $Path) -ne $AppliedHash)
 }
 
 function Set-ConfigFileAppliedHash {
   param([string] $Path)
   $Hash = Get-ConfigFileHash -Path $Path
   if ($null -ne $Hash) {
-    Set-Content -Path "$Path.chezmoi-hash" -Value $Hash -NoNewline
+    $Hashes = Get-AppliedHashes
+    $Hashes[$Path] = $Hash
+    $Hashes | ConvertTo-Json | Set-Content -Path $AppliedHashesPath
   }
 }
 
@@ -379,7 +396,7 @@ if ($DscZipFiles.Count -eq 0) {
 }
 else {
   Write-Log "=== changed *.winget files needing the DSC ZIP package: $($DscZipFiles -join ', ') ==="
-  $DscZipRoot = Join-Path $ConfigDir 'dsc-zip'
+  $DscZipRoot = Join-Path $StateDir 'dsc-zip'
   try {
     $DscLatestRelease = Invoke-RestMethod -Uri 'https://api.github.com/repos/PowerShell/DSC/releases/latest' -ErrorAction Stop
     $DscZipDir = Join-Path $DscZipRoot $DscLatestRelease.tag_name.TrimStart('v')

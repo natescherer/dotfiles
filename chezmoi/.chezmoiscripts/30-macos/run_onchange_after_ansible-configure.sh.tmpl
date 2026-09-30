@@ -7,7 +7,7 @@
 # needs a become password and Ansible only prompts for it once per run, reusing it for every
 # later become task in the same invocation.
 #
-# Unlike run_onchange_after_winget-configure.ps1.tmpl, no per-file applied-hash sidecar is
+# Unlike run_onchange_after_winget-configure.ps1.tmpl, no per-file applied-hash record is
 # needed here: ansible-playbook is a single idempotent command with a reliable exit code, so
 # the run_onchange_ gate below (rerun only when the vendored playbook content changes) is
 # sufficient on its own.
