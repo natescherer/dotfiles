@@ -8,8 +8,8 @@
     <array>
         <string>/bin/sh</string>
         <string>-c</string>
-        <string># launchd's default PATH hides every package manager outside /usr/bin
-export PATH="$HOME/.local/share/mise/shims:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/bin:/bin:/usr/sbin:/sbin"
+        <string># launchd's default PATH lacks Homebrew, which mpm searches PATH for
+export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:/usr/bin:/bin:/usr/sbin:/sbin"
 # terminal-notifier is only granted notification permission when launched through LaunchServices
 notify() { open -g -n /opt/homebrew/opt/terminal-notifier/terminal-notifier.app --args "$@" -group "local.mpm-plan"; }
 mkdir -p "$HOME/.cache/mpm"
