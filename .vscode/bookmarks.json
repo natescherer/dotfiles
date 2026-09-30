@@ -21,7 +21,7 @@
 			]
 		},
 		{
-			"path": "chezmoi/AppData/Local/winget-configuration-chezmoi/2.apps-core.a.winget",
+			"path": "chezmoi/AppData/Local/exact_winget-configuration-chezmoi/2.apps-core.a.winget",
 			"bookmarks": [
 				{
 					"line": 9,
