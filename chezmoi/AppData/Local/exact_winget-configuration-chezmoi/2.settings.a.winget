@@ -267,7 +267,7 @@ resources:
   - type: Microsoft.Windows/Registry
     name: TaskbarEndTask
     properties:
-      keyPath: HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced
+      keyPath: HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced\TaskbarDeveloperSettings
       valueName: TaskbarEndTask
       valueData:
         DWord: 1
