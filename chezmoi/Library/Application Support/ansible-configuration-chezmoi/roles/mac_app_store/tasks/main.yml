@@ -1,18 +1,24 @@
 ---
-# mas can't report sign-in status on current macOS, so attempt the install
-# and warn on failure rather than failing the whole run.
+# Install one app per task so a delisted ID or a signed-out App Store only
+# skips the affected apps; failures are summarized at the end instead of
+# failing the whole run.
 - name: Install Mac App Store apps
-  block:
-    - name: Install Mac App Store apps
-      community.general.mas:
-        id: "{{ (mac_app_store_apps | combine(mac_app_store_apps_personal | default({}))).values() | list }}"
-        state: present
-      environment:
-        PATH: "/opt/homebrew/bin:{{ ansible_facts.env.PATH }}"
-  rescue:
-    - name: Warn that Mac App Store apps were not installed
-      ansible.builtin.debug:
-        msg: >-
-          Mac App Store install failed: {{ ansible_failed_result.msg | default('unknown error') }}.
-          Make sure you're signed into the App Store app (Settings > Apple
-          Account), then re-run this playbook to install Mac App Store apps.
+  community.general.mas:
+    id: "{{ item.value }}"
+    state: present
+  environment:
+    PATH: "/opt/homebrew/bin:{{ ansible_facts.env.PATH }}"
+  loop: "{{ mac_app_store_apps | combine(mac_app_store_apps_personal | default({})) | dict2items }}"
+  loop_control:
+    label: "{{ item.key }}"
+  register: mas_install
+  ignore_errors: true
+
+- name: Warn about Mac App Store apps that failed to install
+  ansible.builtin.debug:
+    msg: >-
+      Could not install: {{ mas_install.results | selectattr('failed', 'defined') | selectattr('failed')
+      | map(attribute='item.key') | join(', ') }}. Make sure you're signed into the App Store app
+      (Settings > Apple Account) and that each app's ID is still listed (`mas lookup <id>`), then
+      re-run this playbook.
+  when: mas_install.results | selectattr('failed', 'defined') | selectattr('failed') | list | length > 0
