@@ -1,24 +1,18 @@
 ---
-- name: Check Mac App Store sign-in status
-  ansible.builtin.command: mas account
-  environment:
-    PATH: "/opt/homebrew/bin:{{ ansible_facts.env.PATH }}"
-  register: mas_account
-  changed_when: false
-  failed_when: false
-
-- name: Warn if not signed into the Mac App Store
-  ansible.builtin.debug:
-    msg: >-
-      Not signed into the Mac App Store — sign in via the App Store app
-      (Settings > Apple Account), then re-run this playbook to install
-      Mac App Store apps.
-  when: mas_account.rc != 0 or 'Not signed in' in mas_account.stdout
-
+# mas can't report sign-in status on current macOS, so attempt the install
+# and warn on failure rather than failing the whole run.
 - name: Install Mac App Store apps
-  community.general.mas:
-    id: "{{ (mac_app_store_apps | combine(mac_app_store_apps_personal | default({}))).values() | list }}"
-    state: present
-  environment:
-    PATH: "/opt/homebrew/bin:{{ ansible_facts.env.PATH }}"
-  when: mas_account.rc == 0 and 'Not signed in' not in mas_account.stdout
+  block:
+    - name: Install Mac App Store apps
+      community.general.mas:
+        id: "{{ (mac_app_store_apps | combine(mac_app_store_apps_personal | default({}))).values() | list }}"
+        state: present
+      environment:
+        PATH: "/opt/homebrew/bin:{{ ansible_facts.env.PATH }}"
+  rescue:
+    - name: Warn that Mac App Store apps were not installed
+      ansible.builtin.debug:
+        msg: >-
+          Mac App Store install failed: {{ ansible_failed_result.msg | default('unknown error') }}.
+          Make sure you're signed into the App Store app (Settings > Apple
+          Account), then re-run this playbook to install Mac App Store apps.
