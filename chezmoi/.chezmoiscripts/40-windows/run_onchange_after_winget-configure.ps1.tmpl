@@ -329,7 +329,6 @@ $AtomicWingetConfigureKey = 'HKCU:\Software\AtomicWingetConfigure'
 $ExtendedFeaturesValueName = 'ExtendedFeaturesEnabled'
 $ExtendedFeaturesEnabled = (Get-ItemProperty -Path $AtomicWingetConfigureKey -Name $ExtendedFeaturesValueName -ErrorAction SilentlyContinue).$ExtendedFeaturesValueName -eq 1
 if ($ExtendedFeaturesEnabled) {
-  Write-Host "`nwinget configure extended features are already enabled." -ForegroundColor DarkGray
   Write-Log "=== winget configure extended features already enabled ==="
 }
 else {
