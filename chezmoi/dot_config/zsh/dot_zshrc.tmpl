@@ -60,8 +60,7 @@ eval "$(sheldon --profile default source)"
 source <(fzf --zsh)
 
 {{ if eq .chezmoi.os "darwin" -}}
-# Surface any pending package updates the mpm-plan LaunchAgent found (it only
-# checks and caches a plan -- applying is always a manual, explicit step)
+# Surface how many updates the mpm-plan LaunchAgent found (it only checks; installing is manual)
 () {
   local error_file="$HOME/.cache/mpm/plan.error"
   if [[ -r "$error_file" ]]; then
@@ -71,56 +70,11 @@ source <(fzf --zsh)
 
   local plan_file="$HOME/.cache/mpm/plan.json"
   [[ -r "$plan_file" ]] || return
-
-  # One "M" row per manager with updates, each followed by a "P" row per package
-  local plan_rows
-  plan_rows=$(jq -r '
-    to_entries
-    | map(select((.value.packages | length) > 0))
-    | sort_by(-(.value.packages | length))
-    | .[]
-    | "M\t\(.key)\t\(.value.name)\t\(.value.packages | length)",
-      (.value.packages | sort_by(.id)[]
-        | "P\t\(.id)\t\(.installed_version // "?")\t\(.latest_version // "?")")
-  ' "$plan_file" 2>/dev/null)
-  [[ -n "$plan_rows" ]] || return
-
-  local -a rows
-  rows=("${(@f)plan_rows}")
-
-  local -A icons=(
-    npm   ""
-    pip   ""
-    pipx  ""
-    uv    ""
-    uvx   ""
-    conda ""
-    cargo "󱘗"
-    mise  "󰭼"
-    mas   ""
-  )
-
-  # Pad package names and installed versions to line up the columns across all managers
-  local row id_width=0 installed_width=0
-  local -a fields
-  for row in $rows; do
-    fields=("${(@ps:\t:)row}")
-    [[ $fields[1] == P ]] || continue
-    (( ${#fields[2]} > id_width )) && id_width=${#fields[2]}
-    (( ${#fields[3]} > installed_width )) && installed_width=${#fields[3]}
-  done
-
-  print -P "%F{yellow}%B↑ Package updates available%b%f"
-  for row in $rows; do
-    # Escape % so package data can't inject prompt sequences into print -P
-    fields=("${(@ps:\t:)${row//\%/%%}}")
-    if [[ $fields[1] == M ]]; then
-      print -P "  %F{cyan}${icons[$fields[2]]:-󰏗}%f %F{white}${fields[3]}%f %F{bright-black}(${fields[4]})%f"
-    else
-      print -P "      ${(r:id_width:)fields[2]}  %F{bright-black}${(r:installed_width:)fields[3]} →%f %F{green}${fields[4]}%f"
-    fi
-  done
-  print -P "%F{bright-black}  Run 'mpm upgrade --all' to apply · last checked $(date -r "$plan_file" '+%a %H:%M')%f"
+  local total
+  total=$(jq '[.[].packages | length] | add // 0' "$plan_file" 2>/dev/null)
+  (( total > 0 )) || return
+  print -P "%F{yellow}%B↑ ${total} update(s) available%b%f %F{bright-black}· last checked $(date -r "$plan_file" '+%a %H:%M')%f"
+  print -P "%F{bright-black}  Run 'mpm outdated' to review them and 'mpm upgrade' to install them%f"
 }
 
 {{ end -}}
