@@ -3,7 +3,9 @@
 # .chezmoiignore.tmpl.
 mac_app_store_apps_personal:
   Kindle: 302584613
-  "Microsoft 365": 1450038993
+  "Microsoft Excel": 462058435
+  "Microsoft PowerPoint": 462062816
+  "Microsoft Word": 462054704
   Paprika: 1303222628
   "Poolsuite FM": 1514817810
   "Proton Pass for Safari": 6502835663
