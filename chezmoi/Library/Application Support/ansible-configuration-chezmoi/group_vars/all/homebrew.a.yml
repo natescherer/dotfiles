@@ -21,7 +21,6 @@ homebrew_formulas:
   - sheldon
   - starship
   - terminal-notifier
-  - topgrade
   - utiluti
   - yq
 
