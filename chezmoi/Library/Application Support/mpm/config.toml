@@ -1,9 +1,4 @@
 [mpm]
-exclude = [
-  # macOS ships its own Perl in /usr/bin, and every bundled module it can't
-  # upgrade shows as outdated (2,000+). No CPAN modules are managed here.
-  "cpan",
-  # macOS ships its own Ruby in /usr/bin, whose bundled gems are outdated but
-  # shouldn't be touched. No gems are managed here.
-  "gem",
-]
+# Only check and upgrade Homebrew formulae and casks
+brew = true
+cask = true
