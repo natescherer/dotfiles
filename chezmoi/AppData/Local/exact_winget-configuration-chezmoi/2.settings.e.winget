@@ -36,6 +36,20 @@ resources:
       valueData:
         ExpandString: "%LOCALAPPDATA%\\WindowsWorkstationDSC\\DefaultAppAssociations.xml"
       _exist: true
+  # Policy "Turn off display of recent search entries in the File Explorer search box"; it also stops
+  # Start menu search from showing Bing web results. A per-user policy key, which only accepts
+  # elevated writes.
+  - type: Microsoft.Windows/Registry
+    name: DisableBingSearchInStart
+    metadata:
+      winget:
+        securityContext: elevated
+    properties:
+      keyPath: HKEY_CURRENT_USER\SOFTWARE\Policies\Microsoft\Windows\Explorer
+      valueName: DisableSearchBoxSuggestions
+      valueData:
+        DWord: 1
+      _exist: true
   # Policy "Prevent the usage of OneDrive for file storage".
   - type: Microsoft.Windows/Registry
     name: DisableOneDrive

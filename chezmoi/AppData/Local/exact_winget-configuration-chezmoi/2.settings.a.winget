@@ -39,14 +39,6 @@ resources:
       valueData:
         DWord: 0
       _exist: true
-  - type: Microsoft.Windows/Registry
-    name: DisableBingSearchInStart
-    properties:
-      keyPath: HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Search
-      valueName: BingSearchEnabled
-      valueData:
-        DWord: 0
-      _exist: true
   # "Let Microsoft offer tips, ads, and recommendations tailored to your diagnostic data".
   - type: Microsoft.Windows/Registry
     name: DisableDiagnosticDataForTailoredExperiences
