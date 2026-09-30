@@ -89,15 +89,6 @@ resources:
       source: msstore
       installMode: silent
   - type: Microsoft.WinGet/Package
-    name: UniGetUI
-    metadata:
-      winget:
-        securityContext: elevated
-    properties:
-      id: Devolutions.UniGetUI
-      source: winget
-      installMode: silent
-  - type: Microsoft.WinGet/Package
     name: VLC
     metadata:
       winget:

@@ -44,7 +44,6 @@ Write-Host "`nSetting system tray pins..." -ForegroundColor Green
 $Targets = @(
   @{ Label = 'Proton Drive'; StartAppName = 'Proton Drive'; IconPathLike = '*\Proton\Drive\ProtonDrive.exe' }
   @{ Label = 'Creative Cloud'; StartAppName = 'Adobe Creative Cloud'; IconPathLike = '*\Adobe Creative Cloud\ACC\Creative Cloud.exe' }
-  @{ Label = 'UniGetUI'; StartAppName = 'UniGetUI'; IconPathLike = '*\UniGetUI\UniGetUI.exe' }
   @{ Label = 'ASUS DriverHub'; StartAppName = 'ASUS DriverHub'; IconPathLike = '*\AsusDriverHub\ASUS DriverHub.exe' }
   # Launching "PowerToys (Preview)" starts the main hub process; PowerToys itself spawns
   # PowerToys.Awake.exe (a separate process) since the Awake module ships enabled by default.

@@ -6,7 +6,7 @@
 # someone to remember to run `chezmoi apply`. A plain HKCU Run key entry, not a Scheduled Task --
 # nothing here needs elevation, complex triggers, or Task Scheduler's run-history UI, and a Run key
 # is the same mechanism this machine's own installed apps already use for "run something at login"
-# (see e.g. the ProtonDrive/UniGetUI/Docker Desktop entries already in this same registry key).
+# (see e.g. the ProtonDrive/Docker Desktop entries already in this same registry key).
 #
 # The Run key command invokes the three stable-path scripts directly (no chezmoi involved at all)
 # -- all three are self-contained specifically so this works: the future standalone
