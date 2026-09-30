@@ -8,7 +8,11 @@
     <array>
         <string>/bin/sh</string>
         <string>-c</string>
-        <string>mkdir -p "$HOME/.cache/mpm"
+        <string># launchd's default PATH hides every package manager outside /usr/bin
+export PATH="$HOME/.local/share/mise/shims:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/bin:/bin:/usr/sbin:/sbin"
+# terminal-notifier is only granted notification permission when launched through LaunchServices
+notify() { open -g -n /opt/homebrew/opt/terminal-notifier/terminal-notifier.app --args "$@" -group "local.mpm-plan"; }
+mkdir -p "$HOME/.cache/mpm"
 /opt/homebrew/bin/mpm --no-color --table-format json outdated &gt; "$HOME/.cache/mpm/plan.json" 2&gt; "$HOME/.cache/mpm/plan.log"
 status=$?
 if [ "$status" -eq 0 ]; then
@@ -16,11 +20,11 @@ if [ "$status" -eq 0 ]; then
   total=$(/opt/homebrew/bin/jq '[.[].packages | length] | add // 0' "$HOME/.cache/mpm/plan.json")
   if [ "$total" -gt 0 ]; then
     managers=$(/opt/homebrew/bin/jq '[.[] | select((.packages | length) &gt; 0)] | length' "$HOME/.cache/mpm/plan.json")
-    /opt/homebrew/bin/terminal-notifier -title "mpm-plan" -subtitle "Run 'mpm upgrade --all' to apply" -message "$total package update(s) across $managers manager(s)" -group "local.mpm-plan"
+    notify -title "mpm-plan" -subtitle "Run 'mpm upgrade --all' to apply" -message "$total package update(s) across $managers manager(s)"
   fi
 else
   printf 'mpm outdated failed (exit %s) at %s -- see ~/.cache/mpm/plan.log\n' "$status" "$(date)" &gt; "$HOME/.cache/mpm/plan.error"
-  /opt/homebrew/bin/terminal-notifier -title "mpm-plan" -message "Check failed (exit $status) -- see ~/.cache/mpm/plan.log" -group "local.mpm-plan"
+  notify -title "mpm-plan" -message "Check failed (exit $status) -- see ~/.cache/mpm/plan.log"
 fi</string>
     </array>
     <key>RunAtLoad</key>
