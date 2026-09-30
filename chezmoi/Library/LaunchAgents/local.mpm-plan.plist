@@ -13,16 +13,20 @@ export PATH="$HOME/.local/share/mise/shims:/opt/homebrew/bin:/opt/homebrew/sbin:
 # terminal-notifier is only granted notification permission when launched through LaunchServices
 notify() { open -g -n /opt/homebrew/opt/terminal-notifier/terminal-notifier.app --args "$@" -group "local.mpm-plan"; }
 mkdir -p "$HOME/.cache/mpm"
-/opt/homebrew/bin/mpm --no-color --table-format json outdated &gt; "$HOME/.cache/mpm/plan.json" 2&gt; "$HOME/.cache/mpm/plan.log"
+# mpm runs brew with auto-update off, so refresh Homebrew's metadata first or it reports stale versions
+/opt/homebrew/bin/brew update --quiet &gt; "$HOME/.cache/mpm/plan.log" 2&gt;&amp;1 &amp;&amp;
+  /opt/homebrew/bin/mpm --no-color --table-format json outdated &gt; "$HOME/.cache/mpm/plan.json.tmp" 2&gt;&gt; "$HOME/.cache/mpm/plan.log"
 status=$?
 if [ "$status" -eq 0 ]; then
+  mv "$HOME/.cache/mpm/plan.json.tmp" "$HOME/.cache/mpm/plan.json"
   rm -f "$HOME/.cache/mpm/plan.error"
   total=$(/opt/homebrew/bin/jq '[.[].packages | length] | add // 0' "$HOME/.cache/mpm/plan.json")
   if [ "$total" -gt 0 ]; then
     notify -title "Update(s) available" -message "mpm found $total update(s). Open a new shell for details."
   fi
 else
-  printf 'mpm outdated failed (exit %s) at %s -- see ~/.cache/mpm/plan.log\n' "$status" "$(date)" &gt; "$HOME/.cache/mpm/plan.error"
+  rm -f "$HOME/.cache/mpm/plan.json.tmp"
+  printf 'update check failed (exit %s) at %s -- see ~/.cache/mpm/plan.log\n' "$status" "$(date)" &gt; "$HOME/.cache/mpm/plan.error"
   notify -title "Couldn't check for updates" -message "mpm hit an error. Open a new shell for details."
 fi</string>
     </array>
