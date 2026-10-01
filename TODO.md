@@ -4,7 +4,6 @@
 
 - Test in a no-admin-rights scenario
 - Set Control Panel to Small Icons
-- Office should be gated behind isPersonal
 - Fix any hardcoded usernames (search for "nate")
 - Gate OneDrive disable behind isPersonal
 - Look into why BurntToast is in taskbarpins file
