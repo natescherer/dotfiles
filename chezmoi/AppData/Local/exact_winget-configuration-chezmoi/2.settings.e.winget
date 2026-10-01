@@ -7,6 +7,7 @@ metadata:
     processor:
       identifier: dscv3
 resources:
+  # Developer Mode: allows sideloading unsigned app packages and creating symlinks without elevation.
   # DeveloperMode writes HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock (machine-wide),
   # so only this property needs elevation -- the other WindowsSettings properties (in
   # 2.settings.a.winget) write to per-user HKCU keys instead and don't.
@@ -99,6 +100,8 @@ resources:
       valueData:
         DWord: 1
       _exist: true
+  # Turns off the prompts to set up backup. Microsoft documents this value for the Backup and Restore
+  # (Windows 7) feature, not the Windows 11 Windows Backup app.
   - type: Microsoft.Windows/Registry
     name: DisableWindowsBackupNotifications
     metadata:
@@ -110,6 +113,8 @@ resources:
       valueData:
         DWord: 1
       _exist: true
+  # Edge opens new tabs and windows to a blank page. Edge only honors this policy on devices that are
+  # domain joined, Entra joined, or MDM enrolled, and never for personal Microsoft account profiles.
   - type: Microsoft.Windows/Registry
     name: EdgeNewTab
     metadata:

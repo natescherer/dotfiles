@@ -27,6 +27,7 @@ resources:
         - -NoLogo
         - -Command
         - "Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope CurrentUser -Force"
+  # Module installs from PSGallery no longer prompt to confirm an untrusted repository.
   - type: Microsoft.PowerShell.PSResourceGet/Repository
     name: TrustPSGallery
     properties:

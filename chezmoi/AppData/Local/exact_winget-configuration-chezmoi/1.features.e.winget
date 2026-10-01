@@ -21,7 +21,7 @@ resources:
           state: Installed
         - featureName: SimpleTCP # Simple TCP/IP Services (echo, daytime, chargen, etc.)
           state: Installed
-        - featureName: TelnetClient
+        - featureName: TelnetClient # telnet.exe
           state: Installed
         - featureName: TFTP # TFTP client (tftp.exe)
           state: Installed

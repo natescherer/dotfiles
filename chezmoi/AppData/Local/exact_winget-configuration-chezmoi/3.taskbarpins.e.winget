@@ -15,6 +15,7 @@ resources:
       resources:
         - name: BurntToast
           version: "*"
+  # Enforces the taskbar pins from the layout file below; pins changed by hand don't persist.
   - type: Microsoft.Windows/Registry
     name: TaskbarLockedStartLayout
     metadata:

@@ -7,23 +7,29 @@ metadata:
     processor:
       identifier: dscv3
 resources:
+  # Stops PowerToys warning that its utilities can't interact with apps running as administrator.
   - type: Microsoft.PowerToys/AppSettings
     name: PowerToysDisableElevatedAppWarnings
     properties:
       settings:
         enable_warnings_elevated_apps: false
+  # Hides the search box/icon from the taskbar; search still opens from Start or Win+S.
   # RestartExplorer restarts explorer.exe so the change shows up immediately.
   - type: Microsoft.Windows.Developer/Taskbar
     name: Taskbar
     properties:
       SearchBoxMode: Hide
       RestartExplorer: True
+  # File Explorer shows extensions for known file types and items marked hidden (protected operating
+  # system files stay hidden).
   - type: Microsoft.Windows.Developer/WindowsExplorer
     name: WindowsExplorer
     properties:
       FileExtensions: Show
       HiddenFiles: Show
       RestartExplorer: True
+  # Dark mode for both apps and the Windows shell, and Start/taskbar icons aligned left instead of
+  # centered.
   - type: Microsoft.Windows.Settings/WindowsSettings
     name: WindowsSettings
     properties:
@@ -178,6 +184,7 @@ resources:
       valueData:
         DWord: 0
       _exist: true
+  # Start_IrisRecommendations: "Show recommendations for tips, shortcuts, new apps, and more" in Start.
   - type: Microsoft.Windows/Registry
     name: DisableRecommendationsInStartMenu
     properties:
@@ -221,6 +228,7 @@ resources:
       valueData:
         DWord: 1
       _exist: true
+  # Win+V shows a history of copied items instead of only the last one.
   - type: Microsoft.Windows/Registry
     name: EnableClipboardHistory
     properties:
@@ -229,6 +237,8 @@ resources:
       valueData:
         DWord: 1
       _exist: true
+  # "Display the full path in the title bar"; with tabbed File Explorer the path shows in the tab label
+  # and the taskbar/Alt+Tab window title.
   - type: Microsoft.Windows/Registry
     name: ExplorerFullPathInTitleBar
     properties:
@@ -237,6 +247,9 @@ resources:
       valueData:
         DWord: 1
       _exist: true
+  # Meant to turn on File Explorer's version control integration (Git branch and status for repo
+  # folders). The value is undocumented; the documented mechanism is adding repo folders in
+  # Settings > System > Advanced.
   - type: Microsoft.Windows/Registry
     name: GitCodeFolders
     properties:
@@ -255,7 +268,7 @@ resources:
       valueData:
         String: "504"
       _exist: true
-  # Adds "End task" to the taskbar right-click menu (Settings > System > For developers).
+  # Adds "End task" to the taskbar right-click menu (Settings > System > Advanced).
   - type: Microsoft.Windows/Registry
     name: TaskbarEndTask
     properties:
