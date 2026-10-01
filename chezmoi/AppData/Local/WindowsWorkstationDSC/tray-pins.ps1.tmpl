@@ -42,23 +42,29 @@ Write-Host "`nSetting system tray pins..." -ForegroundColor Green
 # process that indicates "no need to launch" genuinely differs from the icon's own owning process
 # (PowerToys' hub vs. its Awake child process, below).
 $Targets = @(
+  # {{ if .isPersonal }}
   @{ Label = 'Proton Drive'; StartAppName = 'Proton Drive'; IconPathLike = '*\Proton\Drive\ProtonDrive.exe' }
   @{ Label = 'Creative Cloud'; StartAppName = 'Adobe Creative Cloud'; IconPathLike = '*\Adobe Creative Cloud\ACC\Creative Cloud.exe' }
+  # {{ end }}
   @{ Label = 'ASUS DriverHub'; StartAppName = 'ASUS DriverHub'; IconPathLike = '*\AsusDriverHub\ASUS DriverHub.exe' }
   # Launching "PowerToys (Preview)" starts the main hub process; PowerToys itself spawns
   # PowerToys.Awake.exe (a separate process) since the Awake module ships enabled by default.
   @{ Label = 'PowerToys Awake'; StartAppName = 'PowerToys (Preview)'; IconPathLike = '*\PowerToys\PowerToys.Awake.exe'; RunningCheckPathLike = '*\PowerToys\PowerToys.exe' }
+  # {{ if .isPersonal }}
   @{ Label = 'Docker Desktop'; StartAppName = 'Docker Desktop'; IconPathLike = '*\Docker\Docker\frontend\Docker Desktop.exe' }
+  # {{ end }}
   # VMware's Start Menu tile ("VMware Workstation Pro") launches the full VM manager UI, not the
   # background helper that actually owns the tray icon -- vmware-tray.exe is a separate process
   # Windows launches directly at every login via its own HKLM Run key entry. RunKeyName below
   # reuses that same entry to launch it here instead of going through Get-StartApps/shell:AppsFolder
   # like every other target.
   @{ Label = 'VMware Workstation'; RunKeyName = 'vmware-tray.exe'; IconPathLike = '*\VMware\VMware Workstation\vmware-tray.exe' }
+  # {{ if .isPersonal }}
   # winget's Anthropic.Claude package installs an MSIX package under WindowsApps. IconPathLike
   # wildcards the version in the package folder name ("Claude_2.16120.0.0_x64__pzs8sxrjxfjjc"),
   # which changes on every app update.
   @{ Label = 'Claude'; StartAppName = 'Claude'; IconPathLike = '*\WindowsApps\Claude_*__pzs8sxrjxfjjc\app\claude.exe' }
+  # {{ end }}
 )
 
 # Finds the NotifyIconSettings subkey (if any) matching a predicate, returning its PSPath and

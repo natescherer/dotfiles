@@ -37,14 +37,20 @@ Write-Host "`nSetting taskbar pins..." -ForegroundColor Green
 $Pins = @(
   @{ Label = 'Explorer' }
   @{ Label = 'Windows Terminal'; AppIdLike = '*WindowsTerminal*'; Name = 'Terminal' }
+  # {{ if .isPersonal }}
   @{ Label = 'Discord'; Name = 'Discord' }
   @{ Label = 'Proton Mail'; Name = 'Proton Mail' }
+  # {{ end }}
   @{ Label = 'Firefox'; Name = 'Firefox' }
   @{ Label = 'Brave'; Name = 'Brave' }
+  # {{ if .isPersonal }}
   @{ Label = 'Obsidian'; Name = 'Obsidian' }
+  # {{ end }}
   @{ Label = 'VSCodium'; Name = 'VSCodium' }
   @{ Label = 'VSCode'; Name = 'Visual Studio Code' }
+  # {{ if .isPersonal }}
   @{ Label = 'YouTube'; Name = 'YouTube' }
+  # {{ end }}
 )
 
 # Get-StartApps' AppID comes in three different shapes, each needing its own XML element:

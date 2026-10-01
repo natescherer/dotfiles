@@ -5,7 +5,6 @@
 - Test in a no-admin-rights scenario
 - Set Control Panel to Small Icons
 - Fix any hardcoded usernames (search for "nate")
-- Properly gate taskbar and tray pins behind isPersonal
 
 ## macOS Ansible Configuration
 
