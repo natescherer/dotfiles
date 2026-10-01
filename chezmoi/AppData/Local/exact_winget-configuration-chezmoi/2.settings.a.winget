@@ -247,17 +247,6 @@ resources:
       valueData:
         DWord: 1
       _exist: true
-  # Meant to turn on File Explorer's version control integration (Git branch and status for repo
-  # folders). The value is undocumented; the documented mechanism is adding repo folders in
-  # Settings > System > Advanced.
-  - type: Microsoft.Windows/Registry
-    name: GitCodeFolders
-    properties:
-      keyPath: HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced
-      valueName: NavPaneShowVersionControl
-      valueData:
-        DWord: 1
-      _exist: true
   # Flags is a bitmask. 504 is the default (510) with the available and hotkey bits cleared, which
   # disables the "press Shift five times" prompt.
   - type: Microsoft.Windows/Registry
