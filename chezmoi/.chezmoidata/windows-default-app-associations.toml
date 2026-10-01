@@ -1,34 +1,22 @@
-# Per-machine default app associations to set on Windows -- both file-type extensions (.pdf) and
-# URL protocols (http, https, the default-browser mechanism) are handled identically here, since
-# Windows' own DefaultAssociationsConfiguration mechanism (see below) treats them the same way.
+# Default app associations to enforce on Windows: file-type extensions (.pdf) and URL protocols
+# (http, https) alike.
 #
-# Applied via HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\System\DefaultAssociationsConfiguration
-# (the "Set a default associations configuration file" policy -- also exposed as the
-# ApplicationDefaults/DefaultAssociationsConfiguration MDM CSP) rather than by directly writing the
-# per-user UserChoice registry key: Windows 11 now actively defends UserChoice against exactly that
-# kind of direct/hash-bypass write --
-#   - UCPD.sys (the User Choice Protection Driver, shipped since the February 2024 cumulative
-#     update) blocks third-party processes from writing UserChoice at all, at least for http,
-#     https, .pdf, and a few other extensions -- precisely the ones anyone would actually want to
-#     automate.
-#   - UserChoiceLatest (an A/B-tested rollout as of ~April 2025) replaces the classic UserChoice
-#     key/hash format with a new one that includes a machine ID; once a machine has migrated to it,
-#     Windows stops reading the old UserChoice key entirely, so even a correctly-computed legacy
-#     hash gets silently ignored.
-# DefaultAssociationsConfiguration is Microsoft's own first-party mechanism for the same goal, so
-# it isn't subject to either defense. The tradeoff: it's a machine-wide (HKLM) policy applied at
-# each user's sign-in, not an instant same-session change -- see
-# .chezmoiscripts/41-windows/run_after_windows-default-app-associations.ps1.tmpl and
-# AppData/Local/winget-configuration-chezmoi/2.settings.e.winget (DefaultAssociationsConfigurationFile
-# resource) for how the two halves (unelevated XML content vs. elevated registry pointer) fit
-# together.
+# Windows 11 offers no supported way to set these unattended on a device that isn't domain joined:
+#   - UCPD.sys (the User Choice Protection Driver) blocks third-party processes from writing the
+#     UserChoice registry key for http, https, .pdf, and other commonly targeted types.
+#   - UserChoiceLatest replaces the UserChoice key and hash format with one that includes a machine
+#     ID, so a correctly computed legacy hash is ignored on machines that have migrated to it.
+#   - The "Set a default associations configuration file" policy (DefaultAssociationsConfiguration)
+#     is only processed on domain-joined devices.
+# So the Windows default app associations script checks each entry against the default Windows
+# actually resolves, and for any mismatch opens that app's page in Settings > Apps > Default apps
+# for a one-click fix.
 #
-# Each entry's app is resolved to a ProgId at apply time via the app's own
-# RegisteredApplications\...\Capabilities\FileAssociations or \URLAssociations registry entry (not
-# hardcoded here, since a ProgId can drift between app versions) -- appNameMatch is matched
-# (-match, so it's a regex) against RegisteredApplications entry names and must match exactly one
-# installed app. An entry that matches nothing (app not installed yet, or not yet registered) is
-# skipped with a warning rather than failing, and picks itself up on a later apply.
+# Each entry's app is matched (-match, so it's a regex) against RegisteredApplications entry names,
+# per-machine first and then per-user, and must match exactly one installed app. Its desired ProgId
+# comes from that app's Capabilities\FileAssociations or \URLAssociations registration rather than
+# being hardcoded here, since a ProgId can drift between app versions. An entry whose app isn't
+# installed or registered yet is skipped with a warning and picks itself up on a later apply.
 [[windows_default_app_associations]]
 identifier = ".pdf"
 # Acrobat comes from a Creative Cloud sign-in, not winget, so it may not be installed yet.
@@ -45,9 +33,3 @@ appNameMatch = "BrowserPicker"
 [[windows_default_app_associations]]
 identifier = "https"
 appNameMatch = "BrowserPicker"
-
-[[windows_default_app_associations]]
-identifier = ".ics"
-# Proton Mail's Windows build (a Squirrel installer) doesn't declare any file associations in its
-# own packaging config as of writing, so it may not register a FileAssociations entry for .ics yet.
-appNameMatch = "Proton Mail"

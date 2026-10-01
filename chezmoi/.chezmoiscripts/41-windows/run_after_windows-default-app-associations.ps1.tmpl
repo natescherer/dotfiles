@@ -1,25 +1,15 @@
 #Requires -Version 7.0
 
-# Sets machine-wide default file-type and URL-protocol associations declared in
-# .chezmoidata/windows-default-app-associations.toml, via Windows' own
-# DefaultAssociationsConfiguration mechanism rather than a direct UserChoice registry write -- see
-# that data file's header comment for why (UCPD.sys and UserChoiceLatest both defeat direct writes
-# on modern Windows 11).
+# Checks the default app associations declared in .chezmoidata/windows-default-app-associations.toml
+# against the defaults Windows actually resolves, and opens Settings > Apps > Default apps on each
+# mismatched app's own page so it can be fixed in a couple of clicks. Windows 11 blocks setting
+# these unattended on devices that aren't domain joined -- see that data file's header comment.
 #
-# This script only writes the XML content DefaultAssociationsConfiguration points at -- the
-# machine-wide HKLM policy pointer itself is set once, elevated, by winget configuration's
-# DefaultAssociationsConfigurationFile resource (AppData/Local/winget-configuration-chezmoi/
-# 2.settings.e.winget), since HKLM:\SOFTWARE\Policies\* is locked down against unelevated writes.
-# Writing the XML content here is unprivileged.
+# Plain run_after_ (not run_once_/run_onchange_) so it re-checks every apply: an app update or
+# Windows itself can reset a default at any time. Matching defaults make it a silent no-op.
 #
-# Plain run_after_ (not run_once_/run_onchange_) so it self-heals every apply -- if an app update
-# or reinstall resets a ProgId, or a new entry gets added to the data file, this notices and
-# re-applies it -- but the current-vs-desired content check below makes that a cheap no-op on the
-# common case where nothing has changed.
-#
-# Depends on run_onchange_after_winget-configure.ps1.tmpl (installs the apps referenced below, and
-# sets the DefaultAssociationsConfigurationFile registry pointer) in 40-windows/ -- sorts before
-# this script and so already ran earlier in this same `chezmoi apply`.
+# Runs after the winget configure script (40-windows/ sorts before this 41-windows/ script), which
+# installs the apps referenced below.
 
 # .chezmoidata files can't be templated -- data has to be loaded before the template engine has
 # anything to execute templates with (see https://github.com/twpayne/chezmoi/issues/3526, still
@@ -33,79 +23,87 @@ $AssociationsJson = @'
 {{ get . "windows_default_app_associations" | default (list) | toJson }}
 '@
 $Associations = $AssociationsJson | ConvertFrom-Json
+if (-not $Associations) { exit 0 }
 
-$XmlPath = Join-Path $env:LOCALAPPDATA 'WindowsWorkstationDSC\DefaultAppAssociations.xml'
+# AssocQueryString returns the ProgId Windows itself resolves for a type, whichever storage format
+# (UserChoice or UserChoiceLatest) backs it, so this needn't parse either one.
+Add-Type -Namespace ChezmoiAssoc -Name Native -MemberDefinition @'
+[DllImport("shlwapi.dll", CharSet = CharSet.Unicode)]
+public static extern int AssocQueryString(int flags, int str, string assoc, string extra, System.Text.StringBuilder outBuf, ref int outLen);
+'@
 
-if (-not $Associations) {
-  if (Test-Path $XmlPath) { Remove-Item -Path $XmlPath -Force }
-  exit 0
+function Get-CurrentProgId {
+  param([string] $Identifier)
+  $ASSOCF_IS_PROTOCOL = 0x1000
+  $ASSOCSTR_PROGID = 20
+  $Flags = if ($Identifier.StartsWith('.')) { 0 } else { $ASSOCF_IS_PROTOCOL }
+  $Length = 512
+  $Buffer = [System.Text.StringBuilder]::new($Length)
+  if ([ChezmoiAssoc.Native]::AssocQueryString($Flags, $ASSOCSTR_PROGID, $Identifier, $null, $Buffer, [ref]$Length) -ne 0) {
+    return $null
+  }
+  return $Buffer.ToString()
 }
 
 # An app's installer registers a Capabilities\FileAssociations (extensions) or \URLAssociations
 # (protocols) key under RegisteredApplications listing the ProgId it wants for each identifier it
-# can handle -- resolving it this way avoids hardcoding a ProgId string that could drift between
-# app versions/updates. Extensions are distinguished from protocols by the leading "." (the same
-# convention the Association XML schema and DISM's own export-defaultappassociations output use).
-function Get-AppProgId {
-  param([string]$Identifier, [string]$AppNameMatch)
-  $CapabilitiesKey = if ($Identifier.StartsWith('.')) { 'FileAssociations' } else { 'URLAssociations' }
-  $RegisteredApps = Get-ItemProperty -Path 'HKLM:\SOFTWARE\RegisteredApplications' -ErrorAction SilentlyContinue
-  if (-not $RegisteredApps) { return $null }
-  $Entry = $RegisteredApps.PSObject.Properties | Where-Object { $_.Name -match $AppNameMatch } | Select-Object -First 1
-  if (-not $Entry) { return $null }
-  $CapabilitiesPath = "HKLM:\$($Entry.Value.TrimStart('\'))\$CapabilitiesKey"
-  return (Get-ItemProperty -Path $CapabilitiesPath -Name $Identifier -ErrorAction SilentlyContinue).$Identifier
+# can handle. Per-machine installs register under HKLM, per-user installs under HKCU; Scope says
+# which, since the Settings deep link below needs to know.
+function Find-RegisteredApp {
+  param([string] $AppNameMatch)
+  foreach ($Scope in 'Machine', 'User') {
+    $Hive = if ($Scope -eq 'Machine') { 'HKLM:' } else { 'HKCU:' }
+    $RegisteredApps = Get-ItemProperty -Path "$Hive\SOFTWARE\RegisteredApplications" -ErrorAction SilentlyContinue
+    if (-not $RegisteredApps) { continue }
+    $Entries = @($RegisteredApps.PSObject.Properties | Where-Object { $_.Name -notlike 'PS*' -and $_.Name -match $AppNameMatch })
+    if ($Entries.Count -gt 1) {
+      Write-Host "Warning: `"$AppNameMatch`" matches more than one registered app ($($Entries.Name -join ', ')) -- make it more specific." -ForegroundColor Yellow
+      return $null
+    }
+    if ($Entries.Count -eq 1) {
+      return [pscustomobject]@{
+        Name             = $Entries[0].Name
+        Scope            = $Scope
+        CapabilitiesPath = "$Hive\$($Entries[0].Value.TrimStart('\'))"
+      }
+    }
+  }
+  return $null
 }
 
-$Xml = New-Object System.Xml.XmlDocument
-$Xml.AppendChild($Xml.CreateXmlDeclaration('1.0', 'UTF-8', $null)) | Out-Null
-$Root = $Xml.CreateElement('DefaultAssociations')
-$Xml.AppendChild($Root) | Out-Null
-
+# Mismatches grouped by app, so each app's Settings page opens once however many of its types are off.
+$Mismatches = [ordered]@{}
 foreach ($Association in $Associations) {
   $Identifier = $Association.identifier
-  $AppNameMatch = $Association.appNameMatch
-
-  $ProgId = Get-AppProgId -Identifier $Identifier -AppNameMatch $AppNameMatch
-  if (-not $ProgId) {
-    Write-Host "Warning: could not resolve a registered ProgId for $Identifier matching app `"$AppNameMatch`" -- skipping. Set it manually via Settings > Apps > Default Apps." -ForegroundColor Yellow
+  $App = Find-RegisteredApp -AppNameMatch $Association.appNameMatch
+  if (-not $App) {
+    Write-Host "Warning: no registered app matches `"$($Association.appNameMatch)`" for $Identifier -- skipping (not installed yet?)." -ForegroundColor Yellow
     continue
   }
 
-  $Element = $Xml.CreateElement('Association')
-  $Element.SetAttribute('Identifier', $Identifier)
-  $Element.SetAttribute('ProgId', $ProgId)
-  $Element.SetAttribute('ApplicationName', $AppNameMatch)
-  $Root.AppendChild($Element) | Out-Null
+  $CapabilitiesKey = if ($Identifier.StartsWith('.')) { 'FileAssociations' } else { 'URLAssociations' }
+  $DesiredProgId = (Get-ItemProperty -Path "$($App.CapabilitiesPath)\$CapabilitiesKey" -Name $Identifier -ErrorAction SilentlyContinue).$Identifier
+  if (-not $DesiredProgId) {
+    Write-Host "Warning: $($App.Name) doesn't register itself as a handler for $Identifier -- skipping." -ForegroundColor Yellow
+    continue
+  }
+
+  if ((Get-CurrentProgId -Identifier $Identifier) -ne $DesiredProgId) {
+    if (-not $Mismatches.Contains($App.Name)) {
+      $Mismatches[$App.Name] = [pscustomobject]@{ App = $App; Identifiers = [System.Collections.Generic.List[string]]::new() }
+    }
+    $Mismatches[$App.Name].Identifiers.Add($Identifier)
+  }
 }
 
-if ($Root.ChildNodes.Count -eq 0) {
-  if (Test-Path $XmlPath) { Remove-Item -Path $XmlPath -Force }
-  exit 0
+if ($Mismatches.Count -eq 0) { exit 0 }
+
+Write-Host "`nSome Windows default apps don't match the configuration:" -ForegroundColor Yellow
+foreach ($Mismatch in $Mismatches.Values) {
+  $App = $Mismatch.App
+  Write-Host "  $($App.Name): $($Mismatch.Identifiers -join ', ')" -ForegroundColor Yellow
+  # Opens Settings > Apps > Default apps directly on this app's page (Windows 11 23H2 and later).
+  $Parameter = if ($App.Scope -eq 'Machine') { 'registeredAppMachine' } else { 'registeredAppUser' }
+  Start-Process "ms-settings:defaultapps?$Parameter=$([Uri]::EscapeDataString($App.Name))"
 }
-
-$StringWriter = New-Object System.IO.StringWriter
-$XmlWriter = New-Object System.Xml.XmlTextWriter($StringWriter)
-$XmlWriter.Formatting = [System.Xml.Formatting]::Indented
-$Xml.WriteTo($XmlWriter)
-$NewContent = $StringWriter.ToString()
-
-$CurrentContent = if (Test-Path $XmlPath) { Get-Content -Path $XmlPath -Raw } else { $null }
-if ($CurrentContent -eq $NewContent) {
-  # Silent: nothing changed, no missing app, no error -- the common case on every apply.
-  exit 0
-}
-
-Write-Host "`nSetting Windows default app associations..." -ForegroundColor Green
-New-Item -ItemType Directory -Path (Split-Path $XmlPath) -Force | Out-Null
-Set-Content -Path $XmlPath -Value $NewContent -NoNewline
-
-# DefaultAssociationsConfiguration is documented by Microsoft as applying at sign-in -- unlike
-# taskbar pins (a different policy/subsystem, which applies instantly on recent builds), there's
-# no known way to force this one to take effect within the current session.
-# gpupdate /force at least ensures the Group Policy engine has the current pointer/content cached
-# ahead of the next sign-in, rather than waiting out its own background refresh interval too.
-Write-Host "Refreshing Group Policy (association will take effect at next sign-in)..." -ForegroundColor Cyan
-gpupdate /target:computer /force | Out-Null
-
-Write-Host "Default app associations set ($($Root.ChildNodes.Count)/$($Associations.Count) resolved)." -ForegroundColor Green
+Write-Host "Opened Default apps in Settings for each one -- set the types listed above there." -ForegroundColor Yellow
