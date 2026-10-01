@@ -1,4 +1,4 @@
-# Posts a Windows toast notification via the BurntToast module (installed by pins-autostart.ps1).
+# Posts a Windows toast notification via the BurntToast module (installed by winget configuration).
 #
 # Native WinRT toast APIs aren't usable from pwsh's .NET runtime; BurntToast works around this by
 # bundling pre-compiled CsWinRT assemblies instead of relying on runtime type-loading.

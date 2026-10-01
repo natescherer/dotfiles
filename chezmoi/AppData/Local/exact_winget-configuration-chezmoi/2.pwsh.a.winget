@@ -41,3 +41,11 @@ resources:
         - name: PSFzf
           # renovate: datasource=github-releases depName=kelleyma49/PSFzf
           version: "2.5.14"
+  # Used by WindowsWorkstationDSC/Send-Toast.ps1
+  - type: Microsoft.PowerShell.PSResourceGet/PSResourceList
+    name: BurntToast
+    properties:
+      repositoryName: PSGallery
+      resources:
+        - name: BurntToast
+          version: "*"

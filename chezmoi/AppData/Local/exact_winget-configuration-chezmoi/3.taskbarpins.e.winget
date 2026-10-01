@@ -7,14 +7,6 @@ metadata:
     processor:
       identifier: dscv3
 resources:
-  # Used by WindowsWorkstationDSC/Send-Toast.ps1
-  - type: Microsoft.PowerShell.PSResourceGet/PSResourceList
-    name: BurntToast
-    properties:
-      repositoryName: PSGallery
-      resources:
-        - name: BurntToast
-          version: "*"
   # Enforces the taskbar pins from the layout file below; pins changed by hand don't persist.
   - type: Microsoft.Windows/Registry
     name: TaskbarLockedStartLayout
