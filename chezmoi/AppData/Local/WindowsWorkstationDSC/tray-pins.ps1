@@ -55,10 +55,10 @@ $Targets = @(
   # reuses that same entry to launch it here instead of going through Get-StartApps/shell:AppsFolder
   # like every other target.
   @{ Label = 'VMware Workstation'; RunKeyName = 'vmware-tray.exe'; IconPathLike = '*\VMware\VMware Workstation\vmware-tray.exe' }
-  # winget's Anthropic.Claude package is a per-user Squirrel-style installer (same pattern as
-  # Discord/Slack), not a Store/MSIX package. IconPathLike has a wildcard version segment
-  # ("app-1.24012.9") since that folder name changes on every app update.
-  @{ Label = 'Claude'; StartAppName = 'Claude'; IconPathLike = '*\AnthropicClaude\app-*\claude.exe' }
+  # winget's Anthropic.Claude package installs an MSIX package under WindowsApps. IconPathLike
+  # wildcards the version in the package folder name ("Claude_2.16120.0.0_x64__pzs8sxrjxfjjc"),
+  # which changes on every app update.
+  @{ Label = 'Claude'; StartAppName = 'Claude'; IconPathLike = '*\WindowsApps\Claude_*__pzs8sxrjxfjjc\app\claude.exe' }
 )
 
 # Finds the NotifyIconSettings subkey (if any) matching a predicate, returning its PSPath and
