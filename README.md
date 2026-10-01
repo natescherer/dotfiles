@@ -152,7 +152,7 @@ Currently managed:
 - [Windows](https://windows.com) 🪟
   - Config Files
     - [chezmoi/dot_wslconfig](chezmoi/dot_wslconfig)
-    - [chezmoi/AppData/Local/winget-configuration-chezmoi](chezmoi/AppData/Local/winget-configuration-chezmoi)
+    - [chezmoi/AppData/Local/exact_winget-configuration-chezmoi](chezmoi/AppData/Local/exact_winget-configuration-chezmoi)
       - Files under this folder are part of a Winget Configuration used to declaratively configure Windows workstatesion <!-- rumdl-disable-line MD013 -->
 - [Windows Terminal](https://apps.microsoft.com/detail/9n0dx20hk701) 🪟
   - Config Files

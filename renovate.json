@@ -33,7 +33,7 @@
       "customType": "regex",
       "description": "Values annotated with a preceding '# renovate: ...' comment giving datasource+depName(+registryUrl), tracking the 'key: \"value\"' line right after it",
       "managerFilePatterns": [
-        "chezmoi/AppData/Local/winget-configuration-chezmoi/2.pwsh.a.winget"
+        "chezmoi/AppData/Local/exact_winget-configuration-chezmoi/2.pwsh.a.winget"
       ],
       "matchStrings": [
         "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)( registryUrl=(?<registryUrl>\\S+))?\\s*\\n\\s*version: \"(?<currentValue>[^\"]+)\""

@@ -7,8 +7,9 @@
 # file is reported at the end, or stops the run on the spot when $AtomicReboots is set.
 
 # {{ $wingetConfigDirName := "winget-configuration-chezmoi" }}
-# {{ $wingetConfigSourceDir := joinPath .chezmoi.sourceDir "AppData/Local" $wingetConfigDirName }}
+# {{ $wingetConfigSourceDir := joinPath .chezmoi.sourceDir "AppData/Local" (print "exact_" $wingetConfigDirName) }}
 # {{ $wingetConfigFiles := concat (joinPath $wingetConfigSourceDir "*.winget" | glob) (joinPath $wingetConfigSourceDir "*.winget.tmpl" | glob) | sortAlpha }}
+# {{ if not $wingetConfigFiles }}{{ fail (print "no *.winget files found in " $wingetConfigSourceDir) }}{{ end }}
 
 # {{/* Hashes below make this run_onchange_ script rerun when any *.winget[.tmpl] file
 #      changes. Squeezed onto one line so "#" it all out to avoid pwsh parser errors */}}
