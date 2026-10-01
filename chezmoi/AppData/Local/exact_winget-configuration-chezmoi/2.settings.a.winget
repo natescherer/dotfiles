@@ -36,6 +36,24 @@ resources:
       AppColorMode: Dark
       SystemColorMode: Dark
       TaskbarAlignment: Left
+  # Control Panel opens in the all-items view (StartupPage 1, not Category) with small icons
+  # (AllItemsIconView 1; 0 is large icons).
+  - type: Microsoft.Windows/Registry
+    name: ControlPanelSmallIconsAllItemsIconView
+    properties:
+      keyPath: HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\ControlPanel
+      valueName: AllItemsIconView
+      valueData:
+        DWord: 1
+      _exist: true
+  - type: Microsoft.Windows/Registry
+    name: ControlPanelSmallIconsStartupPage
+    properties:
+      keyPath: HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\ControlPanel
+      valueName: StartupPage
+      valueData:
+        DWord: 1
+      _exist: true
   # Start_TrackProgs: "Let Windows improve Start and search results by tracking app launches".
   - type: Microsoft.Windows/Registry
     name: DisableAppLaunchTracking

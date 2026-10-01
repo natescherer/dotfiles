@@ -3,7 +3,6 @@
 ## Winget Configuration
 
 - Test in a no-admin-rights scenario
-- Set Control Panel to Small Icons
 - Fix any hardcoded usernames (search for "nate")
 
 ## macOS Ansible Configuration
