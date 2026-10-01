@@ -77,12 +77,18 @@ Currently managed:
 - [mise](https://mise.jdx.dev) 🐧 🍎 🪟
   - Config Files
     - [chezmoi/dot_config/mise/config.toml](chezmoi/dot_config/mise/config.toml)
-- [mpm](https://github.com/kdeldycke/meta-package-manager) 🍎
+- [mpm](https://github.com/kdeldycke/meta-package-manager) 🍎 🪟
   - Notes
-    - Upgrade CLI that wraps many package managers, limited by its config to Homebrew formulae and casks. A LaunchAgent runs `brew update` and `mpm outdated` every 12h (no privilege escalation; it refreshes Homebrew's metadata, which mpm otherwise never does, but never installs anything) to cache a preview of pending updates, posts a notification, and zsh shows the number of pending updates (or a check-failed warning) at startup. Run `mpm outdated` to review them and `mpm upgrade` to install them.
+    - Upgrade CLI that wraps many package managers, limited by its config to Homebrew formulae and casks on macOS and to winget on Windows. A LaunchAgent runs `brew update` and `mpm outdated` every 12h (no privilege escalation; it refreshes Homebrew's metadata, which mpm otherwise never does, but never installs anything) to cache a preview of pending updates, posts a notification, and zsh shows the number of pending updates (or a check-failed warning) at startup. Run `mpm outdated` to review them and `mpm upgrade` to install them.
     - LaunchAgents are (re)loaded by [chezmoi/.chezmoiscripts/30-macos/run_onchange_after_launchagents-loader.sh.tmpl](chezmoi/.chezmoiscripts/30-macos/run_onchange_after_launchagents-loader.sh.tmpl) whenever their content changes, since launchd otherwise only picks them up at login.
     - Also posts a [terminal-notifier](https://github.com/julienXX/terminal-notifier) notification on every run that finds pending updates or fails, so it's not tied to opening a terminal. Notification permissions are pre-granted via a configuration profile, since macOS has no supported way to grant them silently. Installed via script [chezmoi/.chezmoiscripts/30-macos/run_onchange_profiles-importer.sh.tmpl](chezmoi/.chezmoiscripts/30-macos/run_onchange_profiles-importer.sh.tmpl)
+    - On Windows, mpm isn't in the winget catalog, so its standalone release binary is downloaded to `~/bin`. A Scheduled Task registered by the Winget Configuration runs the same check at logon and every 12h, posts a BurntToast notification, and the PowerShell profile shows the same startup notice.
   - Config Files
+    - [chezmoi/.chezmoiexternal.toml.tmpl](chezmoi/.chezmoiexternal.toml.tmpl)
+    - [chezmoi/AppData/Local/exact_winget-configuration-chezmoi/3.mpm.a.winget](chezmoi/AppData/Local/exact_winget-configuration-chezmoi/3.mpm.a.winget)
+    - [chezmoi/AppData/Local/WindowsWorkstationDSC/mpm-plan.ps1](chezmoi/AppData/Local/WindowsWorkstationDSC/mpm-plan.ps1)
+    - [chezmoi/AppData/Roaming/mpm/config.toml](chezmoi/AppData/Roaming/mpm/config.toml)
+    - [chezmoi/Documents/PowerShell/profile.ps1.tmpl](chezmoi/Documents/PowerShell/profile.ps1.tmpl)
     - [chezmoi/Library/Application Support/ansible-configuration-chezmoi/group_vars/all/homebrew.a.yml](<chezmoi/Library/Application Support/ansible-configuration-chezmoi/group_vars/all/homebrew.a.yml>)
     - [chezmoi/Library/Application Support/mpm/config.toml](<chezmoi/Library/Application Support/mpm/config.toml>)
     - [chezmoi/Library/LaunchAgents/local.mpm-plan.plist](chezmoi/Library/LaunchAgents/local.mpm-plan.plist)

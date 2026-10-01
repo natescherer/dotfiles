@@ -42,3 +42,26 @@ if (Get-Module -ListAvailable -Name PSFzf) {
   Set-PsFzfOption -PSReadlineChordProvider 'Ctrl+t' -PSReadlineChordReverseHistory 'Ctrl+r'
   Set-PsFzfOption -TabExpansion
 }
+{{- if eq .chezmoi.os "windows" }}
+
+# Surface how many updates the mpm-plan Scheduled Task found (it only checks; installing is manual)
+& {
+  $CacheDir = Join-Path $env:LOCALAPPDATA 'mpm-plan'
+  $ErrorFile = Join-Path $CacheDir 'plan.error'
+  if (Test-Path $ErrorFile) {
+    Write-Host "$($PSStyle.Foreground.Red)$($PSStyle.Bold)⚠ mpm-plan check failed$($PSStyle.Reset) $($PSStyle.Foreground.BrightBlack)($((Get-Content $ErrorFile -Raw).Trim()))$($PSStyle.Reset)"
+    return
+  }
+
+  $PlanFile = Join-Path $CacheDir 'plan.json'
+  if (-not (Test-Path $PlanFile)) { return }
+  $Total = try {
+    (Get-Content $PlanFile -Raw | ConvertFrom-Json).PSObject.Properties.Value |
+      ForEach-Object { @($_.packages).Count } | Measure-Object -Sum | Select-Object -ExpandProperty Sum
+  } catch { 0 }
+  if ($Total -le 0) { return }
+  $LastChecked = (Get-Item $PlanFile).LastWriteTime.ToString('ddd HH:mm')
+  Write-Host "$($PSStyle.Foreground.Yellow)$($PSStyle.Bold)↑ $Total update(s) available$($PSStyle.Reset) $($PSStyle.Foreground.BrightBlack)· last checked $LastChecked$($PSStyle.Reset)"
+  Write-Host "$($PSStyle.Foreground.BrightBlack)  Run 'mpm outdated' to review them and 'mpm upgrade' to install them$($PSStyle.Reset)"
+}
+{{- end }}

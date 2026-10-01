@@ -11,6 +11,8 @@
 {{- $cascadiaVersion := "2407.24" }}
 {{- /* renovate: datasource=github-releases depName=RedHatOfficial/Overpass */ -}}
 {{- $overpassVersion := "3.0.5" }}
+{{- /* renovate: datasource=github-releases depName=kdeldycke/meta-package-manager */ -}}
+{{- $mpmVersion := "8.0.2" }}
 {{- if ne .chezmoi.os "darwin" }}
 {{- /* Both of these fonts are Homebrew-installable */ -}}
 ["{{ $fontDir }}/CascadiaMonoNF-Regular.otf"]
@@ -21,4 +23,11 @@
     type = "archive-file"
     url = "https://github.com/RedHatOfficial/Overpass/releases/download/v{{ $overpassVersion }}/overpass-{{ $overpassVersion }}.zip"
     path = "Overpass-{{ $overpassVersion }}/desktop-fonts/overpass/overpass-regular.otf"
+{{- end }}
+{{- if eq .chezmoi.os "windows" }}
+{{- /* Not in the winget catalog; macOS gets it from Homebrew instead */}}
+["bin/mpm.exe"]
+    type = "file"
+    executable = true
+    url = "https://github.com/kdeldycke/meta-package-manager/releases/download/v{{ $mpmVersion }}/meta-package-manager-{{ $mpmVersion }}-windows-{{ if eq .chezmoi.arch "arm64" }}arm64{{ else }}x64{{ end }}.exe"
 {{- end }}
