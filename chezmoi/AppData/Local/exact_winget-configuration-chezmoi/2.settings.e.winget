@@ -100,19 +100,46 @@ resources:
       valueData:
         DWord: 1
       _exist: true
-  # Edge opens new tabs and windows to a blank page. Edge only honors this policy on devices that are
-  # domain joined, Entra joined, or MDM enrolled, and never for personal Microsoft account profiles.
+  # The Edge new tab page policies below work on unmanaged devices (unlike NewTabPageLocation, which
+  # needs a domain-joined, Entra-joined, or MDM-enrolled device). The two commented-out ones strip the
+  # page further, down to roughly a search box.
+  #
+  # No background image (3 = disable all types, including Bing's image of the day).
+  # - type: Microsoft.Windows/Registry
+  #   name: EdgeNewTabBackground
+  #   metadata:
+  #     winget:
+  #       securityContext: elevated
+  #   properties:
+  #     keyPath: HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Edge
+  #     valueName: NewTabPageAllowedBackgroundTypes
+  #     valueData:
+  #       DWord: 3
+  #     _exist: true
+  # Removes the Microsoft news feed and locks the page layout to Custom with content off.
   - type: Microsoft.Windows/Registry
-    name: EdgeNewTab
+    name: EdgeNewTabContent
     metadata:
       winget:
         securityContext: elevated
     properties:
       keyPath: HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Edge
-      valueName: NewTabPageLocation
+      valueName: NewTabPageContentEnabled
       valueData:
-        String: about:blank
+        DWord: 0
       _exist: true
+  # Hides the quick links tiles.
+  # - type: Microsoft.Windows/Registry
+  #   name: EdgeNewTabQuickLinks
+  #   metadata:
+  #     winget:
+  #       securityContext: elevated
+  #   properties:
+  #     keyPath: HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Edge
+  #     valueName: NewTabPageQuickLinksEnabled
+  #     valueData:
+  #       DWord: 0
+  #     _exist: true
   # HideFirstRunExperience skips Edge's first-run (out-of-box) setup screens.
   - type: Microsoft.Windows/Registry
     name: EdgeOOBE
