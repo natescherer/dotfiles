@@ -46,7 +46,9 @@ $Targets = @(
   @{ Label = 'Proton Drive'; StartAppName = 'Proton Drive'; IconPathLike = '*\Proton\Drive\ProtonDrive.exe' }
   @{ Label = 'Creative Cloud'; StartAppName = 'Adobe Creative Cloud'; IconPathLike = '*\Adobe Creative Cloud\ACC\Creative Cloud.exe' }
   # {{ end }}
+  # {{ if eq .computerModel "Late 2025 Gaming Desktop" }}
   @{ Label = 'ASUS DriverHub'; StartAppName = 'ASUS DriverHub'; IconPathLike = '*\AsusDriverHub\ASUS DriverHub.exe' }
+  # {{ end }}
   # Launching "PowerToys (Preview)" starts the main hub process; PowerToys itself spawns
   # PowerToys.Awake.exe (a separate process) since the Awake module ships enabled by default.
   @{ Label = 'PowerToys Awake'; StartAppName = 'PowerToys (Preview)'; IconPathLike = '*\PowerToys\PowerToys.Awake.exe'; RunningCheckPathLike = '*\PowerToys\PowerToys.exe' }
