@@ -1,0 +1,21 @@
+## WARNING: This file is chezmoi-managed and should not be manually edited!
+
+# yaml-language-server: $schema=https://aka.ms/configuration-dsc-schema/0.3
+$schema: https://raw.githubusercontent.com/PowerShell/DSC/main/schemas/2023/08/config/document.json
+metadata:
+  winget:
+    processor:
+      identifier: dscv3
+resources:
+  # Policy "Prevent the usage of OneDrive for file storage".
+  - type: Microsoft.Windows/Registry
+    name: DisableOneDrive
+    metadata:
+      winget:
+        securityContext: elevated
+    properties:
+      keyPath: HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\OneDrive
+      valueName: DisableFileSyncNGSC
+      valueData:
+        DWord: 1
+      _exist: true

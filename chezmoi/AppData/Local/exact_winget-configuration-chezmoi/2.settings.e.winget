@@ -32,18 +32,6 @@ resources:
       valueData:
         DWord: 1
       _exist: true
-  # Policy "Prevent the usage of OneDrive for file storage".
-  - type: Microsoft.Windows/Registry
-    name: DisableOneDrive
-    metadata:
-      winget:
-        securityContext: elevated
-    properties:
-      keyPath: HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\OneDrive
-      valueName: DisableFileSyncNGSC
-      valueData:
-        DWord: 1
-      _exist: true
   # Both values cap diagnostic data at Required only. Levels: 0 Security, 1 Required, 2 Enhanced,
   # 3 Optional.
   - type: Microsoft.Windows/Registry
