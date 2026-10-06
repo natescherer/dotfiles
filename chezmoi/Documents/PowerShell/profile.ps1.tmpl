@@ -62,6 +62,6 @@ if (Get-Module -ListAvailable -Name PSFzf) {
   if ($Total -le 0) { return }
   $LastChecked = (Get-Item $PlanFile).LastWriteTime.ToString('ddd HH:mm')
   Write-Host "$($PSStyle.Foreground.Yellow)$($PSStyle.Bold)↑ $Total update(s) available$($PSStyle.Reset) $($PSStyle.Foreground.BrightBlack)· last checked $LastChecked$($PSStyle.Reset)"
-  Write-Host "$($PSStyle.Foreground.BrightBlack)  Run 'mpm outdated' to review them and 'mpm upgrade' to install them$($PSStyle.Reset)"
+  Write-Host "$($PSStyle.Foreground.BrightBlack)  Run 'mpm sync && mpm outdated' to review them and 'mpm upgrade' to install them$($PSStyle.Reset)"
 }
 {{- end }}

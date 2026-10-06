@@ -74,7 +74,7 @@ source <(fzf --zsh)
   total=$(jq '[.[].packages | length] | add // 0' "$plan_file" 2>/dev/null)
   (( total > 0 )) || return
   print -P "%F{yellow}%B↑ ${total} update(s) available%b%f %F{bright-black}· last checked $(date -r "$plan_file" '+%a %H:%M')%f"
-  print -P "%F{bright-black}  Run 'mpm outdated' to review them and 'mpm upgrade' to install them%f"
+  print -P "%F{bright-black}  Run 'mpm sync && mpm outdated' to review them and 'mpm upgrade' to install them%f"
 }
 
 {{ end -}}
