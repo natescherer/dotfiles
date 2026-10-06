@@ -16,8 +16,9 @@ mkdir -p "$HOME/.cache/mpm"
 # Checks every 30 days: launchd has no interval that survives shutdown, so the agent fires at login
 # and daily, and skips if the last successful check (plan.json is rewritten only on success) is newer
 [ -n "$(find "$HOME/.cache/mpm/plan.json" -mtime -30 2&gt;/dev/null)" ] &amp;&amp; exit 0
-# mpm runs brew with auto-update off, so refresh Homebrew's metadata first or it reports stale versions
-/opt/homebrew/bin/brew update --quiet &gt; "$HOME/.cache/mpm/plan.log" 2&gt;&amp;1 &amp;&amp;
+# mpm runs brew with auto-update off, so sync metadata first or it reports stale versions;
+# --stop-on-error because sync otherwise exits 0 when a manager fails
+/opt/homebrew/bin/mpm --no-color --stop-on-error sync &gt; "$HOME/.cache/mpm/plan.log" 2&gt;&amp;1 &amp;&amp;
   /opt/homebrew/bin/mpm --no-color --table-format json outdated &gt; "$HOME/.cache/mpm/plan.json.tmp" 2&gt;&gt; "$HOME/.cache/mpm/plan.log"
 status=$?
 if [ "$status" -eq 0 ]; then
