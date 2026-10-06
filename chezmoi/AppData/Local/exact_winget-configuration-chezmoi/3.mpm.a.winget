@@ -10,6 +10,9 @@ resources:
   # Runs WindowsWorkstationDSC/mpm-plan.ps1 at logon and every 12 hours to cache pending winget
   # updates. A Scheduled Task (not a Run key) because of the repeating trigger. Registered for the
   # current user with limited rights, so no elevation is needed and toasts reach the user's session.
+  # A console window still flashes each run: with Windows Terminal as the default terminal,
+  # -WindowStyle Hidden can't hide it. Known workarounds (e.g. conhost --headless) are flagged by
+  # security software, so the flash is accepted.
   - type: Microsoft.DSC.Transitional/RunCommandOnSet
     name: MpmPlanScheduledTask
     properties:
