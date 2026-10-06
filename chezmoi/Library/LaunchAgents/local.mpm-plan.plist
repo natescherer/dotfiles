@@ -30,7 +30,7 @@ if [ "$status" -eq 0 ]; then
   fi
 else
   rm -f "$HOME/.cache/mpm/plan.json.tmp"
-  printf 'update check failed (exit %s) at %s -- see ~/.cache/mpm/plan.log\n' "$status" "$(date)" &gt; "$HOME/.cache/mpm/plan.error"
+  printf 'exit %s at %s; see ~/.cache/mpm/plan.log\n' "$status" "$(date '+%Y-%m-%d %H:%M')" &gt; "$HOME/.cache/mpm/plan.error"
   notify -title "Couldn't check for updates" -message "mpm hit an error. Open a new shell for details."
 fi</string>
     </array>

@@ -65,6 +65,7 @@ source <(fzf --zsh)
   local error_file="$HOME/.cache/mpm/plan.error"
   if [[ -r "$error_file" ]]; then
     print -P "%F{red}%B⚠ mpm-plan check failed%b%f %F{bright-black}($(<"$error_file"))%f"
+    print -P "%F{bright-black}  It retries daily; run 'launchctl kickstart gui/\$UID/local.mpm-plan' to retry now%f"
     return
   fi
 
@@ -73,7 +74,7 @@ source <(fzf --zsh)
   local total
   total=$(jq '[.[].packages | length] | add // 0' "$plan_file" 2>/dev/null)
   (( total > 0 )) || return
-  print -P "%F{yellow}%B↑ ${total} update(s) available%b%f %F{bright-black}· last checked $(date -r "$plan_file" '+%a %H:%M')%f"
+  print -P "%F{yellow}%B↑ ${total} update(s) available%b%f %F{bright-black}· last checked $(date -r "$plan_file" '+%Y-%m-%d')%f"
   print -P "%F{bright-black}  Run 'mpm sync && mpm outdated' to review them and 'mpm upgrade' to install them%f"
 }
 

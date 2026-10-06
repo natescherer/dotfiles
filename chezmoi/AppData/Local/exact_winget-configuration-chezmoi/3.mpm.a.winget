@@ -7,9 +7,9 @@ metadata:
     processor:
       identifier: dscv3
 resources:
-  # Runs WindowsWorkstationDSC/mpm-plan.ps1 every 30 days to cache pending winget updates (or at the
-  # next opportunity, if the machine was off). A Scheduled Task (not a Run key) because of the
-  # repeating trigger. Registered for the current user with limited rights, so no elevation is
+  # Runs WindowsWorkstationDSC/mpm-plan.ps1 daily (or at the next opportunity, if the machine was
+  # off); the script itself limits checks for pending winget updates to every 30 days. A Scheduled
+  # Task (not a Run key) because of the repeating trigger. Registered for the current user with limited rights, so no elevation is
   # needed and toasts reach the user's session.
   # A console window still flashes each run: with Windows Terminal as the default terminal,
   # -WindowStyle Hidden can't hide it. Known workarounds (e.g. conhost --headless) are flagged by
@@ -26,7 +26,7 @@ resources:
           $ErrorActionPreference = 'Stop'
           $Script = Join-Path $env:LOCALAPPDATA 'WindowsWorkstationDSC\mpm-plan.ps1'
           $Action = New-ScheduledTaskAction -Execute (Get-Command pwsh).Source -Argument "-NoProfile -WindowStyle Hidden -File `"$Script`""
-          $Trigger = New-ScheduledTaskTrigger -Daily -DaysInterval 30 -At 09:00
+          $Trigger = New-ScheduledTaskTrigger -Daily -At 09:00
           $Principal = New-ScheduledTaskPrincipal -UserId $env:USERNAME -LogonType Interactive -RunLevel Limited
           $Settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -MultipleInstances IgnoreNew -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries
           Register-ScheduledTask -TaskName 'mpm-plan' -Action $Action -Trigger $Trigger -Principal $Principal -Settings $Settings -Force | Out-Null

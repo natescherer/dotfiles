@@ -14,6 +14,10 @@ $LogPath = Join-Path $CacheDir 'plan.log'
 $ErrorPath = Join-Path $CacheDir 'plan.error'
 
 New-Item -ItemType Directory -Path $CacheDir -Force | Out-Null
+
+# Checks every 30 days: the task fires daily so a failed check is retried, and this skips while the
+# last successful check (plan.json is rewritten only on success) is newer
+if ((Test-Path $PlanPath) -and (Get-Item $PlanPath).LastWriteTime -gt (Get-Date).AddDays(-30)) { return }
 . (Join-Path $PSScriptRoot 'Send-Toast.ps1')
 
 try {
@@ -36,6 +40,6 @@ if ($Status -eq 0) {
 }
 else {
   Remove-Item -Path $TmpPath -ErrorAction SilentlyContinue
-  "update check failed (exit $Status) at $(Get-Date); see $LogPath" | Set-Content -Path $ErrorPath
+  "exit $Status at $(Get-Date -Format 'yyyy-MM-dd HH:mm'); see $LogPath" | Set-Content -Path $ErrorPath
   Send-WindowsWorkstationDSCToast -Text "Couldn't check for updates", 'mpm hit an error. Open a new shell for details.'
 }
