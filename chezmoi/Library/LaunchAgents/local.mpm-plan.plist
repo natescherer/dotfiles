@@ -13,6 +13,9 @@ export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:/usr/bin:/bin:/usr/sbin:/sbin"
 # terminal-notifier is only granted notification permission when launched through LaunchServices
 notify() { open -g -n /opt/homebrew/opt/terminal-notifier/terminal-notifier.app --args "$@" -group "local.mpm-plan"; }
 mkdir -p "$HOME/.cache/mpm"
+# Checks every 30 days: launchd has no interval that survives shutdown, so the agent fires at login
+# and daily, and skips if the last successful check (plan.json is rewritten only on success) is newer
+[ -n "$(find "$HOME/.cache/mpm/plan.json" -mtime -30 2&gt;/dev/null)" ] &amp;&amp; exit 0
 # mpm runs brew with auto-update off, so refresh Homebrew's metadata first or it reports stale versions
 /opt/homebrew/bin/brew update --quiet &gt; "$HOME/.cache/mpm/plan.log" 2&gt;&amp;1 &amp;&amp;
   /opt/homebrew/bin/mpm --no-color --table-format json outdated &gt; "$HOME/.cache/mpm/plan.json.tmp" 2&gt;&gt; "$HOME/.cache/mpm/plan.log"
@@ -32,7 +35,12 @@ fi</string>
     </array>
     <key>RunAtLoad</key>
     <true/>
-    <key>StartInterval</key>
-    <integer>43200</integer>
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Hour</key>
+        <integer>9</integer>
+        <key>Minute</key>
+        <integer>0</integer>
+    </dict>
 </dict>
 </plist>

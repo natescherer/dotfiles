@@ -7,9 +7,10 @@ metadata:
     processor:
       identifier: dscv3
 resources:
-  # Runs WindowsWorkstationDSC/mpm-plan.ps1 at logon and every 12 hours to cache pending winget
-  # updates. A Scheduled Task (not a Run key) because of the repeating trigger. Registered for the
-  # current user with limited rights, so no elevation is needed and toasts reach the user's session.
+  # Runs WindowsWorkstationDSC/mpm-plan.ps1 every 30 days to cache pending winget updates (or at the
+  # next opportunity, if the machine was off). A Scheduled Task (not a Run key) because of the
+  # repeating trigger. Registered for the current user with limited rights, so no elevation is
+  # needed and toasts reach the user's session.
   # A console window still flashes each run: with Windows Terminal as the default terminal,
   # -WindowStyle Hidden can't hide it. Known workarounds (e.g. conhost --headless) are flagged by
   # security software, so the flash is accepted.
@@ -25,10 +26,7 @@ resources:
           $ErrorActionPreference = 'Stop'
           $Script = Join-Path $env:LOCALAPPDATA 'WindowsWorkstationDSC\mpm-plan.ps1'
           $Action = New-ScheduledTaskAction -Execute (Get-Command pwsh).Source -Argument "-NoProfile -WindowStyle Hidden -File `"$Script`""
-          $Triggers = @(
-            New-ScheduledTaskTrigger -AtLogOn -User $env:USERNAME
-            New-ScheduledTaskTrigger -Once -At (Get-Date) -RepetitionInterval (New-TimeSpan -Hours 12)
-          )
+          $Trigger = New-ScheduledTaskTrigger -Daily -DaysInterval 30 -At 09:00
           $Principal = New-ScheduledTaskPrincipal -UserId $env:USERNAME -LogonType Interactive -RunLevel Limited
           $Settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -MultipleInstances IgnoreNew -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries
-          Register-ScheduledTask -TaskName 'mpm-plan' -Action $Action -Trigger $Triggers -Principal $Principal -Settings $Settings -Force | Out-Null
+          Register-ScheduledTask -TaskName 'mpm-plan' -Action $Action -Trigger $Trigger -Principal $Principal -Settings $Settings -Force | Out-Null
