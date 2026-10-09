@@ -24,7 +24,7 @@ status=$?
 if [ "$status" -eq 0 ]; then
   mv "$HOME/.cache/mpm/plan.json.tmp" "$HOME/.cache/mpm/plan.json"
   rm -f "$HOME/.cache/mpm/plan.error"
-  total=$(/opt/homebrew/bin/jq '[.[].packages | length] | add // 0' "$HOME/.cache/mpm/plan.json")
+  total=$(jq '[.[].packages | length] | add // 0' "$HOME/.cache/mpm/plan.json")
   if [ "$total" -gt 0 ]; then
     notify -title "Update(s) available" -message "mpm found $total update(s). Open a new shell for details."
   fi
