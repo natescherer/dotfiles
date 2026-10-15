@@ -5,7 +5,7 @@
 #
 # Why is this in a folder called '00-all'? Directory order is what determines script
 # execution order, and 00 is lower than every OS-specific folder (10-linux, 20-linux-and-macos,
-# 30-macos, 40-windows, 41-windows, 90-all, 91-macos, 91-windows), so mise-managed tools get
+# 30-macos, 40-windows, 41-windows, 42-windows, 90-all, 91-macos, 91-windows), so mise-managed tools get
 # installed as early as possible for anything later in the apply run that wants them.
 #
 # PowerShell, not Python: this script's job is making sure mise-managed tools -- which can

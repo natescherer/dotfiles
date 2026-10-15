@@ -4,7 +4,8 @@
 # disk by the time any run_after_ script executes) along with the PWA list it reads. The hashes
 # below rerun this whenever the list or the script changes.
 #
-# In 41-windows so it runs after winget configure (40-windows), which installs PWAsForFirefox.
+# In its own 41-windows folder so it runs after winget configure (40-windows), which installs
+# PWAsForFirefox, and before the taskbar pins (42-windows), which pin some of the apps.
 
 ## pwas.toml hash: {{ joinPath .chezmoi.sourceDir ".chezmoidata/pwas.toml" | include | sha256sum }}
 ## pwa-install.ps1 hash: {{ joinPath .chezmoi.sourceDir "AppData/Local/WindowsWorkstationDSC/pwa-install.ps1" | include | sha256sum }}

@@ -15,6 +15,7 @@ dot_wslconfig
 ## Windows scripts
 .chezmoiscripts/40-windows/**
 .chezmoiscripts/41-windows/**
+.chezmoiscripts/42-windows/**
 .chezmoiscripts/91-windows/**
 .chezmoiscripts/00-all/mise-checker.ps1
 ## Windows data
@@ -38,6 +39,7 @@ dot_wslconfig
 ## Windows scripts
 .chezmoiscripts/40-windows/**
 .chezmoiscripts/41-windows/**
+.chezmoiscripts/42-windows/**
 .chezmoiscripts/91-windows/**
 .chezmoiscripts/00-all/mise-checker.ps1
 ## Windows data
@@ -104,10 +106,10 @@ AppData/Local/winget-configuration-chezmoi/*late2025gamingdesktop.*.winget*
 {{- if eq .chezmoi.os "windows" }}
 .chezmoiscripts/40-windows/winget-configure.ps1
 .chezmoiscripts/40-windows/office-install.ps1
-.chezmoiscripts/41-windows/taskbar-pins.ps1
-.chezmoiscripts/41-windows/tray-pins.ps1
-.chezmoiscripts/41-windows/desktop-icons.ps1
-.chezmoiscripts/41-windows/pins-autostart.ps1
+.chezmoiscripts/42-windows/taskbar-pins.ps1
+.chezmoiscripts/42-windows/tray-pins.ps1
+.chezmoiscripts/42-windows/desktop-icons.ps1
+.chezmoiscripts/42-windows/pins-autostart.ps1
 .chezmoiscripts/91-windows/setup-checklist.ps1
 {{- end }}
 {{- if eq .chezmoi.os "darwin" }}

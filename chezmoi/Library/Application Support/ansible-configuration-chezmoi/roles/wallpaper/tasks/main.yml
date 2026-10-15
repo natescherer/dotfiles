@@ -1,6 +1,6 @@
 ---
 # Sets the desktop wallpaper exactly once, ever -- mirroring
-# .chezmoiscripts/41-windows/run_once_after_wallpaper.ps1's run_once_ semantics: "nothing external
+# .chezmoiscripts/42-windows/run_once_after_wallpaper.ps1's run_once_ semantics: "nothing external
 # fights the desktop wallpaper once it's set, so this doesn't need to self-heal on every apply."
 # Ansible has no native "run once, ever" primitive, so this uses the same sentinel-file idiom as
 # macos_settings' own one-time /etc/pam.d/sudo_local task (a `creates:` guard) -- once
