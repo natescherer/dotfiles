@@ -11,12 +11,12 @@
 # PowerShell, not Python: this script's job is making sure mise-managed tools -- which can
 # include Python itself, see config.toml -- are installed, so it can't depend on one of those
 # tools already being present just to run. pwsh is a documented prerequisite installed before
-# chezmoi itself ever runs (see README), so it's safe to assume here; a mise-installed
+# chezmoi itself ever runs (see the setup docs), so it's safe to assume here; a mise-installed
 # interpreter wouldn't be.
 #
-# mise itself is also a documented prerequisite (see README), installed before `chezmoi init
-# --apply` is ever run for the first time -- so a missing mise, or a failed `mise install`, is a
-# real environment problem rather than a bootstrapping race. This script exits non-zero in those
+# mise itself is also a documented prerequisite (see the setup docs), installed before
+# `chezmoi init --apply` is ever run for the first time -- so a missing mise, or a failed
+# `mise install`, is a real environment problem rather than a bootstrapping race. This script exits non-zero in those
 # cases, which aborts the rest of the apply run.
 
 # Installs from earlier chezmoi runs (or a winget install done in another window) write PATH
@@ -28,7 +28,7 @@ $UserPath = [System.Environment]::GetEnvironmentVariable('Path', 'User')
 $env:Path = "$MachinePath;$UserPath"
 
 if (-not (Get-Command mise -ErrorAction SilentlyContinue)) {
-    Write-Error "'mise' is not found on PATH. It is a required prerequisite (see README) and must be installed before running 'chezmoi apply'."
+    Write-Error "'mise' is not found on PATH. It is a required prerequisite (see the setup docs) and must be installed before running 'chezmoi apply'."
     exit 1
 }
 

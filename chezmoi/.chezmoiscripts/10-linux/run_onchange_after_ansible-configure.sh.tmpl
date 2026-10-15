@@ -51,7 +51,7 @@ echo "Run started $(date '+%Y-%m-%d %H:%M:%S')" > "$LogFile"
 Brew=/home/linuxbrew/.linuxbrew/bin/brew
 if ! command -v ansible-playbook >/dev/null 2>&1; then
   if [ ! -x "$Brew" ]; then
-    echo -e "\033[0;31mansible-playbook not found, and neither is Homebrew to install it with. Install Homebrew as described in the README, then rerun 'chezmoi apply'.\033[0m" >&2
+    echo -e "\033[0;31mansible-playbook not found, and neither is Homebrew to install it with. Install Homebrew as described in the setup docs, then rerun 'chezmoi apply'.\033[0m" >&2
     exit 1
   fi
   echo -e "\033[1;36mansible-playbook not found; installing via 'brew install ansible'...\033[0m"

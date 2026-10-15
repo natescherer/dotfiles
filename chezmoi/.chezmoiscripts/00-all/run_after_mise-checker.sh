@@ -14,9 +14,9 @@
 # already being present just to run. bash is safe to assume this early; a mise-installed
 # interpreter wouldn't be.
 #
-# mise itself is also a documented prerequisite (see README), installed before `chezmoi init
-# --apply` is ever run for the first time -- so a missing mise, or a failed `mise install`, is a
-# real environment problem rather than a bootstrapping race. This script exits non-zero in those
+# mise itself is also a documented prerequisite (see the setup docs), installed before
+# `chezmoi init --apply` is ever run for the first time -- so a missing mise, or a failed
+# `mise install`, is a real environment problem rather than a bootstrapping race. This script exits non-zero in those
 # cases, which aborts the rest of the apply run.
 
 CYAN='\033[0;36m'
@@ -25,7 +25,7 @@ RESET='\033[0m'
 
 mise=$(command -v mise)
 if [ -z "$mise" ]; then
-    printf "Error: 'mise' is not found on PATH. It is a required prerequisite (see README) and must be installed before running 'chezmoi apply'.\n" >&2
+    printf "Error: 'mise' is not found on PATH. It is a required prerequisite (see the setup docs) and must be installed before running 'chezmoi apply'.\n" >&2
     exit 1
 fi
 
