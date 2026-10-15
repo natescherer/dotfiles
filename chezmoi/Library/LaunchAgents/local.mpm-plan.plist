@@ -13,9 +13,9 @@ export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:/usr/bin:/bin:/usr/sbin:/sbin"
 # terminal-notifier is only granted notification permission when launched through LaunchServices
 notify() { open -g -n /opt/homebrew/opt/terminal-notifier/terminal-notifier.app --args "$@" -group "local.mpm-plan"; }
 mkdir -p "$HOME/.cache/mpm"
-# Checks every 30 days: launchd has no interval that survives shutdown, so the agent fires at login
+# Checks weekly: launchd has no interval that survives shutdown, so the agent fires at login
 # and daily, and skips if the last successful check (plan.json is rewritten only on success) is newer
-[ -n "$(find "$HOME/.cache/mpm/plan.json" -mtime -30 2&gt;/dev/null)" ] &amp;&amp; exit 0
+[ -n "$(find "$HOME/.cache/mpm/plan.json" -mtime -7 2&gt;/dev/null)" ] &amp;&amp; exit 0
 # mpm runs brew with auto-update off, so sync metadata first or it reports stale versions;
 # --stop-on-error because sync otherwise exits 0 when a manager fails
 /opt/homebrew/bin/mpm --no-color --stop-on-error sync &gt; "$HOME/.cache/mpm/plan.log" 2&gt;&amp;1 &amp;&amp;
@@ -23,15 +23,13 @@ mkdir -p "$HOME/.cache/mpm"
 status=$?
 if [ "$status" -eq 0 ]; then
   mv "$HOME/.cache/mpm/plan.json.tmp" "$HOME/.cache/mpm/plan.json"
-  rm -f "$HOME/.cache/mpm/plan.error"
   total=$(jq '[.[].packages | length] | add // 0' "$HOME/.cache/mpm/plan.json")
   if [ "$total" -gt 0 ]; then
-    notify -title "Update(s) available" -message "mpm found $total update(s). Open a new shell for details."
+    notify -title "Update(s) available" -message "mpm found $total update(s). Run 'mpm sync &amp;&amp; mpm outdated' to review them."
   fi
 else
   rm -f "$HOME/.cache/mpm/plan.json.tmp"
-  printf 'exit %s at %s; see ~/.cache/mpm/plan.log\n' "$status" "$(date '+%Y-%m-%d %H:%M')" &gt; "$HOME/.cache/mpm/plan.error"
-  notify -title "Couldn't check for updates" -message "mpm hit an error. Open a new shell for details."
+  notify -title "Couldn't check for updates" -message "mpm exited $status; see ~/.cache/mpm/plan.log."
 fi</string>
     </array>
     <key>RunAtLoad</key>
