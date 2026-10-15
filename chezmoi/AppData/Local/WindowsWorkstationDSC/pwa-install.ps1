@@ -72,9 +72,16 @@ function Resolve-SiteManifest {
     return @{ ManifestUrl = [uri]::new([uri]$Url, $Matches[1]).AbsoluteUri; IconUrl = $null }
   }
 
-  $IconLink = $Links | Where-Object { $_ -match 'rel=["'']?apple-touch-icon\b' } | Select-Object -First 1
-  $IconUrl = if ($IconLink -and $IconLink -match 'href=["'']([^"'']+)') {
-    [uri]::new([uri]$Url, $Matches[1]).AbsoluteUri
+  # The largest icon the page declares. sizes="NxN" gives the size; an unsized apple-touch-icon is
+  # conventionally 180x180; other unsized icons (usually favicon.ico) rank last.
+  $Icon = $Links | Where-Object { $_ -match 'rel=["'']?[^"''>]*icon' } | ForEach-Object {
+    if ($_ -notmatch 'href=["'']([^"'']+)') { return }
+    $Href = $Matches[1]
+    $Size = if ($_ -match 'sizes=["'']?(\d+)x') { [int]$Matches[1] } elseif ($_ -match 'apple-touch-icon') { 180 } else { 0 }
+    [pscustomobject]@{ Href = $Href; Size = $Size }
+  } | Sort-Object -Property Size -Descending -Stable | Select-Object -First 1
+  $IconUrl = if ($Icon) {
+    [uri]::new([uri]$Url, $Icon.Href).AbsoluteUri
   }
   else {
     [uri]::new([uri]$Url, '/favicon.ico').AbsoluteUri

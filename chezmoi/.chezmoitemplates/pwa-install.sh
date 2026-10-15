@@ -67,6 +67,21 @@ link_href() {
     grep -oiE "href=[\"'][^\"']+" | cut -c7-
 }
 
+# Prints the href of the largest icon the page declares. sizes="NxN" gives the size; an unsized
+# apple-touch-icon is conventionally 180x180; other unsized icons (usually favicon.ico) rank last.
+largest_icon_href() {
+  printf '%s' "$1" | grep -oiE '<link[^>]*>' | grep -iE "rel=[\"']?[^\"'>]*icon" |
+    while read -r link; do
+      href=$(printf '%s' "$link" | grep -oiE "href=[\"'][^\"']+" | cut -c7-)
+      [ -n "$href" ] || continue
+      size=$(printf '%s' "$link" | grep -oiE "sizes=[\"']?[0-9]+x" | grep -oE '[0-9]+')
+      if [ -z "$size" ]; then
+        if printf '%s' "$link" | grep -qi apple-touch-icon; then size=180; else size=0; fi
+      fi
+      printf '%s\t%s\n' "$size" "$href"
+    done | sort -s -rn -k1,1 | head -1 | cut -f2
+}
+
 # Finds the site's manifest the way the browser does: a <link rel="manifest"> in the page. Sites
 # without one get a minimal manifest as a data: URL, which the CLI accepts with --document-url.
 # Prints the manifest URL, then a line with the icon URL to use (empty for a real manifest).
@@ -83,7 +98,7 @@ resolve_manifest() {
     return
   fi
 
-  href=$(link_href "$html" apple-touch-icon)
+  href=$(largest_icon_href "$html")
   if [ -n "$href" ]; then
     icon=$(absolute_url "$url" "$href")
   else
