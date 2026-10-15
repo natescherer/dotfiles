@@ -1,0 +1,25 @@
+---
+# Personal machines only. The default browser stays as shipped.
+- name: Check whether Proton Mail is installed
+  ansible.builtin.stat:
+    path: /usr/share/applications/proton-mail.desktop
+  register: proton_mail_app
+
+- name: Make Proton Mail the default mail and calendar app
+  when: proton_mail_app.stat.exists and is_personal_machine
+  block:
+    - name: Check current mail and calendar handlers
+      ansible.builtin.command: xdg-mime query default {{ item }}
+      loop:
+        - x-scheme-handler/mailto
+        - text/calendar
+      register: current_mail_handlers
+      changed_when: false
+
+    - name: Set Proton Mail as the mail and calendar handler
+      ansible.builtin.command: xdg-mime default proton-mail.desktop {{ item.item }}
+      loop: "{{ current_mail_handlers.results }}"
+      loop_control:
+        label: "{{ item.item }}"
+      when: item.stdout | trim != 'proton-mail.desktop'
+      changed_when: true

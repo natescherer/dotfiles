@@ -1,0 +1,53 @@
+---
+- name: Find launchers for pinned PWAs
+  ansible.builtin.find:
+    paths: "{{ ansible_facts.env.HOME }}/.local/share/applications"
+    patterns: chrome-*-Default.desktop
+    # Without read_whole_file, the pattern is matched from the start of each line.
+    contains: "Name={{ item.pwa | regex_escape }}$"
+  loop: "{{ dock_pinned_apps | select('mapping') | list }}"
+  loop_control:
+    label: "{{ item.pwa }}"
+  register: dock_pwa_launchers
+
+# dock_pinned_apps defaults to [], so the loop below may run zero times.
+- name: Initialize resolved Dock pins list
+  ansible.builtin.set_fact:
+    dock_pinned_apps_resolved: []
+
+# id is empty when the app isn't installed.
+- name: Resolve each pinned app to an installed launcher
+  ansible.builtin.set_fact:
+    dock_pinned_apps_resolved: "{{ dock_pinned_apps_resolved + [{'label': label, 'id': resolved_id}] }}"
+  loop: "{{ dock_pinned_apps }}"
+  loop_control:
+    label: "{{ label }}"
+  vars:
+    label: "{{ item.pwa if item is mapping else item }}"
+    pwa_id: >-
+      {{ dock_pwa_launchers.results | selectattr('item', 'equalto', item) | map(attribute='files')
+         | first | default([]) | map(attribute='path') | map('basename') | first | default('') }}
+    launcher_path: >-
+      {{ lookup('ansible.builtin.first_found', dock_launcher_dirs | map('regex_replace', '$', '/' + item) | list,
+         errors='ignore') | default('', true) }}
+    resolved_id: "{{ pwa_id if item is mapping else (item if launcher_path | length > 0 else '') }}"
+
+- name: Warn about Dock apps that aren't installed
+  ansible.builtin.debug:
+    msg: "Not pinning {{ item.label }} to the Dock: it isn't installed"
+  loop: "{{ dock_pinned_apps_resolved }}"
+  loop_control:
+    label: "{{ item.label }}"
+  when: item.id | length == 0
+
+# The @as type prefix keeps the GVariant array a string through Ansible's templating. dconf
+# compares parsed values, so an unchanged list reports ok. Skipped when nothing resolved, so a run
+# before any app is installed doesn't empty the Dock.
+- name: Pin apps to the Dock
+  community.general.dconf:
+    key: /org/gnome/shell/favorite-apps
+    value: "@as {{ pinned_ids | to_json }}"
+    state: present
+  vars:
+    pinned_ids: "{{ dock_pinned_apps_resolved | map(attribute='id') | select | list }}"
+  when: pinned_ids | length > 0

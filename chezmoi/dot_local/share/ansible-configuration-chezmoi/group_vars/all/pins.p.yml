@@ -1,0 +1,20 @@
+---
+# Personal-only Dock pins. Excluded on non-personal machines via .chezmoiignore.tmpl, so a work
+# machine's Dock is left alone.
+#
+# Apps pinned to the Dock, left to right. This replaces the whole favorites list, including
+# Ubuntu's defaults. Entries are .desktop file ids (snaps use <snap>_<app>.desktop), or
+# {pwa: <name>} for a Chrome PWA, whose id is generated at install time.
+dock_pinned_apps:
+  - org.gnome.Settings.desktop
+  - org.gnome.SystemMonitor.desktop
+  - ghostty_ghostty.desktop
+  - proton-mail.desktop
+  - discord_discord.desktop
+  - firefox_firefox.desktop
+  - brave_brave.desktop
+  - ticktick_ticktick.desktop
+  - obsidian_obsidian.desktop
+  - codium_codium.desktop
+  - code_code.desktop
+  - pwa: YouTube
