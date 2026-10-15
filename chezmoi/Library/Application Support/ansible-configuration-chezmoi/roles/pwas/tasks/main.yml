@@ -1,0 +1,11 @@
+---
+# Runs after the homebrew role installs PWAsForFirefox and before dock_pins, which pins some of the
+# apps. The installer is idempotent and only prints "Installing"/"Uninstalling" when it changes
+# something.
+- name: Install PWAs with PWAsForFirefox
+  ansible.builtin.script:
+    cmd: "pwa-install.sh {{ pwas_apps | to_json | quote }}"
+    executable: /bin/bash
+  register: pwas_install
+  changed_when: "'Installing' in pwas_install.stdout or 'Uninstalling' in pwas_install.stdout"
+  when: pwas_apps | length > 0

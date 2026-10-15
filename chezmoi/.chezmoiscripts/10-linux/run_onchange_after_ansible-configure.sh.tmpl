@@ -19,6 +19,9 @@
 {{ range $ansibleFiles -}}
 ## {{ trimPrefix (print $ansibleDir "/") . }} hash: {{ include . | sha256sum }}
 {{ end -}}
+# The PWA vars and installer are templates, so their rendered inputs need hashing too.
+## pwas.toml hash: {{ joinPath .chezmoi.sourceDir ".chezmoidata/pwas.toml" | include | sha256sum }}
+## pwa-install.sh hash: {{ joinPath .chezmoi.sourceDir ".chezmoitemplates/pwa-install.sh" | include | sha256sum }}
 
 {{ if not .adminRights -}}
 echo -e "\033[1;33m\nSkipping Ubuntu Ansible configuration: this account doesn't have sudo rights (adminRights is false). Re-run 'chezmoi init' with adminRights set to true once it does.\033[0m"

@@ -62,7 +62,6 @@ dot_wslconfig
 .chezmoiscripts/30-macos/**
 .chezmoiscripts/91-macos/**
 .chezmoiscripts/00-all/mise-checker.sh
-.chezmoiscripts/90-all/pwa-install.sh
 ## macOS folders
 Library/**
 ## Sheldon config
@@ -91,11 +90,10 @@ AppData/Local/winget-configuration-chezmoi/*.{e,ep}.winget*
 {{- end }}
 
 {{- if or (not .isPersonal) (not .applyOSConfig) (not .adminRights) }}
-# Skip PWAs: personal-only, and PWAsForFirefox is only installed by the OS configuration, which
-# needs admin rights
+# Skip Windows PWAs: personal-only, and PWAsForFirefox is only installed by the winget
+# configuration, which needs admin rights. On macOS and Ubuntu, the playbooks install them.
 AppData/Local/WindowsWorkstationDSC/pwas.json
 .chezmoiscripts/41-windows/pwa-install.ps1
-.chezmoiscripts/90-all/pwa-install.sh
 {{- end }}
 
 {{- if ne .computerModel "Late 2025 Gaming Desktop" }}

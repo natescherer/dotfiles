@@ -121,8 +121,8 @@ Currently managed:
     - [chezmoi/.chezmoidata/pwas.toml](chezmoi/.chezmoidata/pwas.toml)
     - [chezmoi/AppData/Local/WindowsWorkstationDSC/pwa-install.ps1](chezmoi/AppData/Local/WindowsWorkstationDSC/pwa-install.ps1)
       - Standalone Windows installer, run by [chezmoi/.chezmoiscripts/41-windows/run_onchange_after_pwa-install.ps1.tmpl](chezmoi/.chezmoiscripts/41-windows/run_onchange_after_pwa-install.ps1.tmpl)
-    - [chezmoi/.chezmoiscripts/90-all/run_onchange_after_pwa-install.sh.tmpl](chezmoi/.chezmoiscripts/90-all/run_onchange_after_pwa-install.sh.tmpl)
-      - macOS and Linux installer
+    - [chezmoi/.chezmoitemplates/pwa-install.sh](chezmoi/.chezmoitemplates/pwa-install.sh)
+      - macOS and Ubuntu installer, run by the `pwas` role of each Ansible playbook before its Dock pins
 - [Sheldon](https://github.com/rossmacarthur/sheldon) 🐧 🍎
   - Config Files
     - [chezmoi/dot_config/sheldon/plugins.toml](chezmoi/dot_config/sheldon/plugins.toml)

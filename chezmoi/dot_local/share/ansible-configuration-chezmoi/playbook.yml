@@ -26,8 +26,8 @@
       tags: gnome_settings
 
     - ansible.builtin.include_role:
-        name: firefoxpwa_apparmor
-      tags: firefoxpwa_apparmor
+        name: pwas
+      tags: pwas
 
     - ansible.builtin.include_role:
         name: app_associations

@@ -1,55 +1,44 @@
 #!/usr/bin/env bash
 
-# Installs the PWAs in .chezmoidata/pwas.toml as standalone apps with PWAsForFirefox, which runs
-# them on a separate Firefox runtime with Widevine DRM. Every app goes into one dedicated
-# PWAsForFirefox profile, so the DRM component is set up once; apps in that profile that are no
-# longer listed get uninstalled. Idempotent: apps are matched to list entries by URL, and only
-# missing ones are installed. The Windows counterpart is the WindowsWorkstationDSC pwa-install
-# script.
+# Installs PWAs as standalone apps with PWAsForFirefox, which runs them on a separate Firefox
+# runtime with Widevine DRM. Every app goes into one dedicated PWAsForFirefox profile, so the DRM
+# component is set up once; apps in that profile that are no longer listed get uninstalled.
+# Idempotent: apps are matched to list entries by URL, and only missing ones are installed. The
+# Windows counterpart is the WindowsWorkstationDSC pwa-install script.
 #
-# In 90-all rather than 20-linux-and-macos so it runs after the OS configuration (the macOS
-# Ansible run in 30-macos, the Ubuntu one in 10-linux) installs PWAsForFirefox.
-
-{{- /* The embedded list doubles as the run_onchange_ trigger: this script's rendered content
-     changes whenever the list does. */}}
-{{- $pwas := list }}
-{{- range .pwas.entries }}
-{{- if not (has $.chezmoi.os (index . "ignore_on" | default list)) }}
-{{- $pwas = append $pwas (omit . "ignore_on") }}
-{{- end }}
-{{- end }}
+# Usage: pwa-install.sh <json>, where <json> is an array of { url, name?, icon_url? } objects.
+# Run by the pwas role of the macOS and Ubuntu Ansible playbooks, after Homebrew installs
+# PWAsForFirefox and before the Dock pins. Exits non-zero when any app fails.
 
 set -uo pipefail
 
-PwasJson='{{ $pwas | toJson | replace "'" "'\\''" }}'
+PwasJson=${1:?usage: pwa-install.sh <json>}
 ProfileName=pwas
 # Some sites serve a stripped page (or no <link> tags) to unrecognized clients
 UserAgent='Mozilla/5.0 (X11; Linux x86_64; rv:140.0) Gecko/20100101 Firefox/140.0'
 
-{{ if eq .chezmoi.os "darwin" -}}
-UserDataDir="$HOME/Library/Application Support/firefoxpwa"
-RuntimeExe="$UserDataDir/runtime/Firefox.app"
-{{- else -}}
-UserDataDir="${XDG_DATA_HOME:-$HOME/.local/share}/firefoxpwa"
-RuntimeExe="$UserDataDir/runtime/firefox"
-{{- end }}
+if [ "$(uname -s)" = Darwin ]; then
+  UserDataDir="$HOME/Library/Application Support/firefoxpwa"
+  RuntimeExe="$UserDataDir/runtime/Firefox.app"
+else
+  UserDataDir="${XDG_DATA_HOME:-$HOME/.local/share}/firefoxpwa"
+  RuntimeExe="$UserDataDir/runtime/firefox"
+fi
 ConfigPath="$UserDataDir/config.json"
 
-# chezmoi's environment may predate Homebrew's shell setup
+# Ansible's environment may predate Homebrew's shell setup
 export PATH="/opt/homebrew/bin:/home/linuxbrew/.linuxbrew/bin:$PATH"
 
-echo -e "\033[1;32m\nInstalling PWAs...\033[0m"
-
 if ! command -v firefoxpwa >/dev/null 2>&1; then
-  echo -e "\033[1;33mWarning: PWAsForFirefox (firefoxpwa) isn't installed; skipping PWAs. Install it with 'brew install firefoxpwa', then rerun 'chezmoi apply'.\033[0m"
+  echo "PWAsForFirefox (firefoxpwa) isn't installed" >&2
   exit 1
 fi
 
-# Runs firefoxpwa and prints its output without color codes; on failure, reports it to stderr.
+# Runs firefoxpwa and prints its output without color codes; on failure, reports it on stderr.
 firefoxpwa_quiet() {
   local output
   if ! output=$(firefoxpwa "$@" 2>&1); then
-    echo -e "\033[0;31mfirefoxpwa $1 $2 failed:\n$output\033[0m" >&2
+    printf 'firefoxpwa %s %s failed:\n%s\n' "$1" "$2" "$output" >&2
     return 1
   fi
   printf '%s\n' "$output" | sed $'s/\x1b\\[[0-9;]*m//g'
@@ -107,7 +96,7 @@ resolve_manifest() {
 }
 
 if [ ! -e "$RuntimeExe" ]; then
-  echo -e "\033[1;36mInstalling the PWAsForFirefox runtime...\033[0m"
+  echo "Installing the PWAsForFirefox runtime..."
   firefoxpwa_quiet runtime install >/dev/null || exit 1
 fi
 
@@ -118,11 +107,11 @@ profile_id() {
 
 ProfileId=$(profile_id)
 if [ -z "$ProfileId" ]; then
-  echo -e "\033[1;36mCreating PWAsForFirefox profile '$ProfileName'...\033[0m"
+  echo "Creating PWAsForFirefox profile '$ProfileName'..."
   output=$(firefoxpwa_quiet profile create --name "$ProfileName" --description 'PWAs managed by chezmoi') || exit 1
   ProfileId=$(printf '%s' "$output" | grep -oE 'Profile created: [0-9A-Z]{26}' | grep -oE '[0-9A-Z]{26}$')
   if [ -z "$ProfileId" ]; then
-    echo -e "\033[0;31mCouldn't find the profile ID in:\n$output\033[0m" >&2
+    printf "Couldn't find the profile ID in:\n%s\n" "$output" >&2
     exit 1
   fi
 fi
@@ -142,7 +131,7 @@ while IFS=$'\x1f' read -r url name icon_url; do
     continue
   fi
   changed=1
-  echo -e "\033[1;36mInstalling $url...\033[0m"
+  echo "Installing $url..."
   { read -r manifest_url; read -r resolved_icon; } < <(resolve_manifest "$url" "$name")
   args=(site install "$manifest_url" --document-url "$url" --profile "$ProfileId")
   [ -n "$name" ] && args+=(--name "$name")
@@ -157,13 +146,13 @@ while IFS=$'\t' read -r key id; do
     continue
   fi
   changed=1
-  echo -e "\033[1;36mUninstalling $key (no longer listed)...\033[0m"
+  echo "Uninstalling $key (no longer listed)..."
   firefoxpwa_quiet site uninstall "$id" --quiet >/dev/null || failed=1
 done <<< "$installed"
 
 if [ "$changed" -eq 0 ]; then
-  echo -e "\033[2;37mAll PWAs are already installed.\033[0m"
+  echo "All PWAs are already installed."
 fi
 
-# Non-zero makes chezmoi retry this run_onchange_ script on the next apply.
+# Non-zero fails the Ansible task, so the next apply reruns the playbook.
 exit "$failed"

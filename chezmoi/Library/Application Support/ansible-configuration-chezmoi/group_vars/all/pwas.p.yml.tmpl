@@ -1,0 +1,6 @@
+---
+# PWAs to install with PWAsForFirefox, from the shared PWA list in .chezmoidata.
+# Personal-only: excluded on non-personal machines via .chezmoiignore.tmpl.
+# {{ $pwas := list }}{{ range .pwas.entries }}{{ if not (has "darwin" (index . "ignore_on" | default list)) }}{{ $pwas = append $pwas (omit . "ignore_on") }}{{ end }}{{ end }}
+pwas_apps:
+{{ $pwas | toYaml | trimSuffix "\n" | indent 2 }}

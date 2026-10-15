@@ -54,6 +54,10 @@
           tags: app_associations
 
         - ansible.builtin.include_role:
+            name: pwas
+          tags: pwas
+
+        - ansible.builtin.include_role:
             name: dock_pins
           tags: dock_pins
 

@@ -1,7 +1,11 @@
 ---
+# Runs after the homebrew role installs PWAsForFirefox and before dock_pins, which pins some of the
+# apps. The installer is idempotent and only prints "Installing"/"Uninstalling" when it changes
+# something.
+
 # Ubuntu only lets Firefox's sandbox use unprivileged user namespaces under an AppArmor profile.
 # The stock Firefox profile doesn't cover the PWAsForFirefox runtime in the user's home, so it
-# gets its own unconfined profile, which just names it. Personal machines only, like the PWAs.
+# gets its own unconfined profile, which just names it.
 - name: Allow the PWAsForFirefox runtime's sandbox
   ansible.builtin.copy:
     dest: /etc/apparmor.d/firefoxpwa
@@ -16,5 +20,13 @@
       }
     mode: "0644"
   become: true
-  when: is_personal_machine
+  when: pwas_apps | length > 0
   notify: Reload the PWAsForFirefox AppArmor profile
+
+- name: Install PWAs with PWAsForFirefox
+  ansible.builtin.script:
+    cmd: "pwa-install.sh {{ pwas_apps | to_json | quote }}"
+    executable: /bin/bash
+  register: pwas_install
+  changed_when: "'Installing' in pwas_install.stdout or 'Uninstalling' in pwas_install.stdout"
+  when: pwas_apps | length > 0
