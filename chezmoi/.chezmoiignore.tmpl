@@ -24,6 +24,9 @@ dot_wslconfig
 {{- if eq .chezmoi.os "darwin" }}
 # Ignore on macOS
 ## Linux folders
+.config/mpm/**
+.config/systemd/**
+.local/libexec/**
 .local/share/ansible-configuration-chezmoi/**
 ## Linux scripts
 .chezmoiscripts/10-linux/**
@@ -45,6 +48,9 @@ dot_wslconfig
 ## Ghostty
 .config/ghostty/**
 ## Linux folders
+.config/mpm/**
+.config/systemd/**
+.local/libexec/**
 .local/share/ansible-configuration-chezmoi/**
 ## Linux/macOS scripts
 .chezmoiscripts/10-linux/**

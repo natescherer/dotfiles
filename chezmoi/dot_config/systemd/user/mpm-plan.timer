@@ -1,0 +1,11 @@
+[Unit]
+Description=Check for package updates with mpm at login and daily
+
+[Timer]
+OnStartupSec=2min
+OnCalendar=*-*-* 09:00
+# Runs at the next login when the machine was off at the scheduled time
+Persistent=true
+
+[Install]
+WantedBy=timers.target

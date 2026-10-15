@@ -59,13 +59,17 @@ eval "$(sheldon --profile default source)"
 # Activate fzf
 source <(fzf --zsh)
 
-{{ if eq .chezmoi.os "darwin" -}}
-# Surface how many updates the mpm-plan LaunchAgent found (it only checks; installing is manual)
+{{ if or (eq .chezmoi.os "darwin") (eq .chezmoi.os "linux") -}}
+# Surface how many updates the mpm-plan check found (it only checks; installing is manual)
 () {
   local error_file="$HOME/.cache/mpm/plan.error"
   if [[ -r "$error_file" ]]; then
     print -P "%F{red}%B⚠ mpm-plan check failed%b%f %F{bright-black}($(<"$error_file"))%f"
+{{- if eq .chezmoi.os "darwin" }}
     print -P "%F{bright-black}  It retries daily; run 'launchctl kickstart gui/\$UID/local.mpm-plan' to retry now%f"
+{{- else }}
+    print -P "%F{bright-black}  It retries daily; run 'systemctl --user start mpm-plan.service' to retry now%f"
+{{- end }}
     return
   fi
 

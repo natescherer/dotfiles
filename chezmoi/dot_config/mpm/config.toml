@@ -1,0 +1,3 @@
+[mpm]
+# Only check and upgrade Homebrew formulae; snaps refresh themselves and apt is left to Ubuntu
+brew = true

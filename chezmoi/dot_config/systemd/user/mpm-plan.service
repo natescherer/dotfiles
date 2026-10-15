@@ -1,0 +1,6 @@
+[Unit]
+Description=Check for package updates with mpm
+
+[Service]
+Type=oneshot
+ExecStart=%h/.local/libexec/mpm-plan.sh

@@ -1,0 +1,9 @@
+---
+# chezmoi manages the timer, its service, and the script it runs; this only turns the timer on.
+- name: Enable the mpm-plan update check timer
+  ansible.builtin.systemd_service:
+    name: mpm-plan.timer
+    scope: user
+    enabled: true
+    state: started
+    daemon_reload: true

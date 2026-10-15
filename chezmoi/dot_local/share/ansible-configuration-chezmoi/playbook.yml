@@ -40,3 +40,7 @@
     - ansible.builtin.include_role:
         name: wallpaper
       tags: wallpaper
+
+    - ansible.builtin.include_role:
+        name: mpm_plan
+      tags: mpm_plan
