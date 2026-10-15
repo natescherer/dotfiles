@@ -1,0 +1,100 @@
+---
+# Same flow as the macOS role: write the force-install policy, then run Chrome in the background
+# until the apps install, repairing any URL-named placeholders along the way.
+- name: Check whether Chrome is installed
+  ansible.builtin.stat:
+    path: /opt/google/chrome/chrome
+  register: chrome_app
+
+- name: Decide whether there are PWAs to install
+  ansible.builtin.set_fact:
+    chrome_pwas_enabled: "{{ chrome_app.stat.exists and chrome_web_apps | length > 0 }}"
+
+- name: Ensure Chrome's managed policy directory exists
+  ansible.builtin.file:
+    path: /etc/opt/chrome/policies/managed
+    state: directory
+    mode: "0755"
+  become: true
+  when: chrome_pwas_enabled
+
+# A forced install: Chrome shows "managed by your organization" and the apps can't be removed the
+# normal way, in exchange for real, manifest-named installs from a script.
+- name: Force-install PWAs in Chrome
+  ansible.builtin.copy:
+    dest: /etc/opt/chrome/policies/managed/chezmoi-pwas.json
+    content: "{{ {'WebAppInstallForceList': chrome_web_apps} | to_nice_json }}\n"
+    mode: "0644"
+  become: true
+  register: chrome_policy
+  when: chrome_pwas_enabled
+
+# Each installed PWA gets a launcher in the user's applications directory.
+- name: Find installed PWA launchers
+  ansible.builtin.find:
+    paths: "{{ ansible_facts.env.HOME }}/.local/share/applications"
+    patterns: chrome-*-Default.desktop
+  register: chrome_existing_pwas
+  when: chrome_pwas_enabled
+
+# Gated on install count as well as policy changes, so a PWA that never finished installing keeps
+# getting retried.
+- name: Determine whether Chrome needs to (re)attempt installing PWAs
+  ansible.builtin.set_fact:
+    chrome_pwas_need_attempt: "{{ chrome_policy is changed or chrome_existing_pwas.matched < chrome_web_apps | length }}"
+  when: chrome_pwas_enabled
+
+# Chrome only acts on the policy while running. --no-startup-window loads the profile without
+# opening a window.
+- name: Launch Chrome in the background so it installs the forced PWAs
+  ansible.builtin.shell: nohup google-chrome --no-startup-window >/dev/null 2>&1 &
+  when: chrome_pwas_need_attempt | default(false) | bool
+  changed_when: true
+
+- name: Wait for Chrome's initial install attempt to finish
+  ansible.builtin.find:
+    paths: "{{ ansible_facts.env.HOME }}/.local/share/applications"
+    patterns: chrome-*-Default.desktop
+  register: chrome_installed_pwas
+  until: chrome_installed_pwas.matched >= chrome_web_apps | length
+  retries: 24
+  delay: 5
+  when: chrome_pwas_need_attempt | default(false) | bool
+  failed_when: false
+
+# A failed background install leaves a placeholder named after its install URL. Loading that URL
+# in a tab makes Chrome replace it with the real app.
+- name: Check for placeholder PWA installs
+  ansible.builtin.find:
+    paths: "{{ ansible_facts.env.HOME }}/.local/share/applications"
+    patterns: chrome-*-Default.desktop
+    contains: "^Name=https?://"
+    read_whole_file: true
+  register: chrome_placeholder_pwas
+  when: chrome_pwas_need_attempt | default(false) | bool
+
+- name: Open install URLs in tabs so Chrome replaces the placeholders
+  ansible.builtin.shell: >-
+    nohup google-chrome {{ chrome_web_apps | map(attribute='url') | map('quote') | join(' ') }}
+    >/dev/null 2>&1 &
+  when: (chrome_pwas_need_attempt | default(false) | bool) and chrome_placeholder_pwas.matched | default(0) > 0
+  changed_when: true
+
+- name: Wait for placeholders to be replaced by real apps
+  ansible.builtin.find:
+    paths: "{{ ansible_facts.env.HOME }}/.local/share/applications"
+    patterns: chrome-*-Default.desktop
+    contains: "^Name=https?://"
+    read_whole_file: true
+  register: chrome_remaining_placeholders
+  until: chrome_remaining_placeholders.matched == 0
+  retries: 24
+  delay: 5
+  when: (chrome_pwas_need_attempt | default(false) | bool) and chrome_placeholder_pwas.matched | default(0) > 0
+  failed_when: false
+
+- name: Quit Chrome
+  ansible.builtin.command: pkill -x chrome
+  when: chrome_pwas_need_attempt | default(false) | bool
+  changed_when: true
+  failed_when: false

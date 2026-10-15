@@ -24,3 +24,7 @@
     - ansible.builtin.include_role:
         name: gnome_settings
       tags: gnome_settings
+
+    - ansible.builtin.include_role:
+        name: chrome_pwas
+      tags: chrome_pwas
