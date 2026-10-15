@@ -33,18 +33,6 @@
                 </dict>
                 <dict>
                     <key>BundleIdentifier</key>
-                    <string>com.google.Chrome</string>
-                    <key>NotificationsEnabled</key>
-                    <true/>
-                </dict>
-                <dict>
-                    <key>BundleIdentifier</key>
-                    <string>com.google.Chrome.framework.AlertNotificationService</string>
-                    <key>NotificationsEnabled</key>
-                    <true/>
-                </dict>
-                <dict>
-                    <key>BundleIdentifier</key>
                     <string>com.hnc.Discord</string>
                     <key>NotificationsEnabled</key>
                     <true/>

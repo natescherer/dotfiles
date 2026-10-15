@@ -55,12 +55,6 @@ Currently managed:
 - [Go](https://https://go.dev/) 🐧 🍎 🪟
   - Config Files
     - [chezmoi/.chezmoidata/env-vars.toml](chezmoi/.chezmoidata/env-vars.toml)
-- [Google Chrome](https://www.google.com/chrome/) 🐧 🍎 🪟
-  - Notes
-    - Dedicated PWA host (kept separate from the daily browsers, and ships Widevine DRM); the PWA list in [chezmoi/.chezmoidata/pwas.toml](chezmoi/.chezmoidata/pwas.toml) is force-installed via the `WebAppInstallForceList` policy on every platform
-    - Notification permissions are pre-granted via a configuration profile, since macOS has no supported way to grant them silently. Installed via script [chezmoi/.chezmoiscripts/30-macos/run_onchange_profiles-importer.sh.tmpl](chezmoi/.chezmoiscripts/30-macos/run_onchange_profiles-importer.sh.tmpl)
-  - Config Files
-    - [chezmoi/.scriptdata/macos-profiles/notifications.mobileconfig](chezmoi/.scriptdata/macos-profiles/notifications.mobileconfig)
 - [k9s](https://github.com/derailed/k9s) 🐧 🍎 🪟
   - Config Files
     - [chezmoi/dot_config/k9s/config.yaml.tmpl](chezmoi/dot_config/k9s/config.yaml.tmpl)
@@ -119,6 +113,16 @@ Currently managed:
   - Config Files
     - [chezmoi/dot_zshenv.tmpl](chezmoi/dot_zshenv.tmpl)
     - [chezmoi/dot_ssh/config.tmpl](chezmoi/dot_ssh/config.tmpl)
+- [PWAsForFirefox](https://pwasforfirefox.filips.si/) 🐧 🍎 🪟
+  - Notes
+    - Installs the PWA list in [chezmoi/.chezmoidata/pwas.toml](chezmoi/.chezmoidata/pwas.toml) as standalone apps on a separate Firefox runtime with Widevine DRM, in a dedicated `pwas` profile; apps that leave the list are uninstalled
+    - Personal machines only, when the OS configuration is applied
+  - Config Files
+    - [chezmoi/.chezmoidata/pwas.toml](chezmoi/.chezmoidata/pwas.toml)
+    - [chezmoi/AppData/Local/WindowsWorkstationDSC/pwa-install.ps1](chezmoi/AppData/Local/WindowsWorkstationDSC/pwa-install.ps1)
+      - Standalone Windows installer, run by [chezmoi/.chezmoiscripts/41-windows/run_onchange_after_pwa-install.ps1.tmpl](chezmoi/.chezmoiscripts/41-windows/run_onchange_after_pwa-install.ps1.tmpl)
+    - [chezmoi/.chezmoiscripts/90-all/run_onchange_after_pwa-install.sh.tmpl](chezmoi/.chezmoiscripts/90-all/run_onchange_after_pwa-install.sh.tmpl)
+      - macOS and Linux installer
 - [Sheldon](https://github.com/rossmacarthur/sheldon) 🐧 🍎
   - Config Files
     - [chezmoi/dot_config/sheldon/plugins.toml](chezmoi/dot_config/sheldon/plugins.toml)

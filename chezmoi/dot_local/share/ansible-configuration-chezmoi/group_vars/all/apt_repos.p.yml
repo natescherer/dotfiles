@@ -22,9 +22,5 @@ apt_repos_personal:
       - proton-vpn-gnome-desktop
 
 apt_debs_personal:
-  # A .deb rather than the snap: Chrome only reads managed policies (PWA force-installs) from
-  # /etc/opt/chrome. Its postinst adds Google's apt repo, which handles updates from then on.
-  - package: google-chrome-stable
-    url: https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
   - package: proton-mail
     url: https://proton.me/download/mail/linux/ProtonMail-desktop-beta.deb
