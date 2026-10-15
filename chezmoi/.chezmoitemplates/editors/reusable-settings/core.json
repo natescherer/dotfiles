@@ -69,7 +69,6 @@
         "GitHub.vscode-pull-request-github",
         "Anthropic.claude-code"
     ],
-    "ryl.importStrategy": "useBundled",
     "scm.alwaysShowActions": true,
     "search.showLineNumbers": true,
     "search.useIgnoreFiles": false,
