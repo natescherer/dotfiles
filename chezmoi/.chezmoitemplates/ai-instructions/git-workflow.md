@@ -13,8 +13,11 @@
   stacked series), give each one its own branch off `main` rather than
   stacking multiple commits on one branch so they can land in any order
   without one PR depending on another. Before creating each new branch,
-  `git checkout main && git pull` first, since an earlier branch in the same
-  batch may already have been merged.
+  `git checkout main && git pull` first.
+- After each commit+push, wait until I've merged that commit to `main` before
+  starting the next change: check `origin/main` for it, then pull `main` and
+  branch (or rebase any in-progress branch) from there. Don't stack a branch
+  on an unmerged one to get ahead.
 - Proposing a commit message inside a longer summary is **not** approval to
   commit. Print the full proposed message as its own block (e.g. a code
   fence), then wait for a distinct yes, don't infer approval from the
