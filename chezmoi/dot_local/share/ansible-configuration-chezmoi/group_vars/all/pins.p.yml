@@ -4,7 +4,7 @@
 #
 # Apps pinned to the Dock, left to right. This replaces the whole favorites list, including
 # Ubuntu's defaults. Entries are .desktop file ids (snaps use <snap>_<app>.desktop), or
-# {pwa: <name>} for a Chrome PWA, whose id is generated at install time.
+# {pwa: <name>} for a PWAsForFirefox app, whose id is generated at install time.
 dock_pinned_apps:
   - org.gnome.Settings.desktop
   - org.gnome.SystemMonitor.desktop

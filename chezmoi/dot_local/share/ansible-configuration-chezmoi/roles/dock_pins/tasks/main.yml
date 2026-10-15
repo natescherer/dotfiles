@@ -2,7 +2,7 @@
 - name: Find launchers for pinned PWAs
   ansible.builtin.find:
     paths: "{{ ansible_facts.env.HOME }}/.local/share/applications"
-    patterns: chrome-*-Default.desktop
+    patterns: FFPWA-*.desktop
     # Without read_whole_file, the pattern is matched from the start of each line.
     contains: "Name={{ item.pwa | regex_escape }}$"
   loop: "{{ dock_pinned_apps | select('mapping') | list }}"
