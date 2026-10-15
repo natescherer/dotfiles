@@ -68,8 +68,8 @@
   ansible.builtin.find:
     paths: "{{ ansible_facts.env.HOME }}/.local/share/applications"
     patterns: chrome-*-Default.desktop
-    contains: "^Name=https?://"
-    read_whole_file: true
+    # Without read_whole_file, the pattern is matched from the start of each line.
+    contains: "Name=https?://"
   register: chrome_placeholder_pwas
   when: chrome_pwas_need_attempt | default(false) | bool
 
@@ -84,8 +84,7 @@
   ansible.builtin.find:
     paths: "{{ ansible_facts.env.HOME }}/.local/share/applications"
     patterns: chrome-*-Default.desktop
-    contains: "^Name=https?://"
-    read_whole_file: true
+    contains: "Name=https?://"
   register: chrome_remaining_placeholders
   until: chrome_remaining_placeholders.matched == 0
   retries: 24
