@@ -1,0 +1,94 @@
+---
+# Values are GVariant text: strings need their own single quotes inside the YAML string.
+#
+# color-scheme: dark mode for libadwaita/GTK4 apps; gtk-theme covers GTK3 apps.
+# overlay-scrolling false: always show scroll bars.
+- name: Configure appearance
+  community.general.dconf:
+    key: "/org/gnome/desktop/interface/{{ item.key }}"
+    value: "{{ item.value }}"
+    state: present
+  loop:
+    - { key: color-scheme, value: "'prefer-dark'" }
+    - { key: gtk-theme, value: "'Yaru-dark'" }
+    - { key: overlay-scrolling, value: "false" }
+    - { key: show-battery-percentage, value: "true" }
+
+# Requires Location Services (Settings > Privacy > Location) to take effect.
+- name: Set time zone automatically using current location
+  community.general.dconf:
+    key: /org/gnome/desktop/datetime/automatic-timezone
+    value: "true"
+    state: present
+
+# Ubuntu Dock is a build of Dash to Dock. dock-fixed true keeps it from autohiding.
+- name: Configure Dock behavior
+  community.general.dconf:
+    key: "/org/gnome/shell/extensions/dash-to-dock/{{ item.key }}"
+    value: "{{ item.value }}"
+    state: present
+  loop:
+    - { key: dash-max-icon-size, value: "44" }
+    - { key: dock-fixed, value: "true" }
+
+# Files reads hidden-file and folder-sorting preferences from the GTK4 file chooser schema.
+- name: Configure Files behavior
+  community.general.dconf:
+    key: "{{ item.key }}"
+    value: "{{ item.value }}"
+    state: present
+  loop:
+    - { key: /org/gnome/nautilus/preferences/default-folder-viewer, value: "'list-view'" }
+    - { key: /org/gtk/gtk4/settings/file-chooser/show-hidden, value: "true" }
+    - { key: /org/gtk/gtk4/settings/file-chooser/sort-directories-first, value: "true" }
+
+# accel-profile flat turns off pointer acceleration.
+- name: Configure pointing devices
+  community.general.dconf:
+    key: "{{ item.key }}"
+    value: "{{ item.value }}"
+    state: present
+  loop:
+    - { key: /org/gnome/desktop/peripherals/touchpad/tap-to-click, value: "true" }
+    - { key: /org/gnome/desktop/peripherals/mouse/accel-profile, value: "'flat'" }
+
+# report-technical-problems also controls Ubuntu's crash reporting (apport/whoopsie).
+- name: Disable problem reporting and usage statistics
+  community.general.dconf:
+    key: "/org/gnome/desktop/privacy/{{ item }}"
+    value: "false"
+    state: present
+  loop:
+    - report-technical-problems
+    - send-software-usage-stats
+
+- name: Prevent idle sleep on power adapter
+  community.general.dconf:
+    key: /org/gnome/settings-daemon/plugins/power/sleep-inactive-ac-type
+    value: "'nothing'"
+    state: present
+
+- name: Create logind drop-in directory
+  ansible.builtin.file:
+    path: /etc/systemd/logind.conf.d
+    state: directory
+    mode: "0755"
+  become: true
+
+# Keeps the machine awake with the lid closed on power, so it stays reachable. Restarting logind
+# would end the desktop session, so this takes effect at next boot.
+- name: Ignore lid close on power adapter
+  ansible.builtin.copy:
+    dest: /etc/systemd/logind.conf.d/50-chezmoi.conf
+    content: |
+      [Login]
+      HandleLidSwitchExternalPower=ignore
+    mode: "0644"
+  become: true
+
+# Personal machines only. ufw's defaults deny incoming and allow outgoing traffic.
+- name: Enable the firewall
+  community.general.ufw:
+    state: enabled
+  become: true
+  when: is_personal_machine
