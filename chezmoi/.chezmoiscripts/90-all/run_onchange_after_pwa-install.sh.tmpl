@@ -1,0 +1,169 @@
+#!/usr/bin/env bash
+
+# Installs the PWAs in .chezmoidata/pwas.toml as standalone apps with PWAsForFirefox, which runs
+# them on a separate Firefox runtime with Widevine DRM. Every app goes into one dedicated
+# PWAsForFirefox profile, so the DRM component is set up once; apps in that profile that are no
+# longer listed get uninstalled. Idempotent: apps are matched to list entries by URL, and only
+# missing ones are installed. The Windows counterpart is the WindowsWorkstationDSC pwa-install
+# script.
+#
+# In 90-all rather than 20-linux-and-macos so it runs after the OS configuration (the macOS
+# Ansible run in 30-macos, the Ubuntu one in 10-linux) installs PWAsForFirefox.
+
+{{- /* The embedded list doubles as the run_onchange_ trigger: this script's rendered content
+     changes whenever the list does. */}}
+{{- $pwas := list }}
+{{- range .pwas.entries }}
+{{- if not (has $.chezmoi.os (index . "ignore_on" | default list)) }}
+{{- $pwas = append $pwas (omit . "ignore_on") }}
+{{- end }}
+{{- end }}
+
+set -uo pipefail
+
+PwasJson='{{ $pwas | toJson | replace "'" "'\\''" }}'
+ProfileName=pwas
+# Some sites serve a stripped page (or no <link> tags) to unrecognized clients
+UserAgent='Mozilla/5.0 (X11; Linux x86_64; rv:140.0) Gecko/20100101 Firefox/140.0'
+
+{{ if eq .chezmoi.os "darwin" -}}
+UserDataDir="$HOME/Library/Application Support/firefoxpwa"
+RuntimeExe="$UserDataDir/runtime/Firefox.app"
+{{- else -}}
+UserDataDir="${XDG_DATA_HOME:-$HOME/.local/share}/firefoxpwa"
+RuntimeExe="$UserDataDir/runtime/firefox"
+{{- end }}
+ConfigPath="$UserDataDir/config.json"
+
+# chezmoi's environment may predate Homebrew's shell setup
+export PATH="/opt/homebrew/bin:/home/linuxbrew/.linuxbrew/bin:$PATH"
+
+echo -e "\033[1;32m\nInstalling PWAs...\033[0m"
+
+if ! command -v firefoxpwa >/dev/null 2>&1; then
+  echo -e "\033[1;33mWarning: PWAsForFirefox (firefoxpwa) isn't installed; skipping PWAs. Install it with 'brew install firefoxpwa', then rerun 'chezmoi apply'.\033[0m"
+  exit 1
+fi
+
+# Runs firefoxpwa and prints its output without color codes; on failure, reports it to stderr.
+firefoxpwa_quiet() {
+  local output
+  if ! output=$(firefoxpwa "$@" 2>&1); then
+    echo -e "\033[0;31mfirefoxpwa $1 $2 failed:\n$output\033[0m" >&2
+    return 1
+  fi
+  printf '%s\n' "$output" | sed $'s/\x1b\\[[0-9;]*m//g'
+}
+
+# PWAsForFirefox stores URLs normalized (lowercase host, trailing slash on a bare origin).
+url_key() {
+  printf '%s' "$1" | sed 's:/*$::' | tr '[:upper:]' '[:lower:]'
+}
+
+# Resolves an href against the page URL.
+absolute_url() {
+  local base=$1 href=$2 origin
+  origin=$(printf '%s' "$base" | sed -E 's#^([a-z]+://[^/]+).*#\1#')
+  case "$href" in
+    http://* | https://*) printf '%s' "$href" ;;
+    //*) printf 'https:%s' "$href" ;;
+    /*) printf '%s%s' "$origin" "$href" ;;
+    *) printf '%s/%s' "$(printf '%s' "$base" | sed 's:/[^/]*$::')" "$href" ;;
+  esac
+}
+
+# Prints the href of the first <link> whose rel matches $2.
+link_href() {
+  printf '%s' "$1" | grep -oiE '<link[^>]*>' | grep -iE "rel=[\"']?$2([\"' >]|$)" | head -1 |
+    grep -oiE "href=[\"'][^\"']+" | cut -c7-
+}
+
+# Finds the site's manifest the way the browser does: a <link rel="manifest"> in the page. Sites
+# without one get a minimal manifest as a data: URL, which the CLI accepts with --document-url.
+# Prints the manifest URL, then a line with the icon URL to use (empty for a real manifest).
+resolve_manifest() {
+  local url=$1 name=$2 html href icon manifest
+  # Best-effort: bot checks (e.g. Cloudflare) can block a scripted fetch, which just means no
+  # manifest or icon is found here; the app itself loads the page in a real browser engine.
+  html=$(curl -fsSL -A "$UserAgent" --max-time 20 "$url" 2>/dev/null || true)
+
+  href=$(link_href "$html" manifest)
+  if [ -n "$href" ]; then
+    absolute_url "$url" "$href"
+    printf '\n\n'
+    return
+  fi
+
+  href=$(link_href "$html" apple-touch-icon)
+  if [ -n "$href" ]; then
+    icon=$(absolute_url "$url" "$href")
+  else
+    icon=$(absolute_url "$url" /favicon.ico)
+  fi
+  [ -n "$name" ] || name=$(printf '%s' "$url" | sed -E 's#^[a-z]+://([^/]+).*#\1#')
+  manifest=$(jq -cn --arg name "$name" --arg url "$url" \
+    '{name: $name, start_url: $url, scope: $url, display: "standalone"}')
+  printf 'data:application/manifest+json;base64,%s\n%s\n' "$(printf '%s' "$manifest" | base64 | tr -d '\n')" "$icon"
+}
+
+if [ ! -e "$RuntimeExe" ]; then
+  echo -e "\033[1;36mInstalling the PWAsForFirefox runtime...\033[0m"
+  firefoxpwa_quiet runtime install >/dev/null || exit 1
+fi
+
+profile_id() {
+  [ -r "$ConfigPath" ] || return 0
+  jq -r --arg name "$ProfileName" '[.profiles[] | select(.name == $name)][0].ulid // empty' "$ConfigPath"
+}
+
+ProfileId=$(profile_id)
+if [ -z "$ProfileId" ]; then
+  echo -e "\033[1;36mCreating PWAsForFirefox profile '$ProfileName'...\033[0m"
+  output=$(firefoxpwa_quiet profile create --name "$ProfileName" --description 'PWAs managed by chezmoi') || exit 1
+  ProfileId=$(printf '%s' "$output" | grep -oE 'Profile created: [0-9A-Z]{26}' | grep -oE '[0-9A-Z]{26}$')
+  if [ -z "$ProfileId" ]; then
+    echo -e "\033[0;31mCouldn't find the profile ID in:\n$output\033[0m" >&2
+    exit 1
+  fi
+fi
+
+# "<url key>\t<site id>" for each app already in the profile
+installed=$(jq -r --arg profile "$ProfileId" \
+  '.profiles[$profile].sites[]? as $id | .sites[$id] | "\(.config.document_url)\t\($id)"' "$ConfigPath" |
+  while IFS=$'\t' read -r url id; do printf '%s\t%s\n' "$(url_key "$url")" "$id"; done)
+wanted=$(printf '%s' "$PwasJson" | jq -r '.[].url' | while read -r url; do url_key "$url"; echo; done)
+
+failed=0
+changed=0
+
+# Fields are split on the unit separator: tab is IFS whitespace, so empty fields would collapse.
+while IFS=$'\x1f' read -r url name icon_url; do
+  if printf '%s\n' "$installed" | cut -f1 | grep -qxF "$(url_key "$url")"; then
+    continue
+  fi
+  changed=1
+  echo -e "\033[1;36mInstalling $url...\033[0m"
+  { read -r manifest_url; read -r resolved_icon; } < <(resolve_manifest "$url" "$name")
+  args=(site install "$manifest_url" --document-url "$url" --profile "$ProfileId")
+  [ -n "$name" ] && args+=(--name "$name")
+  icon=${icon_url:-$resolved_icon}
+  [ -n "$icon" ] && args+=(--icon-url "$icon")
+  firefoxpwa_quiet "${args[@]}" >/dev/null || failed=1
+done < <(printf '%s' "$PwasJson" | jq -r '.[] | [.url, .name // "", .icon_url // ""] | join("\u001f")')
+
+while IFS=$'\t' read -r key id; do
+  [ -n "$key" ] || continue
+  if printf '%s\n' "$wanted" | grep -qxF "$key"; then
+    continue
+  fi
+  changed=1
+  echo -e "\033[1;36mUninstalling $key (no longer listed)...\033[0m"
+  firefoxpwa_quiet site uninstall "$id" --quiet >/dev/null || failed=1
+done <<< "$installed"
+
+if [ "$changed" -eq 0 ]; then
+  echo -e "\033[2;37mAll PWAs are already installed.\033[0m"
+fi
+
+# Non-zero makes chezmoi retry this run_onchange_ script on the next apply.
+exit "$failed"

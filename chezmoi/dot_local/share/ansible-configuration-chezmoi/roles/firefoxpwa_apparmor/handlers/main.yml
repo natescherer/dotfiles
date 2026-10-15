@@ -1,0 +1,5 @@
+---
+- name: Reload the PWAsForFirefox AppArmor profile
+  ansible.builtin.command: apparmor_parser -r /etc/apparmor.d/firefoxpwa
+  become: true
+  changed_when: true

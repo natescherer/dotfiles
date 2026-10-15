@@ -1,0 +1,7 @@
+{{- $pwas := list }}
+{{- range .pwas.entries }}
+{{- if not (has "windows" (index . "ignore_on" | default list)) }}
+{{- $pwas = append $pwas (omit . "ignore_on") }}
+{{- end }}
+{{- end }}
+{{- $pwas | toPrettyJson }}

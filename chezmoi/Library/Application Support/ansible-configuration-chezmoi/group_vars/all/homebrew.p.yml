@@ -3,6 +3,7 @@
 # .chezmoiignore.tmpl (see AppData/Local/winget-configuration-chezmoi/README.md
 # for the "p" tag convention this mirrors).
 homebrew_formulas_personal:
+  - firefoxpwa
   - proton-pass-cli
 
 homebrew_casks_personal:

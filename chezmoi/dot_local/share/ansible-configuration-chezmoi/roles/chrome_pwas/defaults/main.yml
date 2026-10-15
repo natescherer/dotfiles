@@ -1,3 +1,0 @@
----
-# chrome_web_apps comes from a personal-only vars file; this keeps the role a no-op without it.
-chrome_web_apps: []

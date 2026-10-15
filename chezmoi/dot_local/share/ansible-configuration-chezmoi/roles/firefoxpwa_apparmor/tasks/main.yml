@@ -1,0 +1,20 @@
+---
+# Ubuntu only lets Firefox's sandbox use unprivileged user namespaces under an AppArmor profile.
+# The stock Firefox profile doesn't cover the PWAsForFirefox runtime in the user's home, so it
+# gets its own unconfined profile, which just names it. Personal machines only, like the PWAs.
+- name: Allow the PWAsForFirefox runtime's sandbox
+  ansible.builtin.copy:
+    dest: /etc/apparmor.d/firefoxpwa
+    content: |
+      abi <abi/4.0>,
+      include <tunables/global>
+
+      profile firefoxpwa {{ ansible_facts.env.HOME }}/.local/share/firefoxpwa/runtime/{firefox,firefox-bin,updater} flags=(unconfined) {
+        userns,
+
+        include if exists <local/firefox>
+      }
+    mode: "0644"
+  become: true
+  when: is_personal_machine
+  notify: Reload the PWAsForFirefox AppArmor profile

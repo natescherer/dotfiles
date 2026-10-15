@@ -1,52 +1,43 @@
 [pwas]
 
-# PWAs to force-install into Chrome (macOS, Windows, and Linux all use the same browser for this) via the
-# WebAppInstallForceList enterprise policy. Each entry accepts any key
-# WebAppInstallForceList supports -- see https://chromeenterprise.google/policies/#WebAppInstallForceList
+# PWAs to install as standalone apps with PWAsForFirefox (https://pwasforfirefox.filips.si), which
+# runs them on a separate Firefox runtime with Widevine DRM. Every platform installs this same list
+# into a dedicated PWAsForFirefox profile, and removes apps from that profile once they leave it.
 #
-# Name and icon come from the site's web app manifest; only set custom_name/custom_icon when the
-# site has no manifest (some streaming sites omit one to push their native app instead), since
-# without one the entry falls back to the page's <title> as its name. A failed background install
-# (redirect, timeout, browser quit mid-load) instead produces a URL-named placeholder with no icon;
-# the macOS and Ubuntu chrome_pwas roles and the Windows pwa-install script all detect placeholders and
-# reload the install URL to swap in the real app -- that repair can't help the no-manifest case
-# above, since there's no manifest name to recover.
-#
-# ignore_on is an optional array of .chezmoi.os values ("darwin", "linux", "windows"); the templates that
-# consume this data filter out entries on a matching OS (and strip the key before it reaches the
-# actual WebAppInstallForceList payload -- Chrome doesn't know about it).
+# Keys:
+# - url: the page the app opens. Its <link rel="manifest"> supplies the name and icon.
+# - name: required for sites with no manifest, which get a minimal generated one; otherwise the app
+#   would be named after the site's host. Overrides the manifest's name when set.
+# - icon_url: an icon for sites with no manifest, when their apple-touch-icon or favicon.ico isn't
+#   good enough.
+# - ignore_on: an optional array of .chezmoi.os values ("darwin", "linux", "windows") to skip the
+#   entry on.
+
 [[pwas.entries]]
 url = "https://www.appletv.com"
-default_launch_container = "window"
 ignore_on = ["darwin", "linux", "windows"]
 
 [[pwas.entries]]
 url = "https://www.disneyplus.com"
-default_launch_container = "window"
 
 [[pwas.entries]]
 url = "https://nebula.tv"
-default_launch_container = "window"
 
 [[pwas.entries]]
 url = "https://www.netflix.com"
-default_launch_container = "window"
-custom_name = "Netflix"
+name = "Netflix"
 
 [[pwas.entries]]
 url = "https://www.paramountplus.com"
-default_launch_container = "window"
+name = "Paramount+"
 
 [[pwas.entries]]
 url = "https://www.peacocktv.com"
-default_launch_container = "window"
-custom_name = "Peacock"
+name = "Peacock"
 
 [[pwas.entries]]
 url = "https://www.primevideo.com"
-default_launch_container = "window"
-custom_name = "Prime Video"
+name = "Prime Video"
 
 [[pwas.entries]]
 url = "https://www.youtube.com"
-default_launch_container = "window"

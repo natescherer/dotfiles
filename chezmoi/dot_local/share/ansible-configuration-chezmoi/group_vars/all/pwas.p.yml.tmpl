@@ -1,7 +1,0 @@
----
-# PWAs to install in Chrome via the WebAppInstallForceList policy, sourced from the shared PWA list
-# in .chezmoidata so every platform force-installs the same apps.
-# Personal-only: excluded on non-personal machines via .chezmoiignore.tmpl.
-# {{ $pwas := list }}{{ range .pwas.entries }}{{ if not (has "linux" (index . "ignore_on" | default list)) }}{{ $pwas = append $pwas (omit . "ignore_on") }}{{ end }}{{ end }}
-chrome_web_apps:
-{{ $pwas | toYaml | trimSuffix "\n" | indent 2 }}

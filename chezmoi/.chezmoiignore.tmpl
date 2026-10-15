@@ -60,6 +60,7 @@ dot_wslconfig
 .chezmoiscripts/30-macos/**
 .chezmoiscripts/91-macos/**
 .chezmoiscripts/00-all/mise-checker.sh
+.chezmoiscripts/90-all/pwa-install.sh
 ## macOS folders
 Library/**
 ## Sheldon config
@@ -76,7 +77,6 @@ Library/**
 git/gh/**
 ## Skip winget configuration tagged as personal
 AppData/Local/winget-configuration-chezmoi/*.{p,ep}.winget*
-.chezmoiscripts/41-windows/pwa-install.ps1
 .chezmoiscripts/40-windows/office-install.ps1
 ## Skip ansible var files tagged as personal
 Library/Application Support/ansible-configuration-chezmoi/group_vars/all/*.p.yml*
@@ -88,6 +88,14 @@ Library/Application Support/ansible-configuration-chezmoi/group_vars/all/*.p.yml
 AppData/Local/winget-configuration-chezmoi/*.{e,ep}.winget*
 {{- end }}
 
+{{- if or (not .isPersonal) (not .applyOSConfig) (not .adminRights) }}
+# Skip PWAs: personal-only, and PWAsForFirefox is only installed by the OS configuration, which
+# needs admin rights
+AppData/Local/WindowsWorkstationDSC/pwas.json
+.chezmoiscripts/41-windows/pwa-install.ps1
+.chezmoiscripts/90-all/pwa-install.sh
+{{- end }}
+
 {{- if ne .computerModel "Late 2025 Gaming Desktop" }}
 AppData/Local/winget-configuration-chezmoi/*late2025gamingdesktop.*.winget*
 {{- end }}
@@ -96,7 +104,6 @@ AppData/Local/winget-configuration-chezmoi/*late2025gamingdesktop.*.winget*
 {{- if eq .chezmoi.os "windows" }}
 .chezmoiscripts/40-windows/winget-configure.ps1
 .chezmoiscripts/40-windows/office-install.ps1
-.chezmoiscripts/41-windows/pwa-install.ps1
 .chezmoiscripts/41-windows/taskbar-pins.ps1
 .chezmoiscripts/41-windows/tray-pins.ps1
 .chezmoiscripts/41-windows/desktop-icons.ps1

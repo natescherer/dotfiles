@@ -14,7 +14,6 @@
 # {{/* Hashes below make this run_onchange_ script rerun when any *.winget[.tmpl] file
 #      changes. Squeezed onto one line so "#" it all out to avoid pwsh parser errors */}}
 # {{ "\n" }}{{ range $wingetConfigFiles }}## {{ base . }} hash: {{ include . | sha256sum }}{{ "\n" }}{{ end -}}
-## pwas.toml hash: {{ joinPath .chezmoi.sourceDir ".chezmoidata/pwas.toml" | include | sha256sum }}
 
 # Whether to stop as soon as a configuration file leaves a reboot pending, and resume at next
 # logon. When $false, every file is applied in one run and a pending reboot is only reported at

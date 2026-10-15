@@ -42,10 +42,6 @@
           tags: mac_app_store
 
         - ansible.builtin.include_role:
-            name: chrome_pwas
-          tags: chrome_pwas
-
-        - ansible.builtin.include_role:
             name: macos_settings
           tags: macos_settings
 
