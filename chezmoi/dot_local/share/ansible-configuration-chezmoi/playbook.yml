@@ -1,0 +1,14 @@
+---
+- name: Build a new Ubuntu desktop
+  hosts: ubuntu
+  connection: local
+  gather_facts: true
+
+  tasks:
+    - ansible.builtin.include_role:
+        name: apt_base
+      tags: apt_base
+
+    - ansible.builtin.include_role:
+        name: homebrew
+      tags: homebrew

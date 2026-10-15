@@ -1,0 +1,4 @@
+---
+# Personal-only Homebrew formulas. Excluded on non-personal machines via .chezmoiignore.tmpl.
+homebrew_formulas_personal:
+  - proton-pass-cli

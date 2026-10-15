@@ -1,0 +1,67 @@
+#!/usr/bin/env bash
+
+# Applies the vendored Ansible playbook that declaratively configures this Ubuntu desktop. Installs
+# Ansible and its Galaxy dependencies if missing, then runs `ansible-playbook -K` once; Ansible
+# prompts for the sudo password a single time and reuses it for every become task.
+#
+# As on macOS, ansible-playbook is idempotent with a reliable exit code, so the run_onchange_ gate
+# (rerun only when the vendored playbook changes) is the only skip logic needed.
+
+{{- $ansibleDir := print .chezmoi.sourceDir "/dot_local/share/ansible-configuration-chezmoi" -}}
+{{- $ansibleFiles := list -}}
+{{- range joinPath $ansibleDir "**" | glob | sortAlpha -}}
+{{- if not (stat .).isDir -}}
+{{- $ansibleFiles = append $ansibleFiles . -}}
+{{- end -}}
+{{- end }}
+#
+# Hashes below make this script rerun whenever any vendored playbook file changes.
+{{ range $ansibleFiles -}}
+## {{ trimPrefix (print $ansibleDir "/") . }} hash: {{ include . | sha256sum }}
+{{ end -}}
+
+{{ if not .adminRights -}}
+echo -e "\033[1;33m\nSkipping Ubuntu Ansible configuration: this account doesn't have sudo rights (adminRights is false). Re-run 'chezmoi init' with adminRights set to true once it does.\033[0m"
+exit 0
+{{- end }}
+
+set -euo pipefail
+
+# The playbook targets one release; guard against running it after a dist upgrade.
+. /etc/os-release
+if [ "${ID:-}" != "ubuntu" ] || [ "${VERSION_ID:-}" != "26.04" ]; then
+  echo -e "\033[1;33m\nSkipping Ubuntu Ansible configuration: it targets Ubuntu 26.04, but this is ${PRETTY_NAME:-an unknown OS}.\033[0m"
+  exit 0
+fi
+
+# Piping through `tee` below makes brew/ansible think stdout isn't a terminal, which normally
+# disables their colored output; force it back on.
+export HOMEBREW_COLOR=1
+export ANSIBLE_FORCE_COLOR=1
+
+echo -e "\033[1;32m\nApplying Ubuntu configuration via ansible-playbook...\033[0m"
+
+TargetDir="$HOME/.local/share/ansible-configuration-chezmoi"
+LogFile="$TargetDir/ansible-playbook.log"
+echo "Run started $(date '+%Y-%m-%d %H:%M:%S')" > "$LogFile"
+
+Brew=/home/linuxbrew/.linuxbrew/bin/brew
+if ! command -v ansible-playbook >/dev/null 2>&1; then
+  if [ ! -x "$Brew" ]; then
+    echo -e "\033[0;31mansible-playbook not found, and neither is Homebrew to install it with. Install Homebrew as described in the README, then rerun 'chezmoi apply'.\033[0m" >&2
+    exit 1
+  fi
+  echo -e "\033[1;36mansible-playbook not found; installing via 'brew install ansible'...\033[0m"
+  "$Brew" install ansible 2>&1 | tee -a "$LogFile"
+  eval "$("$Brew" shellenv bash)"
+fi
+
+cd "$TargetDir"
+
+echo -e "\033[1;32m\nInstalling/updating required Ansible Galaxy collections...\033[0m"
+ansible-galaxy collection install -r requirements.yml 2>&1 | tee -a "$LogFile"
+
+echo -e "\033[1;32m\nRunning ansible-playbook; you will be prompted for your sudo password...\033[0m"
+ansible-playbook playbook.yml -K 2>&1 | tee -a "$LogFile"
+
+echo -e "\033[1;32m\nUbuntu configuration applied.\033[0m"

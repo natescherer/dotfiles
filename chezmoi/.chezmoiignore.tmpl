@@ -23,6 +23,8 @@ dot_wslconfig
 
 {{- if eq .chezmoi.os "darwin" }}
 # Ignore on macOS
+## Linux folders
+.local/share/ansible-configuration-chezmoi/**
 ## Linux scripts
 .chezmoiscripts/10-linux/**
 ## Windows folders/files
@@ -42,6 +44,8 @@ dot_wslconfig
 # Ignore on Windows
 ## Ghostty
 .config/ghostty/**
+## Linux folders
+.local/share/ansible-configuration-chezmoi/**
 ## Linux/macOS scripts
 .chezmoiscripts/10-linux/**
 .chezmoiscripts/20-linux-and-macos/**
@@ -68,6 +72,7 @@ AppData/Local/winget-configuration-chezmoi/*.{p,ep}.winget*
 .chezmoiscripts/40-windows/office-install.ps1
 ## Skip ansible var files tagged as personal
 Library/Application Support/ansible-configuration-chezmoi/group_vars/all/*.p.yml*
+.local/share/ansible-configuration-chezmoi/group_vars/all/*.p.yml*
 {{- end }}
 
 {{- if eq .adminRights false }}
@@ -97,5 +102,10 @@ AppData/Local/winget-configuration-chezmoi/*late2025gamingdesktop.*.winget*
 .chezmoiscripts/30-macos/profiles-importer.sh
 # Skip the setup checklist (its manual steps only apply once the rest of the OS config has run)
 .chezmoiscripts/91-macos/setup-checklist.sh
+{{- end }}
+{{- if eq .chezmoi.os "linux" }}
+# Skip the Ansible playbook and applying it
+.local/share/ansible-configuration-chezmoi/**
+.chezmoiscripts/10-linux/ansible-configure.sh
 {{- end }}
 {{- end }}

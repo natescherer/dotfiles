@@ -12,15 +12,25 @@
 {{- end }}
 {{- $adminRights := promptBoolOnce . "adminRights" $adminRightsPrompt false }}
 
+{{- /* The Linux playbook targets Ubuntu 26.04 Desktop only: not WSL, servers, or other distros */}}
+{{- $isUbuntuDesktop := false }}
+{{- if eq .chezmoi.os "linux" }}
+{{- if and (eq (.chezmoi.osRelease.id | default "") "ubuntu") (eq (.chezmoi.osRelease.versionID | default "") "26.04") (not (.chezmoi.kernel.osrelease | default "" | lower | contains "microsoft")) (lookPath "gnome-shell") }}
+{{- $isUbuntuDesktop = true }}
+{{- end }}
+{{- end }}
+
 {{- $applyOSConfigPrompt := "" }}
 {{- if eq .chezmoi.os "windows" }}
 {{- $applyOSConfigPrompt = "Apply WinGet Configuration files to declaratively configure this Windows machine? (Enter for default)" }}
 {{- else if eq .chezmoi.os "darwin" }}
 {{- $applyOSConfigPrompt = "Apply Ansible playbook to declaratively configure this Mac? (Enter for default)" }}
+{{- else if $isUbuntuDesktop }}
+{{- $applyOSConfigPrompt = "Apply Ansible playbook to declaratively configure this Ubuntu desktop? (Enter for default)" }}
 {{- end }}
 
 {{- $applyOSConfig := false }}
-{{- if or (eq .chezmoi.os "windows") (eq .chezmoi.os "darwin") }}
+{{- if or (eq .chezmoi.os "windows") (eq .chezmoi.os "darwin") $isUbuntuDesktop }}
 {{- $applyOSConfig = promptBoolOnce . "applyOSConfig" $applyOSConfigPrompt false }}
 {{- end }}
 

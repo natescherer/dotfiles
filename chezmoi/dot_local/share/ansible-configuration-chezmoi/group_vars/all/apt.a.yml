@@ -1,0 +1,20 @@
+---
+# System packages from the Ubuntu archive. User-level CLI tools come from Homebrew instead.
+apt_packages:
+  # Homebrew on Linux prerequisites
+  - build-essential
+  - curl
+  - file
+  - git
+  - procps
+  # Bindings the apt, deb822_repository, and dconf modules need
+  - dconf-cli
+  - python3-debian
+  - python3-gi
+  - python3-psutil
+  # Used by other roles and scripts
+  - libnotify-bin
+  - pinentry-gnome3
+  - ufw
+  - xdg-utils
+  - zsh

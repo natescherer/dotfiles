@@ -1,0 +1,13 @@
+---
+# Formulas (CLI tools). Casks are macOS-only; GUI apps come from snaps and vendor apt repos.
+homebrew_formulas:
+  - chezmoi
+  - fzf
+  - git-delta
+  - jq
+  - meta-package-manager
+  - micro
+  - mise
+  - sheldon
+  - starship
+  - yq

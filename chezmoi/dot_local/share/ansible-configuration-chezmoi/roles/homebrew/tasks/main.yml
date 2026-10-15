@@ -1,0 +1,31 @@
+---
+- name: Check whether Homebrew is already installed
+  ansible.builtin.stat:
+    path: /home/linuxbrew/.linuxbrew/bin/brew
+  register: homebrew_bin
+
+# The installer only needs sudo to create its prefix, and NONINTERACTIVE=1 requires that sudo be
+# passwordless. Creating the prefix up front, owned by this user, lets it run unprivileged.
+- name: Create the Homebrew prefix
+  ansible.builtin.file:
+    path: /home/linuxbrew/.linuxbrew
+    state: directory
+    owner: "{{ ansible_facts.user_uid }}"
+    group: "{{ ansible_facts.user_gid }}"
+    mode: "0755"
+  become: true
+  when: not homebrew_bin.stat.exists
+
+- name: Install Homebrew
+  ansible.builtin.shell: |
+    NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+  when: not homebrew_bin.stat.exists
+  register: homebrew_install
+  changed_when: homebrew_install.rc == 0
+
+- name: Install Homebrew formulas
+  community.general.homebrew:
+    name: "{{ homebrew_formulas + (homebrew_formulas_personal | default([])) }}"
+    state: present
+  environment:
+    PATH: "/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:{{ ansible_facts.env.PATH }}"
