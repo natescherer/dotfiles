@@ -1,0 +1,44 @@
+---
+- name: Add vendor apt repositories
+  ansible.builtin.deb822_repository:
+    name: "{{ item.name }}"
+    uris: "{{ item.uris }}"
+    suites: "{{ item.suites }}"
+    components: "{{ item.components }}"
+    signed_by: "{{ item.signed_by }}"
+  loop: "{{ apt_repos_personal | default([]) }}"
+  loop_control:
+    label: "{{ item.name }}"
+  register: apt_repos_added
+  become: true
+
+- name: Install packages from vendor apt repositories
+  ansible.builtin.apt:
+    name: "{{ apt_repos_personal | default([]) | map(attribute='packages') | flatten }}"
+    state: present
+    update_cache: "{{ apt_repos_added is changed }}"
+  when: apt_repos_personal | default([]) | length > 0
+  become: true
+
+- name: Gather installed package versions
+  ansible.builtin.package_facts:
+
+# Installs a .deb when it's missing, or when its pinned version differs from the installed one.
+- name: Install vendor .deb packages
+  ansible.builtin.apt:
+    deb: "{{ item.url | replace('{version}', item.version | default('')) }}"
+  loop: "{{ apt_debs + (apt_debs_personal | default([])) }}"
+  loop_control:
+    label: "{{ item.package }}"
+  when: >-
+    item.package not in ansible_facts.packages
+    or (item.version is defined and ansible_facts.packages[item.package][0].version != item.version)
+  become: true
+
+- name: Let this user run Docker without sudo
+  ansible.builtin.user:
+    name: "{{ ansible_facts.user_id }}"
+    groups: docker
+    append: true
+  when: "'docker' in (apt_repos_personal | default([]) | map(attribute='name'))"
+  become: true

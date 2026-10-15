@@ -33,7 +33,8 @@
       "customType": "regex",
       "description": "Values annotated with a preceding '# renovate: ...' comment giving datasource+depName(+registryUrl), tracking the 'key: \"value\"' line right after it",
       "managerFilePatterns": [
-        "chezmoi/AppData/Local/exact_winget-configuration-chezmoi/2.pwsh.a.winget"
+        "chezmoi/AppData/Local/exact_winget-configuration-chezmoi/2.pwsh.a.winget",
+        "chezmoi/dot_local/share/ansible-configuration-chezmoi/group_vars/all/apt_repos.a.yml"
       ],
       "matchStrings": [
         "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)( registryUrl=(?<registryUrl>\\S+))?\\s*\\n\\s*version: \"(?<currentValue>[^\"]+)\""

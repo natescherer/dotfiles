@@ -1,0 +1,30 @@
+---
+# Personal-only vendor apt repos and .deb packages. Excluded on non-personal machines via
+# .chezmoiignore.tmpl.
+apt_repos_personal:
+  - name: docker
+    uris: https://download.docker.com/linux/ubuntu
+    suites: "{{ ansible_facts.distribution_release }}"
+    components: stable
+    signed_by: https://download.docker.com/linux/ubuntu/gpg
+    packages:
+      - containerd.io
+      - docker-buildx-plugin
+      - docker-ce
+      - docker-ce-cli
+      - docker-compose-plugin
+  - name: protonvpn
+    uris: https://repo.protonvpn.com/debian
+    suites: stable
+    components: main
+    signed_by: https://repo.protonvpn.com/debian/public_key.asc
+    packages:
+      - proton-vpn-gnome-desktop
+
+apt_debs_personal:
+  # A .deb rather than the snap: Chrome only reads managed policies (PWA force-installs) from
+  # /etc/opt/chrome. Its postinst adds Google's apt repo, which handles updates from then on.
+  - package: google-chrome-stable
+    url: https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+  - package: proton-mail
+    url: https://proton.me/download/mail/linux/ProtonMail-desktop-beta.deb

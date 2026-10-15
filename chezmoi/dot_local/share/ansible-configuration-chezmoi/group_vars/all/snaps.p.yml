@@ -1,0 +1,10 @@
+---
+# Personal-only snaps. Excluded on non-personal machines via .chezmoiignore.tmpl.
+snaps_personal:
+  - name: discord
+  - name: localsend
+  - name: obsidian
+    classic: true
+  - name: proton-pass
+  - name: slack
+  - name: ticktick

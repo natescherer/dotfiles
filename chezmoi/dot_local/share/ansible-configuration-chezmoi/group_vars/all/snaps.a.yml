@@ -1,0 +1,12 @@
+---
+# Snaps. classic: true for snaps published with classic confinement (unsandboxed), which the
+# Snap Store requires for those.
+snaps:
+  - name: brave
+  - name: code
+    classic: true
+  - name: codium
+    classic: true
+  - name: ghostty
+    classic: true
+  - name: vlc

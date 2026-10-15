@@ -1,0 +1,8 @@
+---
+# Vendor .deb packages with no apt repo. "{version}" in url is replaced with version; entries without
+# a version install the latest download once and are left to update themselves.
+apt_debs:
+  - package: gcm
+    # renovate: datasource=github-releases depName=git-ecosystem/git-credential-manager
+    version: "3.0.1"
+    url: https://github.com/git-ecosystem/git-credential-manager/releases/download/v{version}/gcm-linux-x64-{version}.deb

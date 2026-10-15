@@ -1,0 +1,11 @@
+---
+# One task per snap, since classic applies to every name in a single call.
+- name: Install snaps
+  community.general.snap:
+    name: "{{ item.name }}"
+    classic: "{{ item.classic | default(false) }}"
+    state: present
+  loop: "{{ snaps + (snaps_personal | default([])) }}"
+  loop_control:
+    label: "{{ item.name }}"
+  become: true

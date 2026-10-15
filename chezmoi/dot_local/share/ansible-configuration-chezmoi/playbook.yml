@@ -12,3 +12,11 @@
     - ansible.builtin.include_role:
         name: homebrew
       tags: homebrew
+
+    - ansible.builtin.include_role:
+        name: apt_repos
+      tags: apt_repos
+
+    - ansible.builtin.include_role:
+        name: snaps
+      tags: snaps
