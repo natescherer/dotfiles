@@ -55,9 +55,9 @@ Currently managed:
 - [Go](https://https://go.dev/) 🐧 🍎 🪟
   - Config Files
     - [chezmoi/.chezmoidata/env-vars.toml](chezmoi/.chezmoidata/env-vars.toml)
-- [Google Chrome](https://www.google.com/chrome/) 🍎 🪟
+- [Google Chrome](https://www.google.com/chrome/) 🐧 🍎 🪟
   - Notes
-    - Dedicated PWA host (kept separate from the daily browsers, and ships Widevine DRM); the PWA list in [chezmoi/.chezmoidata/pwas.toml](chezmoi/.chezmoidata/pwas.toml) is force-installed via the `WebAppInstallForceList` policy on both platforms
+    - Dedicated PWA host (kept separate from the daily browsers, and ships Widevine DRM); the PWA list in [chezmoi/.chezmoidata/pwas.toml](chezmoi/.chezmoidata/pwas.toml) is force-installed via the `WebAppInstallForceList` policy on every platform
     - Notification permissions are pre-granted via a configuration profile, since macOS has no supported way to grant them silently. Installed via script [chezmoi/.chezmoiscripts/30-macos/run_onchange_profiles-importer.sh.tmpl](chezmoi/.chezmoiscripts/30-macos/run_onchange_profiles-importer.sh.tmpl)
   - Config Files
     - [chezmoi/.scriptdata/macos-profiles/notifications.mobileconfig](chezmoi/.scriptdata/macos-profiles/notifications.mobileconfig)
@@ -77,12 +77,13 @@ Currently managed:
 - [mise](https://mise.jdx.dev) 🐧 🍎 🪟
   - Config Files
     - [chezmoi/dot_config/mise/config.toml](chezmoi/dot_config/mise/config.toml)
-- [mpm](https://github.com/kdeldycke/meta-package-manager) 🍎 🪟
+- [mpm](https://github.com/kdeldycke/meta-package-manager) 🐧 🍎 🪟
   - Notes
-    - Upgrade CLI that wraps many package managers, limited by its config to Homebrew formulae and casks on macOS and to winget on Windows. A LaunchAgent runs `mpm sync` and `mpm outdated` every 30 days (no privilege escalation; it refreshes package metadata but never installs anything) to cache a preview of pending updates, posts a notification, and zsh shows the number of pending updates (or a check-failed warning) at startup. Run `mpm sync && mpm outdated` to review them and `mpm upgrade` to install them.
+    - Upgrade CLI that wraps many package managers, limited by its config to Homebrew formulae and casks on macOS, Homebrew formulae on Linux, and winget on Windows. A LaunchAgent runs `mpm sync` and `mpm outdated` every 30 days (no privilege escalation; it refreshes package metadata but never installs anything) to cache a preview of pending updates, posts a notification, and zsh shows the number of pending updates (or a check-failed warning) at startup. Run `mpm sync && mpm outdated` to review them and `mpm upgrade` to install them.
     - LaunchAgents are (re)loaded by [chezmoi/.chezmoiscripts/30-macos/run_onchange_after_launchagents-loader.sh.tmpl](chezmoi/.chezmoiscripts/30-macos/run_onchange_after_launchagents-loader.sh.tmpl) whenever their content changes, since launchd otherwise only picks them up at login.
     - Also posts a [terminal-notifier](https://github.com/julienXX/terminal-notifier) notification on every run that finds pending updates or fails, so it's not tied to opening a terminal. Notification permissions are pre-granted via a configuration profile, since macOS has no supported way to grant them silently. Installed via script [chezmoi/.chezmoiscripts/30-macos/run_onchange_profiles-importer.sh.tmpl](chezmoi/.chezmoiscripts/30-macos/run_onchange_profiles-importer.sh.tmpl)
     - On Windows, mpm isn't in the winget catalog, so its standalone release binary is downloaded to `~/bin`. A Scheduled Task registered by the Winget Configuration runs the same check at logon and every 12h, posts a BurntToast notification, and the PowerShell profile shows the same startup notice.
+    - On Ubuntu, a systemd user timer enabled by the Ansible playbook runs the same check at login and daily, and posts a `notify-send` notification.
   - Config Files
     - [chezmoi/.chezmoiexternal.toml.tmpl](chezmoi/.chezmoiexternal.toml.tmpl)
     - [chezmoi/AppData/Local/exact_winget-configuration-chezmoi/3.mpm.a.winget](chezmoi/AppData/Local/exact_winget-configuration-chezmoi/3.mpm.a.winget)
@@ -92,6 +93,9 @@ Currently managed:
     - [chezmoi/Library/Application Support/ansible-configuration-chezmoi/group_vars/all/homebrew.a.yml](<chezmoi/Library/Application Support/ansible-configuration-chezmoi/group_vars/all/homebrew.a.yml>)
     - [chezmoi/Library/Application Support/mpm/config.toml](<chezmoi/Library/Application Support/mpm/config.toml>)
     - [chezmoi/Library/LaunchAgents/local.mpm-plan.plist](chezmoi/Library/LaunchAgents/local.mpm-plan.plist)
+    - [chezmoi/dot_config/mpm/config.toml](chezmoi/dot_config/mpm/config.toml)
+    - [chezmoi/dot_config/systemd/user](chezmoi/dot_config/systemd/user)
+    - [chezmoi/dot_local/libexec/executable_mpm-plan.sh](chezmoi/dot_local/libexec/executable_mpm-plan.sh)
     - [chezmoi/dot_config/zsh/dot_zshrc.tmpl](chezmoi/dot_config/zsh/dot_zshrc.tmpl)
     - [chezmoi/.scriptdata/macos-profiles/notifications.mobileconfig](chezmoi/.scriptdata/macos-profiles/notifications.mobileconfig)
 - [npm](https://www.npmjs.com/) 🐧 🍎 🪟
@@ -128,6 +132,12 @@ Currently managed:
   - Config Files
     - [chezmoi/.scriptdata/macos-defaults/eu.exelban.Stats.plist](chezmoi/.scriptdata/macos-defaults/eu.exelban.Stats.plist)
       - Note this is a non-editable binary file, made via `defaults export eu.exelban.Stats eu.exelban.Stats.plist`
+- [Ubuntu](https://ubuntu.com/desktop) 🐧
+  - Notes
+    - Ubuntu 26.04 Desktop only; other distros and WSL get dotfiles alone
+  - Config Files
+    - [chezmoi/dot_local/share/ansible-configuration-chezmoi](chezmoi/dot_local/share/ansible-configuration-chezmoi)
+    - [chezmoi/.chezmoiscripts/10-linux/run_onchange_after_ansible-configure.sh.tmpl](chezmoi/.chezmoiscripts/10-linux/run_onchange_after_ansible-configure.sh.tmpl)
 - [VSCodium](https://vscodium.com/) 🐧 🍎 🪟
   - Notes
     - Configured as a single, lightweight general-purpose profile; Visual Studio Code below covers the language-specific IDE profiles, since VSCodium's default Open VSX registry doesn't carry Microsoft's own extensions (Pylance, the Kubernetes tools, etc.)
@@ -199,6 +209,22 @@ chezmoi init --apply natescherer
 ```
 
 ### Linux
+
+#### Ubuntu 26.04 Desktop
+
+The Ansible playbook installs everything else and sets zsh as the login shell.
+
+```shell
+sudo apt-get install -y build-essential curl file git procps zsh
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv bash)"
+brew install chezmoi mise
+mise use -g python@latest
+eval "$(mise env -s bash)"
+chezmoi init --apply natescherer
+```
+
+#### Other Distros
 
 Install the following tools however is appropriate for your distro:
 

@@ -30,6 +30,7 @@ dot_wslconfig
 .local/share/ansible-configuration-chezmoi/**
 ## Linux scripts
 .chezmoiscripts/10-linux/**
+.chezmoiscripts/91-linux/**
 ## Windows folders/files
 AppData/**
 Documents/**
@@ -54,6 +55,7 @@ dot_wslconfig
 .local/share/ansible-configuration-chezmoi/**
 ## Linux/macOS scripts
 .chezmoiscripts/10-linux/**
+.chezmoiscripts/91-linux/**
 .chezmoiscripts/20-linux-and-macos/**
 .chezmoiscripts/30-macos/**
 .chezmoiscripts/91-macos/**
@@ -113,5 +115,7 @@ AppData/Local/winget-configuration-chezmoi/*late2025gamingdesktop.*.winget*
 # Skip the Ansible playbook and applying it
 .local/share/ansible-configuration-chezmoi/**
 .chezmoiscripts/10-linux/ansible-configure.sh
+# Skip the setup checklist (its manual steps only apply once the rest of the OS config has run)
+.chezmoiscripts/91-linux/setup-checklist.sh
 {{- end }}
 {{- end }}
