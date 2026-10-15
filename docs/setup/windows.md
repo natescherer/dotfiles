@@ -3,9 +3,12 @@
 ## Preflight
 
 1. Sign into Windows (if you made a local account) (and if you want to)
-1. Install core drivers/VMware Tools/etc
+1. Install core drivers
    - See [docs/drivers](../drivers) for known core driver configs for
      different machines
+1. (Optional, VMware VMs only) Install VMware Tools: in VMware Workstation,
+   choose `VM` > `Install VMware Tools`, then run `setup.exe` from the mounted
+   drive and reboot
 1. Ensure all Windows Updates are installed
 1. Open the Microsoft Store, click `Downloads`, then click
    `Check for updates`, and install all

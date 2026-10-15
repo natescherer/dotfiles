@@ -6,6 +6,12 @@ Ubuntu 26.04 Desktop only; for other distros and WSL, see
 ## Preflight
 
 1. Install Ubuntu 26.04 Desktop
+1. (Optional, VMware VMs only) Install VMware Tools:
+
+   ```shell
+   sudo apt-get install -y open-vm-tools-desktop
+   ```
+
 1. Install all updates, then reboot if prompted:
 
    ```shell
