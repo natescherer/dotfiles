@@ -36,3 +36,7 @@
     - ansible.builtin.include_role:
         name: dock_pins
       tags: dock_pins
+
+    - ansible.builtin.include_role:
+        name: wallpaper
+      tags: wallpaper

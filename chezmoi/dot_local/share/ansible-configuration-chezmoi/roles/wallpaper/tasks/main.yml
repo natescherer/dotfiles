@@ -1,0 +1,43 @@
+---
+# Sets the desktop wallpaper once, ever, like the other platforms: a sentinel file records that it
+# ran, so a wallpaper changed by hand later is left alone.
+- name: Determine wallpaper paths
+  ansible.builtin.set_fact:
+    wallpaper_sentinel_path: "{{ ansible_facts.env.HOME }}/.local/share/ansible-configuration-chezmoi/.wallpaper-set"
+    wallpaper_path: "{{ ansible_facts.env.HOME }}/Pictures/wallpaper-chezmoi/{{ wallpaper_image }}"
+
+- name: Check whether the wallpaper has already been set once
+  ansible.builtin.stat:
+    path: "{{ wallpaper_sentinel_path }}"
+  register: wallpaper_sentinel
+
+- name: Check whether the wallpaper image exists
+  ansible.builtin.stat:
+    path: "{{ wallpaper_path }}"
+  register: wallpaper_file
+  when: not wallpaper_sentinel.stat.exists
+
+# Without the image, the sentinel stays unwritten so a later run sets it once the image exists.
+- name: Warn about a missing wallpaper image
+  ansible.builtin.debug:
+    msg: "Not setting the wallpaper: {{ wallpaper_path }} doesn't exist"
+  when: not wallpaper_sentinel.stat.exists and not wallpaper_file.stat.exists
+
+# GNOME keeps separate wallpapers for light and dark mode.
+- name: Set desktop wallpaper
+  community.general.dconf:
+    key: "/org/gnome/desktop/background/{{ item }}"
+    value: "'file://{{ wallpaper_path }}'"
+    state: present
+  loop:
+    - picture-uri
+    - picture-uri-dark
+  when: not wallpaper_sentinel.stat.exists and wallpaper_file.stat.exists
+
+- name: Record that the wallpaper has been set
+  ansible.builtin.file:
+    path: "{{ wallpaper_sentinel_path }}"
+    state: touch
+    mode: "0644"
+  when: not wallpaper_sentinel.stat.exists and wallpaper_file.stat.exists
+  changed_when: true
