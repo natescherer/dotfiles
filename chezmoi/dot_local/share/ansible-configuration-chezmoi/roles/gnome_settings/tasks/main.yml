@@ -30,6 +30,7 @@
   loop:
     - { key: dash-max-icon-size, value: "44" }
     - { key: dock-fixed, value: "true" }
+    - { key: dock-position, value: "'BOTTOM'" }
 
 # Files reads hidden-file and folder-sorting preferences from the GTK4 file chooser schema.
 - name: Configure Files behavior
