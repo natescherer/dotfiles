@@ -64,6 +64,13 @@ cd "$TargetDir"
 echo -e "\033[1;32m\nInstalling/updating required Ansible Galaxy collections...\033[0m"
 ansible-galaxy collection install -r requirements.yml 2>&1 | tee -a "$LogFile"
 
+# Ansible becomes root through classic sudo (see the inventory), which Ubuntu ships as sudo.ws
+# alongside its default sudo-rs.
+if [ ! -x /usr/bin/sudo.ws ]; then
+  echo -e "\033[1;36m\nInstalling classic sudo for Ansible...\033[0m"
+  sudo apt-get install -y sudo 2>&1 | tee -a "$LogFile"
+fi
+
 echo -e "\033[1;32m\nRunning ansible-playbook; you will be prompted for your sudo password...\033[0m"
 ansible-playbook playbook.yml -K 2>&1 | tee -a "$LogFile"
 
