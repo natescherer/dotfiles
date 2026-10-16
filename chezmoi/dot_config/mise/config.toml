@@ -2,6 +2,7 @@
 
 [tools]
 "aqua:cli/cli" = "2.100.0"
+go = "1.27.2"
 python = "3.14.7"
 uv = "0.12.13"
 
