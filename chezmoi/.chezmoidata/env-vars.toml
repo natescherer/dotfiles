@@ -1,5 +1,5 @@
-# All variables specified in this file are included automatically in PowerShell and Zsh via these files:
-# PowerShell: chezmoi/Documents/PowerShell/env.ps1.tmpl
+# All variables specified in this file are included automatically in Windows and Zsh via these files:
+# Windows (user-scoped, every process): winget configuration's env vars file
 # Zsh: chezmoi/dot_zshenv.tmpl
 
 # Note that EDITOR is being set in the per-shell env files
