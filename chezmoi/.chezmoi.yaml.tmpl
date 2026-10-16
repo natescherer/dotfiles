@@ -69,7 +69,12 @@ interpreters:
     ps1:
         command: pwsh
 {{- end }}
+    # Through mise rather than a bare uv: on a first apply, mise installs uv after chezmoi has
+    # already started, so uv isn't on chezmoi's own PATH yet
     py:
-        command: uv
+        command: mise
         args:
+        - exec
+        - --
+        - uv
         - run
