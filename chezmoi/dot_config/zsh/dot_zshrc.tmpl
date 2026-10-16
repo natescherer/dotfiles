@@ -39,6 +39,9 @@ setopt HIST_REDUCE_BLANKS       # strip superfluous blanks
 setopt HIST_SAVE_NO_DUPS        # do not write duplicate entries to the history file
 setopt INC_APPEND_HISTORY       # don't wait for shell to exit to save history lines
 
+# Set other shell options
+setopt INTERACTIVE_COMMENTS     # allow comments in interactive shells
+
 # Source aliases
 source ${ZDOTDIR}/.zsh-aliases
 
