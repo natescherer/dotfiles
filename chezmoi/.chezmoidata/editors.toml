@@ -74,6 +74,15 @@ extensions = [
 ]
 
 [[vscode.profiles]]
+name = "Go"
+icon = "squirrel"
+settings_files = [".chezmoitemplates/editors/reusable-settings/core.json", ".chezmoitemplates/editors/profile-settings/go.json"]
+extension_sets = []
+extensions = [
+  "golang.go",  # Core extension for Go support, manages gopls and other tools
+]
+
+[[vscode.profiles]]
 name = "Kubernetes"
 icon = "server"
 settings_files = [".chezmoitemplates/editors/reusable-settings/core.json", ".chezmoitemplates/editors/profile-settings/python.json", ".chezmoitemplates/editors/profile-settings/kubernetes.json"]

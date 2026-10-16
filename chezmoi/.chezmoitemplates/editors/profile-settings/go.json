@@ -1,0 +1,9 @@
+{
+    "go.lintTool": "golangci-lint-v2",
+    "go.survey.prompt": false,
+    "go.toolsManagement.autoUpdate": true,
+    "gopls": {
+        "formatting.gofumpt": true,
+        "ui.semanticTokens": true
+    }
+}
