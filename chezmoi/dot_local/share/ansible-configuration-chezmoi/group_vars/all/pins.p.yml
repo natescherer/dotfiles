@@ -6,6 +6,7 @@
 # Ubuntu's defaults. Entries are .desktop file ids (snaps use <snap>_<app>.desktop), or
 # {pwa: <name>} for a PWAsForFirefox app, whose id is generated at install time.
 dock_pinned_apps:
+  - org.gnome.Nautilus.desktop
   - org.gnome.Settings.desktop
   - org.gnome.SystemMonitor.desktop
   - ghostty_ghostty.desktop
