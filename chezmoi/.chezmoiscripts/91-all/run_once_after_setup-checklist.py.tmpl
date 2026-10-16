@@ -1,0 +1,52 @@
+#!/usr/bin/env python3
+# Drops a Markdown checklist of manual post-setup steps on the Desktop; nothing opens it, since
+# anyone using this to deploy their own OS config can be trusted to know how to open a Markdown
+# file. The checklist itself is a shared template that branches per OS.
+#
+# run_once_: chezmoi records completion in its own state, keyed by this script's rendered
+# contents, so it only runs again if the checklist changes. The existence check below keeps a
+# rerun from clobbering a checklist (and any checked-off progress) that's still on the Desktop.
+#
+# Lives in 91-all, past every other script folder, so it's the last thing `chezmoi apply` does.
+
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+CHECKLIST = {{ includeTemplate "setup-checklist.md" . | toJson }}
+
+
+def desktop_dir() -> Path:
+    if sys.platform == "win32":
+        import winreg
+
+        # The Desktop can be redirected (e.g. by OneDrive), so read its real location
+        with winreg.OpenKey(
+            winreg.HKEY_CURRENT_USER,
+            r"Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders",
+        ) as key:
+            return Path(os.path.expandvars(winreg.QueryValueEx(key, "Desktop")[0]))
+    if sys.platform == "linux":
+        try:
+            result = subprocess.run(
+                ["xdg-user-dir", "DESKTOP"], capture_output=True, text=True, check=True
+            )
+            return Path(result.stdout.strip())
+        except (OSError, subprocess.CalledProcessError):
+            pass
+    return Path.home() / "Desktop"
+
+
+desktop_checklist = desktop_dir() / "SETUP-CHECKLIST.md"
+
+if desktop_checklist.exists():
+    print(
+        "\033[2;37m\nSetup checklist already exists on Desktop; leaving it (and any checked-off"
+        " progress) alone.\033[0m"
+    )
+    sys.exit(0)
+
+print("\033[1;32m\nCreating setup checklist on Desktop...\033[0m")
+desktop_checklist.parent.mkdir(parents=True, exist_ok=True)
+desktop_checklist.write_text(CHECKLIST, encoding="utf-8", newline="")
