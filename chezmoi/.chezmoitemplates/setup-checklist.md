@@ -15,7 +15,7 @@ file is only written once.
 {{- end }}
 - [ ] [Home Printer Drivers](https://epson.com/Support/Printers/All-In-Ones/ET-Series/Epson-ET-8500/s/SPT_C11CJ20201)
 {{- if eq $os "linux" }}
-- No Linux build: Claude, AnyList, Paprika (use their web apps)
+- No Linux build: AnyList, Paprika (use their web apps)
 {{- end }}
 
 ## Settings

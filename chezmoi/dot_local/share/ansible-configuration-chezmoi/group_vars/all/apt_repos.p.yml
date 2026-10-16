@@ -2,6 +2,13 @@
 # Personal-only vendor apt repos and .deb packages. Excluded on non-personal machines via
 # .chezmoiignore.tmpl.
 apt_repos_personal:
+  - name: claude-desktop
+    uris: https://downloads.claude.ai/claude-desktop/apt/stable
+    suites: stable
+    components: main
+    signed_by: https://downloads.claude.ai/claude-desktop/key.asc
+    packages:
+      - claude-desktop
   - name: docker
     uris: https://download.docker.com/linux/ubuntu
     suites: "{{ ansible_facts.distribution_release }}"

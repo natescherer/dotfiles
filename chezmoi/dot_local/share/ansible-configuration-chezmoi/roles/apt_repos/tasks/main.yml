@@ -12,6 +12,17 @@
   register: apt_repos_added
   become: true
 
+# claude-desktop otherwise registers its own copy of this repo, whose Signed-By differs from the
+# one above, and apt refuses to run with conflicting Signed-By values.
+- name: Keep claude-desktop from registering a duplicate apt repo
+  ansible.builtin.copy:
+    dest: /etc/default/claude-desktop
+    content: |
+      CLAUDE_DESKTOP_ADD_REPO="false"
+    mode: "0644"
+  when: "'claude-desktop' in (apt_repos_personal | default([]) | map(attribute='name'))"
+  become: true
+
 - name: Install packages from vendor apt repositories
   ansible.builtin.apt:
     name: "{{ apt_repos_personal | default([]) | map(attribute='packages') | flatten }}"
@@ -41,4 +52,13 @@
     groups: docker
     append: true
   when: "'docker' in (apt_repos_personal | default([]) | map(attribute='name'))"
+  become: true
+
+# Claude Desktop's Cowork VMs need /dev/vhost-vsock, which only kvm group members can open.
+- name: Let this user run Claude Desktop's Cowork VMs
+  ansible.builtin.user:
+    name: "{{ ansible_facts.user_id }}"
+    groups: kvm
+    append: true
+  when: "'claude-desktop' in (apt_repos_personal | default([]) | map(attribute='name'))"
   become: true
