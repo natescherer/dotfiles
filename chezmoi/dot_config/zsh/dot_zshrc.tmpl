@@ -1,5 +1,10 @@
 ## WARNING: This file is chezmoi-managed and should not be manually edited!
 
+{{ if findExecutable "brew" (list "/opt/homebrew/bin" "/home/linuxbrew/.linuxbrew/bin") -}}
+# Activate Homebrew (first: sheldon and other tools below come from it)
+eval "$({{ findExecutable "brew" (list "/opt/homebrew/bin" "/home/linuxbrew/.linuxbrew/bin") }} shellenv)"
+
+{{ end -}}
 # Activate sheldon (early: fpath-only plugins that must load before compinit)
 eval "$(sheldon --profile early source)"
 
@@ -40,11 +45,6 @@ source ${ZDOTDIR}/.zsh-aliases
 # Source local aliases (if present)
 [[ -r ${ZDOTDIR}/.zsh-aliases-local ]] && source ${ZDOTDIR}/.zsh-aliases-local
 
-{{ if findExecutable "brew" (list "/opt/homebrew/bin" "/home/linuxbrew/.linuxbrew/bin") -}}
-# Activate Homebrew
-eval "$({{ findExecutable "brew" (list "/opt/homebrew/bin" "/home/linuxbrew/.linuxbrew/bin") }} shellenv)"
-
-{{ end -}}
 {{ if lookPath "mise" -}}
 # Activate mise
 eval "$(mise activate zsh)"
