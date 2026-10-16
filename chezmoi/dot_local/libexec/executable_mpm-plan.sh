@@ -1,7 +1,7 @@
 #!/bin/sh
 
-# Checks for pending Homebrew updates (via mpm) and posts a notification when updates are pending or
-# the check fails. Only checks; installing is manual.
+# Checks for pending Homebrew and Flatpak updates (via mpm) and posts a notification when updates
+# are pending or the check fails. Only checks; installing is manual.
 # Run by the mpm-plan systemd user timer.
 
 # The systemd user manager's PATH lacks Homebrew, which mpm searches PATH for

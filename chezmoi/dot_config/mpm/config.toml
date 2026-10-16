@@ -1,3 +1,5 @@
 [mpm]
-# Only check and upgrade Homebrew formulae; snaps refresh themselves and apt is left to Ubuntu
+# Only check and upgrade Homebrew formulae and Flatpaks; snaps refresh themselves and apt is left to
+# Ubuntu
 brew = true
+flatpak = true
