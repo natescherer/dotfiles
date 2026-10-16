@@ -1,0 +1,22 @@
+---
+# Only for apps with no snap or vendor apt repo, so Flatpak is only set up when one is listed.
+- name: Install Flatpak apps
+  when: flatpaks_personal | length > 0
+  become: true
+  block:
+    - name: Install Flatpak
+      ansible.builtin.apt:
+        name: flatpak
+        state: present
+
+    - name: Add the Flathub remote
+      community.general.flatpak_remote:
+        name: flathub
+        flatpakrepo_url: https://dl.flathub.org/repo/flathub.flatpakrepo
+        state: present
+
+    - name: Install Flatpaks from Flathub
+      community.general.flatpak:
+        name: "{{ flatpaks_personal }}"
+        remote: flathub
+        state: present

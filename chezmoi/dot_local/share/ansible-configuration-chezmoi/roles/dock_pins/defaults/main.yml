@@ -2,8 +2,9 @@
 # dock_pinned_apps comes from a personal-only vars file; this keeps the role a no-op without it.
 dock_pinned_apps: []
 
-# Where installed .desktop files live: apt packages, snaps, and PWAsForFirefox apps.
+# Where installed .desktop files live: apt packages, snaps, Flatpaks, and PWAsForFirefox apps.
 dock_launcher_dirs:
   - /usr/share/applications
   - /var/lib/snapd/desktop/applications
+  - /var/lib/flatpak/exports/share/applications
   - "{{ ansible_facts.env.HOME }}/.local/share/applications"

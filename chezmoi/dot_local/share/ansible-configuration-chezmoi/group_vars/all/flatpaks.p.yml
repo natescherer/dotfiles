@@ -1,0 +1,5 @@
+---
+# Personal-only Flatpaks, by Flathub app ID. Excluded on non-personal machines via
+# .chezmoiignore.tmpl.
+flatpaks_personal:
+  - com.yubico.yauth

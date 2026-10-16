@@ -1,0 +1,3 @@
+---
+# flatpaks_personal comes from a personal-only vars file; this keeps the role a no-op without it.
+flatpaks_personal: []

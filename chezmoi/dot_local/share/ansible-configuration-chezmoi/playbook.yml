@@ -22,6 +22,10 @@
       tags: snaps
 
     - ansible.builtin.include_role:
+        name: flatpaks
+      tags: flatpaks
+
+    - ansible.builtin.include_role:
         name: gnome_settings
       tags: gnome_settings
 
