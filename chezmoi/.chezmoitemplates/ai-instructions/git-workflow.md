@@ -24,8 +24,7 @@
   absence of an objection to a summary that already contains the message.
 - Push the branch immediately after every `git commit`. No separate
   confirmation needed for the push itself. Opening the PR is still a separate
-  step, done only when asked (the usual pattern is the human opens/merges the
-  PR themselves).
+  step, done only when asked (usually I open and merge the PR myself).
 - After a commit+push, if there's no more queued work on that branch, switch
   back to `main` (and `git pull`) rather than leaving the session sitting on a
   finished feature branch.
@@ -35,4 +34,3 @@
 - Commit messages should follow Conventional Commits
   (commitlint/config-conventional) by default. A project's own AGENTS.md/CLAUDE.md
   convention takes precedence when it specifies one.
-- Never create or modify files under my home folder without asking first.
