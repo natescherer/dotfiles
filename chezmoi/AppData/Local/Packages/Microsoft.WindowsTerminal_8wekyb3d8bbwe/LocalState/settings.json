@@ -50,7 +50,6 @@
             "experimental.retroTerminalEffect": false,
             "font": 
             {
-                "builtinGlyphs": false,
                 "face": "Cascadia Mono NF"
             },
             "opacity": 90,
