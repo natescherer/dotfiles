@@ -39,6 +39,8 @@
 
         - ansible.builtin.include_role:
             name: mac_app_store
+          # macOS VMs can't sign in to the App Store.
+          when: not is_vm
           tags: mac_app_store
 
         - ansible.builtin.include_role:

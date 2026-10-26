@@ -35,7 +35,7 @@
 {{- end }}
 
 {{- $isVM := false }}
-{{- if eq .chezmoi.os "windows" }}
+{{- if or (eq .chezmoi.os "windows") (eq .chezmoi.os "darwin") }}
 {{- $isVM = promptBoolOnce . "isVM" "Is this a VM? (Enter for default)" false }}
 {{- end }}
 
