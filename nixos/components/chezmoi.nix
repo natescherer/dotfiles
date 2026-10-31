@@ -26,7 +26,7 @@
 in {
   # Wrapping the whole module in config = mkIf here (rather than gating each
   # option individually) means this component is a true no-op - no package,
-  # no service, no shell hook - whenever dotfilesRepo isn't set.
+  # no shell hook - whenever dotfilesRepo isn't set.
   config = lib.mkIf (dotfilesRepo != null) {
     environment.systemPackages = [pkgs.chezmoi];
 
@@ -35,44 +35,5 @@ in {
         cat ${nagMessage}
       fi
     '';
-
-    # Runs on every activation (boot, and every `nixos-rebuild switch`,
-    # including the ones nixos-fancy-updater runs on its own schedule).
-    system.activationScripts.chezmoiUpdate = ''
-      if [ -d ${lib.escapeShellArg chezmoiSourceDir} ]; then
-        ${pkgs.systemd}/bin/systemctl start --no-block chezmoi-update.service
-      fi
-    '';
-
-    systemd.services.chezmoi-update = {
-      description = "Pull and apply chezmoi-managed dotfiles for ${specialArgs.userName}";
-      after = ["network-online.target"];
-      wants = ["network-online.target"];
-      serviceConfig = {
-        Type = "oneshot";
-        User = specialArgs.userName;
-      };
-      # bash is included explicitly (not just pulled in transitively) since
-      # chezmoi.$OS run scripts commonly shebang `#!/usr/bin/env bash` -
-      # NixOS has no /bin/bash for a hardcoded `#!/bin/bash` to find, so
-      # scripts need the env-based form, and env needs bash on PATH to
-      # actually resolve it. mise is the interpreter for the dotfiles' Python
-      # scripts.
-      path = [pkgs.chezmoi pkgs.gitMinimal pkgs.bash pkgs.mise];
-      script = ''
-        set -euo pipefail
-        # Defensive: the activation script above only starts this once the
-        # source directory exists, but this stays safe if it's ever started
-        # manually (e.g. testing) before that.
-        if [ ! -d ${lib.escapeShellArg chezmoiSourceDir} ]; then
-          echo "chezmoi not yet initialized for ${specialArgs.userName}; skipping."
-          exit 0
-        fi
-        # --force: this runs unattended, so a local edit to a chezmoi-managed
-        # file since the last run must lose to the source repo rather than
-        # hang the service waiting on a prompt that will never be answered.
-        chezmoi update --force
-      '';
-    };
   };
 }

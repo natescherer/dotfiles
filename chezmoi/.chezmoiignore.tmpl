@@ -1,6 +1,27 @@
 # Ignore files that are processed by scripts
 .scriptdata/**
 
+{{- $isNixos := false }}
+{{- if eq .chezmoi.os "linux" }}
+{{- if eq (.chezmoi.osRelease.id | default "") "nixos" }}
+{{- $isNixos = true }}
+{{- end }}
+{{- end }}
+
+{{- if $isNixos }}
+# Ignore on NixOS, whose flake handles OS configuration and updates
+.local/share/ansible-configuration-chezmoi/**
+.chezmoiscripts/10-linux/ansible-configure.sh
+.config/mpm/**
+.config/systemd/**
+.local/libexec/**
+{{- end }}
+
+{{- if or (not $isNixos) (not .isPersonal) }}
+# Skip NixOS PWAs: personal-only, and other OSes install them through their own configuration
+.chezmoiscripts/10-linux/nixos-pwa-install.sh
+{{- end }}
+
 {{- if eq .chezmoi.os "linux" }}
 # Ignore on Linux
 ## macOS folders

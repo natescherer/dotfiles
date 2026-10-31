@@ -20,6 +20,14 @@
 {{- end }}
 {{- end }}
 
+{{- /* NixOS is configured by its flake, which has already run by the time chezmoi does */}}
+{{- $isNixos := false }}
+{{- if eq .chezmoi.os "linux" }}
+{{- if eq (.chezmoi.osRelease.id | default "") "nixos" }}
+{{- $isNixos = true }}
+{{- end }}
+{{- end }}
+
 {{- $applyOSConfigPrompt := "" }}
 {{- if eq .chezmoi.os "windows" }}
 {{- $applyOSConfigPrompt = "Apply WinGet Configuration files to declaratively configure this Windows machine? (Enter for default)" }}
@@ -32,6 +40,8 @@
 {{- $applyOSConfig := false }}
 {{- if or (eq .chezmoi.os "windows") (eq .chezmoi.os "darwin") $isUbuntuDesktop }}
 {{- $applyOSConfig = promptBoolOnce . "applyOSConfig" $applyOSConfigPrompt false }}
+{{- else if $isNixos }}
+{{- $applyOSConfig = true }}
 {{- end }}
 
 {{- $isVM := false }}

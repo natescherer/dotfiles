@@ -1,8 +1,14 @@
 {{- $os := .chezmoi.os -}}
 {{- $sep := "/" }}{{ if eq $os "windows" }}{{ $sep = "\\" }}{{ end -}}
-# {{ get (dict "darwin" "macOS" "linux" "Ubuntu" "windows" "Windows") $os }} Setup Checklist
+{{- $isNixos := false -}}
+{{- if eq $os "linux" -}}
+{{- if eq (.chezmoi.osRelease.id | default "") "nixos" -}}
+{{- $isNixos = true -}}
+{{- end -}}
+{{- end -}}
+# {{ if $isNixos }}NixOS{{ else }}{{ get (dict "darwin" "macOS" "linux" "Ubuntu" "windows" "Windows") $os }}{{ end }} Setup Checklist
 
-Manual steps that {{ if eq $os "windows" }}WinGet Configuration{{ else }}the Ansible playbook{{ end }} can't handle by itself. Check items off as you go; this
+Manual steps that {{ if eq $os "windows" }}WinGet Configuration{{ else if $isNixos }}the Nix flake{{ else }}the Ansible playbook{{ end }} can't handle by itself. Check items off as you go; this
 file is only written once.
 
 ## Finish Applying
@@ -67,6 +73,9 @@ file is only written once.
 
 - ncpa.cpl
   - [ ] Disable unneeded connections
+{{- else if $isNixos }}
+- **Bluetooth**
+  - [ ] Pair devices
 {{- else }}
 - **Privacy & Security > Location**
   - [ ] Turn on Location Services, so the time zone can be set automatically
@@ -78,8 +87,10 @@ file is only written once.
 
 ## Login and Setup
 
+{{ if not $isNixos -}}
 - [ ] Docker Desktop
   - [ ] Ensure socket is enabled
+{{ end -}}
 - [ ] Proton Pass Desktop
   - [ ] Open on Startup
   - [ ] Set unlock mode
