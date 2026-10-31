@@ -4,6 +4,8 @@
   specialArgs,
   ...
 }: {
+  imports = [../components/vmware-wayland-clipboard.nix];
+
   # Replaces a generated hardware configuration, covering the virtual disk and
   # USB controllers VMware presents.
   boot.initrd.availableKernelModules = ["nvme" "ahci" "sd_mod" "xhci_pci"];
