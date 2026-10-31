@@ -4,7 +4,8 @@
     "features": {
         "ghcr.io/devcontainers/features/nix:1": {
             // Packages option doesn't work, see https://github.com/devcontainers/features/issues/1573
-            "extraNixConfig": "experimental-features = nix-command flakes"
+            // Comma-separated nix.conf lines
+            "extraNixConfig": "experimental-features = nix-command flakes,trusted-users = root vscode"
         },
         "ghcr.io/devcontainers-extra/features/apt-packages:1": {
             "packages": "whois" // whois provides mkpasswd
