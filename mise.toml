@@ -11,6 +11,12 @@ run = '''
 #!/usr/bin/env bash
 set -euo pipefail
 
+# The flake's bootloader needs UEFI, and an install under BIOS succeeds but can't boot
+if ! ssh "nixos@$usage_address" test -d /sys/firmware/efi; then
+  echo "$usage_address isn't booted in UEFI mode, or SSH failed. Check its firmware type and connection." >&2
+  exit 1
+fi
+
 EXTRAFILESPATH=nixos-anywhere-extra-files
 KEYPATH=$EXTRAFILESPATH/etc/ssh/ssh_host_ed25519_key
 mkdir -p $(dirname $KEYPATH)
