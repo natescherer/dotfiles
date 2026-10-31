@@ -1,6 +1,7 @@
 {
   lib,
   pkgs,
+  specialArgs,
   ...
 }: {
   # Replaces a generated hardware configuration, covering the virtual disk and
@@ -16,6 +17,10 @@
       ln -s ${lib.getBin pkgs.fuse3}/bin/mount.fuse3 $out/bin/mount.fuse
     '')
   ];
+
+  # Numlock off in the guest makes host keyboard software pop up a toggle notice.
+  home-manager.users.${specialArgs.userName}.programs.plasma.input.keyboard.numlockOnStartup = "on";
+  services.displayManager.sddm.autoNumlock = true;
 
   virtualisation.vmware.guest = {
     enable = true;
