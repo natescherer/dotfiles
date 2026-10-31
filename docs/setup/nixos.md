@@ -39,16 +39,17 @@ Answer yes when asked whether your account has sudo rights.
 
 ## Updates
 
-- **System:** `nixos-fancy-updater` rebuilds daily when the flake changes.
-  Run `sudo nixos-fancy-updater` to check immediately.
+- **System:** run
+  `sudo nixos-rebuild switch --flake github:natescherer/dotfiles --refresh`.
+  Renovate updates the flake's `nixos-unstable` pin monthly.
 - **Dotfiles:** run `chezmoi update`.
 
 ## Secrets
 
-`nixos/secrets.yaml` holds the Apprise URL and each host's password hash, encrypted
-to one SSH key that every host shares as its host key. Edit it from the
-devcontainer with `sops nixos/secrets.yaml`. A new host needs its own
-`nate@<host>_passwordhash` entry, created with `mkpasswd -m yescrypt`.
+`nixos/secrets.yaml` holds each host's password hash, encrypted to one SSH key
+that every host shares as its host key. Edit it from the devcontainer with
+`sops nixos/secrets.yaml`. A new host needs its own `nate@<host>_passwordhash`
+entry, created with `mkpasswd -m yescrypt`.
 
 ## Known Gaps
 

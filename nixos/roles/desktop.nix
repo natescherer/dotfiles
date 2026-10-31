@@ -23,7 +23,7 @@
     {desktop = "firefox";}
     {desktop = "brave-browser";}
     {desktop = "ticktick";}
-    {desktop = "obsidian";}
+    {desktop = "md.obsidian.Obsidian";}
     {desktop = "codium";}
     {desktop = "code";}
   ];

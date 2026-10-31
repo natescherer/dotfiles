@@ -1,7 +1,6 @@
 {
   config,
   inputs,
-  options,
   pkgs,
   specialArgs,
   lib,
@@ -11,7 +10,6 @@
     inputs.sops-nix.nixosModules.sops
     ./disko/${specialArgs.diskoConfig}
     ./components/console.nix
-    ./components/nixos-fancy-updater.nix
     ./components/chezmoi.nix
   ];
 
@@ -44,10 +42,11 @@
     maxretry = 5;
   };
 
-  services.journald.extraConfig = ''
-    SystemMaxUse=200M
-    RuntimeMaxUse=50M
-  ''; # These settings optimize journal size to stay in RAM
+  # These settings optimize journal size to stay in RAM
+  services.journald.settings.Journal = {
+    SystemMaxUse = "200M";
+    RuntimeMaxUse = "50M";
+  };
 
   services.openssh = {
     enable = true;
@@ -64,28 +63,7 @@
   sops.environment.SOPS_AGE_SSH_PRIVATE_KEY_FILE = "/etc/ssh/ssh_host_ed25519_key";
   sops.defaultSopsFile = ./secrets.yaml;
   sops.defaultSopsFormat = "yaml";
-  sops.secrets.apprise_uri = {};
   sops.secrets."${specialArgs.userName}@${specialArgs.hostName}_passwordhash".neededForUsers = true;
-
-  services.nixos-fancy-updater = {
-    enable = true;
-    githubRepo = specialArgs.githubRepo;
-    flakeSubfolder = specialArgs.flakeSubfolder;
-    schedule = specialArgs.updateSchedule;
-    appriseUriFile = config.sops.secrets.apprise_uri.path;
-    # The flake shares its repo with dotfiles, whose commits shouldn't trigger
-    # a rebuild.
-    ignorePaths =
-      options.services.nixos-fancy-updater.ignorePaths.default
-      ++ [
-        "^chezmoi/"
-        "^helpers/"
-        "^init-"
-        "AGENTS\\.md$"
-        "TODO\\.md$"
-        "renovate\\.json$"
-      ];
-  };
 
   system.autoUpgrade.enable = false;
   system.stateVersion = "26.05";

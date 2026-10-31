@@ -1,10 +1,10 @@
 {
-  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
+  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
   inputs.disko.url = "github:nix-community/disko";
   inputs.disko.inputs.nixpkgs.follows = "nixpkgs";
   inputs.sops-nix.url = "github:Mic92/sops-nix";
   inputs.sops-nix.inputs.nixpkgs.follows = "nixpkgs";
-  inputs.home-manager.url = "github:nix-community/home-manager/release-26.05";
+  inputs.home-manager.url = "github:nix-community/home-manager";
   inputs.home-manager.inputs.nixpkgs.follows = "nixpkgs";
   inputs.plasma-manager.url = "github:nix-community/plasma-manager";
   inputs.plasma-manager.inputs.nixpkgs.follows = "nixpkgs";
@@ -26,13 +26,10 @@
       nixpkgs.lib.nixosSystem {
         specialArgs = {
           inherit inputs hostName isPersonal diskoDevice;
-          githubRepo = "natescherer/dotfiles";
-          flakeSubfolder = "";
           sshPublicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHlSrZZgdT/pS9UumSUX3xzQXiNgWyTMi7nFk5vhoEdm dotfiles-nixos-2610";
           userName = "nate";
           diskoConfig = "basic.nix";
           timeZone = "America/New_York";
-          updateSchedule = "*-*-* 6:00:00";
           dotfilesRepo = "natescherer/dotfiles";
         };
         inherit system;
