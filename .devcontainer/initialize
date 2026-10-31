@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+passItem=$(grep -v '^#' .devcontainer/pass-item.txt)
+
+trap 'rm -f .devcontainer/.env.ssh-key' ERR
+
+sshPrivateKeyB64=$(pass-cli item view "$passItem" | base64 | tr -d '\n')
+echo "SSH_PRIVATE_KEY_B64=$sshPrivateKeyB64" > .devcontainer/.env.ssh-key

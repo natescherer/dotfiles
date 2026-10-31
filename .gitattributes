@@ -1,4 +1,5 @@
 * text eol=lf
+*.cmd text eol=crlf
 
 # Binary files must never go through the line-ending normalization above: a JPEG or font file is
 # arbitrary binary data that can coincidentally contain byte pairs that look like CRLF, and the

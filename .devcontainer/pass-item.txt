@@ -1,0 +1,2 @@
+# Proton Pass item holding the NixOS SSH/age private key, as pass://VAULT/ITEM/FIELD
+pass://Personal/dotfiles-nixos-2610/private_key

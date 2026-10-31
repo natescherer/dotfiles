@@ -1,0 +1,24 @@
+[env]
+SOPS_AGE_SSH_PRIVATE_KEY_CMD = "{{config_root}}/.devcontainer/decode-ssh-key.sh"
+
+[tasks.nixos-install]
+description = "Install a nixosConfigurations host onto a machine booted from the NixOS installer"
+usage = '''
+arg "<host>" help="nixosConfigurations output, like nixos-vmw-wk"
+arg "<address>" help="Hostname or IP of the booted installer"
+'''
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+
+EXTRAFILESPATH=nixos-anywhere-extra-files
+KEYPATH=$EXTRAFILESPATH/etc/ssh/ssh_host_ed25519_key
+mkdir -p $(dirname $KEYPATH)
+eval $SOPS_AGE_SSH_PRIVATE_KEY_CMD > $KEYPATH
+chmod 600 $KEYPATH
+env -u SSH_AUTH_SOCK nixos-anywhere -i $KEYPATH --extra-files $EXTRAFILESPATH --build-on remote --flake ".#$usage_host" --target-host "nixos@$usage_address"
+rm -rf nixos-anywhere-extra-files
+'''
+
+[tools]
+sops = "3.13.3"

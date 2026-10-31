@@ -1,2 +1,6 @@
 .DS_Store
 Thumbs.db
+keys/*
+.devcontainer/.env.ssh-key
+*/.decrypted~secrets.yaml
+nixos-anywhere-extra-files

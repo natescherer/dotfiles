@@ -1,0 +1,59 @@
+{
+    "name": "dotfiles-nixos-devcontainer",
+    "image": "mcr.microsoft.com/devcontainers/base:debian",
+    "features": {
+        "ghcr.io/devcontainers/features/nix:1": {
+            // Packages option doesn't work, see https://github.com/devcontainers/features/issues/1573
+            "extraNixConfig": "experimental-features = nix-command flakes"
+        },
+        "ghcr.io/devcontainers-extra/features/apt-packages:1": {
+            "packages": "whois" // whois provides mkpasswd
+        },
+        "ghcr.io/devcontainers-extra/features/mise:1": {}
+    },
+    "runArgs": [
+        "--env-file",
+        ".devcontainer/.env.ssh-key"
+    ],
+    // Bind-mounts the host's own Claude config directory into the container, so
+    // the Claude Code extension's login survives "Rebuild Container".
+    // ${localEnv:HOME}${localEnv:USERPROFILE} is the standard devcontainer
+    // trick for "whichever of these is actually set" across Linux/macOS
+    // (HOME) vs Windows (USERPROFILE).
+    "mounts": [
+        "source=${localEnv:HOME}${localEnv:USERPROFILE}/.config/claude,target=/home/vscode/.config/claude,type=bind"
+    ],
+    "containerEnv": {
+        "CLAUDE_CONFIG_DIR": "/home/vscode/.config/claude"
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "anthropic.claude-code",
+                "hverlin.mise-vscode",
+                "jnoortheen.nix-ide",
+                "signageos.signageos-vscode-sops",
+                "tombi-toml.tombi"
+            ]
+        }
+    },
+    // This uses a neat hack from https://github.com/EliahKagan/portable-initialize
+    // The extensionless initialize is a bash script that runs on Linux/macOS;
+    // its .cmd sibling is a batch script that runs on Windows. Both fetch the
+    // NixOS SSH/age private key from Proton Pass on the host, base64-encode it
+    // (a raw multi-line key can't survive --env-file's one-line-per-var
+    // format), and write it to an env file as SSH_PRIVATE_KEY_B64. The sops
+    // key command in mise's config decodes it back on demand, so the raw key
+    // only ever exists in memory inside the container.
+    "initializeCommand": [
+        ".devcontainer/initialize"
+    ],
+    // Use the below to install dependencies that are only available in nixpkgs
+    "onCreateCommand": "nix-env -iA nixpkgs.alejandra nixpkgs.nixd nixpkgs.nixos-anywhere",
+    // Installs mise's [tools] up front, so they're ready before the mise-vscode
+    // extension activates. The extension only surfaces a clickable "install
+    // missing tools" prompt, so this runs it non-interactively instead.
+    "postCreateCommand": "mise trust && mise install",
+    // This cleans up the Proton Pass-derived credentials file after it's been loaded into the environment
+    "postStartCommand": "rm -f ./.devcontainer/.env.ssh-key"
+}
