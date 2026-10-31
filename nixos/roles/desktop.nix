@@ -26,6 +26,10 @@
     {desktop = "md.obsidian.Obsidian";}
     {desktop = "codium";}
     {desktop = "code";}
+    {
+      desktop = "FFPWA-${import ../components/pwa-ulid.nix {inherit lib;} "https://www.youtube.com"}";
+      package = pkgs.firefoxpwa;
+    }
   ];
   launchers =
     map (pin: "applications:${pin.desktop}.desktop")

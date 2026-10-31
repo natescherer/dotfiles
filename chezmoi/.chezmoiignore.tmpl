@@ -17,11 +17,6 @@
 .local/libexec/**
 {{- end }}
 
-{{- if or (not $isNixos) (not .isPersonal) }}
-# Skip NixOS PWAs: personal-only, and other OSes install them through their own configuration
-.chezmoiscripts/10-linux/nixos-pwa-install.sh
-{{- end }}
-
 {{- if eq .chezmoi.os "linux" }}
 # Ignore on Linux
 ## macOS folders

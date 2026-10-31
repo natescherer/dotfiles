@@ -1,8 +1,10 @@
 [pwas]
 
 # PWAs to install as standalone apps with PWAsForFirefox (https://pwasforfirefox.filips.si), which
-# runs them on a separate Firefox runtime with Widevine DRM. Every platform installs this same list
-# into a dedicated PWAsForFirefox profile, and removes apps from that profile once they leave it.
+# runs them on a separate Firefox runtime with Widevine DRM. macOS, Ubuntu, and Windows install this
+# list into a dedicated PWAsForFirefox profile, and remove apps from that profile once they leave it.
+# NixOS declares the same apps through its flake, which needs each entry to have a name and a committed
+# icon named after it.
 #
 # Keys:
 # - url: the page the app opens. Its <link rel="manifest"> supplies the name and icon.
@@ -19,9 +21,11 @@ ignore_on = ["darwin", "linux", "windows"]
 
 [[pwas.entries]]
 url = "https://www.disneyplus.com"
+name = "Disney+"
 
 [[pwas.entries]]
 url = "https://nebula.tv"
+name = "Nebula"
 
 [[pwas.entries]]
 url = "https://www.netflix.com"
@@ -41,3 +45,4 @@ name = "Prime Video"
 
 [[pwas.entries]]
 url = "https://www.youtube.com"
+name = "YouTube"

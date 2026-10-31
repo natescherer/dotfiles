@@ -129,6 +129,7 @@ Currently managed:
   - Notes
     - Installs the PWA list in [chezmoi/.chezmoidata/pwas.toml](chezmoi/.chezmoidata/pwas.toml) as standalone apps on a separate Firefox runtime with Widevine DRM, in a dedicated `pwas` profile; apps that leave the list are uninstalled
     - Personal machines only, when the OS configuration is applied
+    - NixOS declares the same list through Home Manager in [nixos/components/pwas.nix](nixos/components/pwas.nix); Firefox downloads Widevine on first DRM playback
   - Config Files
     - [chezmoi/.chezmoidata/pwas.toml](chezmoi/.chezmoidata/pwas.toml)
     - [chezmoi/AppData/Local/WindowsWorkstationDSC/pwa-install.ps1](chezmoi/AppData/Local/WindowsWorkstationDSC/pwa-install.ps1)

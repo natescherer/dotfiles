@@ -56,7 +56,6 @@ entry, created with `mkpasswd -m yescrypt`.
 - nixpkgs has no Claude Desktop package.
 - `nixos-vmw-fus` lacks Discord, Proton Mail, Proton Pass Desktop, and Slack, which
   have no aarch64 build.
-- The YouTube PWA has no panel pin, since its ID is generated at install.
 - Flat mouse acceleration and tap-to-click aren't set, since KWin stores them per
   input device.
 - Copying from the guest to the host covers text only, through a bridge service.
