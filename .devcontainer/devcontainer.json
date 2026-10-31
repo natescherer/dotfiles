@@ -26,6 +26,10 @@
     "containerEnv": {
         "CLAUDE_CONFIG_DIR": "/home/vscode/.config/claude"
     },
+    // Puts mise-managed tools on PATH in every shell, with no per-shell activation
+    "remoteEnv": {
+        "PATH": "${containerEnv:PATH}:/home/vscode/.local/share/mise/shims"
+    },
     "customizations": {
         "vscode": {
             "extensions": [

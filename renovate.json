@@ -43,6 +43,13 @@
     }
   ],
   "mise": {
-    "managerFilePatterns": ["chezmoi/dot_config/mise/config.toml"]
+    "managerFilePatterns": ["chezmoi/dot_config/mise/config.toml", "mise.toml"]
+  },
+  "nix": {
+    "enabled": true
+  },
+  "lockFileMaintenance": {
+    "enabled": true,
+    "schedule": ["* 0 1 * *"]
   }
 }

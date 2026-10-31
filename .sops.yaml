@@ -1,0 +1,7 @@
+keys:
+  - &primary ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHlSrZZgdT/pS9UumSUX3xzQXiNgWyTMi7nFk5vhoEdm dotfiles-nixos-2610
+creation_rules:
+  - path_regex: nixos/secrets\.yaml$
+    key_groups:
+    - age:
+      - *primary
