@@ -16,6 +16,9 @@ in {
   config = lib.mkIf (specialArgs.isPersonal && lib.meta.availableOn pkgs.stdenv.hostPlatform pkgs.firefoxpwa) {
     home-manager.users.${specialArgs.userName}.programs.firefoxpwa = {
       enable = true;
+      # On Wayland, Plasma files these windows under regular Firefox, even though
+      # KWin reports the right desktop entry. XWayland keeps each app separate.
+      settings.variables.MOZ_ENABLE_WAYLAND = "0";
       profiles.${ulid "pwas"}.sites = lib.listToAttrs (map (entry:
         lib.nameValuePair (ulid entry.url) {
           inherit (entry) name url;
