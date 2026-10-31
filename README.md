@@ -58,6 +58,11 @@ Currently managed:
 - [k9s](https://github.com/derailed/k9s) 🐧 🍎 🪟
   - Config Files
     - [chezmoi/dot_config/k9s/config.yaml.tmpl](chezmoi/dot_config/k9s/config.yaml.tmpl)
+- [KDE Plasma](https://kde.org/plasma-desktop/) 🐧
+  - Notes
+    - NixOS only; configured by [plasma-manager](https://github.com/nix-community/plasma-manager)
+  - Config Files
+    - [nixos/roles/desktop.nix](nixos/roles/desktop.nix)
 - [kubie](https://github.com/sbstp/kubie) 🐧 🍎
   - Config Files
     - [chezmoi/dot_kube/kubie.yaml](chezmoi/dot_kube/kubie.yaml)
@@ -90,6 +95,15 @@ Currently managed:
     - [chezmoi/dot_config/systemd/user](chezmoi/dot_config/systemd/user)
     - [chezmoi/dot_local/libexec/executable_mpm-plan.sh](chezmoi/dot_local/libexec/executable_mpm-plan.sh)
     - [chezmoi/.scriptdata/macos-profiles/notifications.mobileconfig](chezmoi/.scriptdata/macos-profiles/notifications.mobileconfig)
+- [NixOS](https://nixos.org/) 🐧
+  - Notes
+    - Installs a KDE Plasma desktop on VMware Workstation and Fusion
+    - Develop from the devcontainer, which provides Nix and reads the sops key from Proton Pass
+  - Config Files
+    - [flake.nix](flake.nix)
+    - [nixos](nixos)
+    - [.devcontainer](.devcontainer)
+    - [mise.toml](mise.toml)
 - [npm](https://www.npmjs.com/) 🐧 🍎 🪟
   - Config Files
     - [chezmoi/.chezmoidata/env-vars.toml](chezmoi/.chezmoidata/env-vars.toml)
@@ -184,6 +198,7 @@ Currently managed:
 ## Loading this Config
 
 - [macOS](docs/setup/macos.md) 🍎
+- [NixOS](docs/setup/nixos.md) 🐧
 - [Ubuntu](docs/setup/ubuntu.md) 🐧
 - [Other Linux Distros](docs/setup/linux.md) 🐧
 - [Windows](docs/setup/windows.md) 🪟
