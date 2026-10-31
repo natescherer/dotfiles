@@ -43,6 +43,10 @@ shell-integration-features = ssh-env, ssh-terminfo, sudo
 
 {{ if eq .chezmoi.os "linux" -}}
 gtk-titlebar-style = tabs
+{{ if eq (.chezmoi.osRelease.id | default "") "nixos" -}}
+# Plasma would otherwise add its own titlebar above the one holding the tabs
+window-decoration = client
+{{ end -}}
 keybind = performable:ctrl+c=copy_to_clipboard
 keybind = performable:ctrl+v=paste_from_clipboard
 {{ end -}}
