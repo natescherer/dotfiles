@@ -42,6 +42,8 @@ in {
 
   # Lets prebuilt, dynamically linked binaries (mise's python and uv) run.
   programs.nix-ld.enable = true;
+  # mise compiles from source on NixOS by default, without checking for nix-ld.
+  environment.sessionVariables.MISE_ALL_COMPILE = "false";
   programs.firefox.enable = true;
 
   nixpkgs.config.allowUnfree = true;
