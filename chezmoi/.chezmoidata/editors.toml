@@ -66,11 +66,13 @@ extensions = [
 [[vscode.profiles]]
 name = "Chezmoi"
 icon = "home"
-settings_files = [".chezmoitemplates/editors/reusable-settings/core.json", ".chezmoitemplates/editors/profile-settings/python.json"]
-extension_sets = ["python"]
+settings_files = [".chezmoitemplates/editors/reusable-settings/core.json", ".chezmoitemplates/editors/profile-settings/python.json", ".chezmoitemplates/editors/profile-settings/nix.json"]
+extension_sets = ["python", "containers"]
 extensions = [
   "ms-vscode.powershell",  # PowerShell extension
   "IgorKramar.gotmpl-yaml-highlighter", # YAML Go template highlighting for Chezmoi
+  "jnoortheen.nix-ide",  # Nix language server
+  "signageos.signageos-vscode-sops",  # SOPS support for secret management
 ]
 
 [[vscode.profiles]]
