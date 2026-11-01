@@ -102,7 +102,29 @@ in {
           }
         ];
 
-        powerdevil.AC.autoSuspend.action = "nothing";
+        # Display off at 10 minutes on AC and 5 on battery. The lock timer is shared by both power
+        # states; on battery, sleep at 15 minutes comes first and locks on resume.
+        powerdevil = {
+          AC = {
+            autoSuspend.action = "nothing";
+            turnOffDisplay.idleTimeout = 600;
+            whenLaptopLidClosed = "doNothing";
+          };
+          battery = {
+            autoSuspend = {
+              action = "sleep";
+              idleTimeout = 900;
+            };
+            turnOffDisplay.idleTimeout = 300;
+            whenLaptopLidClosed = "sleep";
+          };
+        };
+
+        kscreenlocker = {
+          autoLock = true;
+          lockOnResume = true;
+          timeout = 20;
+        };
 
         configFile = {
           kdeglobals."KFileDialog Settings" = {
