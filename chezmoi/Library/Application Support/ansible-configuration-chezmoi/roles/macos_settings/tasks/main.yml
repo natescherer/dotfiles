@@ -155,12 +155,31 @@
   register: current_disablesleep
   changed_when: false
 
-# -c applies only to the power-adapter profile. disablesleep 1 stops the system from sleeping at all
-# (lid close included), so the Mac stays reachable while the display is off.
-- name: Prevent sleep on power adapter when display is off
-  ansible.builtin.command: pmset -c disablesleep 1
+# disablesleep is system-wide regardless of pmset's -c flag, so leaving it on would also stop sleep
+# on battery, lid close included. This clears it on Macs that already have it set.
+- name: Allow sleep
+  ansible.builtin.command: pmset -a disablesleep 0
   become: true
-  when: current_disablesleep.stdout | trim != '1'
+  when: current_disablesleep.stdout | trim == '1'
+  changed_when: true
+
+- name: Read current power profiles
+  ansible.builtin.command: pmset -g custom
+  register: current_power_profiles
+  changed_when: false
+
+# Values are in minutes, and 0 means never. Macs without a battery have no Battery Power profile.
+- name: Configure display and idle sleep
+  ansible.builtin.command: "pmset {{ item.flag }} {{ item.key }} {{ item.value }}"
+  become: true
+  loop:
+    - { flag: -c, profile: AC Power, key: displaysleep, value: 10 }
+    - { flag: -c, profile: AC Power, key: sleep, value: 0 }
+    - { flag: -b, profile: Battery Power, key: displaysleep, value: 5 }
+    - { flag: -b, profile: Battery Power, key: sleep, value: 15 }
+  when:
+    - (item.profile ~ ':') in current_power_profiles.stdout
+    - current_power_profiles.stdout is not regex('(?s)' ~ item.profile ~ ':.*?\\n *' ~ item.key ~ ' +' ~ item.value ~ '\\s')
   changed_when: true
 
 # NewWindowTarget PfHm: new Finder windows open the home folder. FXPreferredViewStyle Nlsv: list

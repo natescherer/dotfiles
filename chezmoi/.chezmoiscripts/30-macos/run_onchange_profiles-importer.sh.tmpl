@@ -50,7 +50,7 @@ HASH_FILE="$STATE_DIR/{{ .name }}.sha256"
 if [ -f "$HASH_FILE" ] && [ "$(cat "$HASH_FILE")" = "{{ .hash }}" ]; then
   echo -e "\033[0;90m'{{ .name }}' is unchanged since it was last installed; skipping.\033[0m"
 else
-  echo -e "\033[0;36m\nThis machine needs a one-time install of the '{{ .name }}' configuration profile\nto pre-approve some app permissions. After you press Enter, System Settings will\nopen -- click 'Install' there, then close System Settings.\nIf it doesn't jump straight to the review screen, look under System Settings > General >\nDevice Management, or Privacy & Security > Profiles on newer macOS.\033[0m\n"
+  echo -e "\033[0;36m\nThis machine needs a one-time install of the '{{ .name }}' configuration profile\nto apply settings macOS only accepts through a profile. After you press Enter, System Settings will\nopen -- click 'Install' there, then close System Settings.\nIf it doesn't jump straight to the review screen, look under System Settings > General >\nDevice Management, or Privacy & Security > Profiles on newer macOS.\033[0m\n"
   read -r -p "Press Enter to continue... "
   open "{{ .path }}"
   open "x-apple.systempreferences:com.apple.Profiles-Settings.extension" 2>/dev/null \
