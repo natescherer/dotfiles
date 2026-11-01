@@ -47,6 +47,7 @@
     pkgs.micro
     pkgs.mise
     pkgs.sheldon
+    pkgs.starship
     pkgs.vlc
     pkgs.vscode
     pkgs.vscodium

@@ -38,8 +38,11 @@
 
   networking.networkmanager.enable = true;
 
-  programs.starship.enable = true;
-  programs.zsh.enable = true;
+  programs.zsh = {
+    enable = true;
+    # The dotfiles' .zshrc runs compinit itself, after adding plugins to fpath.
+    enableGlobalCompInit = false;
+  };
 
   services.fail2ban = {
     enable = true;
