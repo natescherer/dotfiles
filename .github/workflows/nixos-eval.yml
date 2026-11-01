@@ -1,0 +1,30 @@
+name: Evaluate NixOS hosts
+
+on:
+  push:
+    branches: [main]
+    paths: &paths
+      - .github/workflows/nixos-eval.yml
+      - flake.lock
+      - flake.nix
+      - nixos/**
+      # The flake reads these from the chezmoi source tree
+      - chezmoi/.chezmoidata/pwas.toml
+      - chezmoi/Pictures/wallpaper-chezmoi/**
+  pull_request:
+    paths: *paths
+
+permissions:
+  contents: read
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        host: [nixos-vmw-wk, nixos-vmw-fus]
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: cachix/install-nix-action@v31.11.2
+      - run: nix eval --raw ".#nixosConfigurations.${{ matrix.host }}.config.system.build.toplevel.drvPath"
