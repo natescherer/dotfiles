@@ -32,6 +32,12 @@ resources:
       source: winget
       installMode: silent
   - type: Microsoft.WinGet/Package
+    name: gdu
+    properties:
+      id: dundee.gdu
+      source: winget
+      installMode: silent
+  - type: Microsoft.WinGet/Package
     name: micro
     properties:
       id: zyedidia.micro

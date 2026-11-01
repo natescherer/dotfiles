@@ -7,3 +7,6 @@ mkdircd () {
 alias cl=clear
 alias k=kubectl
 alias ll="{{ if eq .chezmoi.os "darwin" }}gls{{ else }}ls{{ end }} -AFGhl --group-directories-first --color=auto"
+
+# Homebrew installs gdu as gdu-go because coreutils also ships a gdu
+(( $+commands[gdu-go] )) && alias gdu=gdu-go

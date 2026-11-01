@@ -10,6 +10,7 @@
     pkgs.curl
     pkgs.delta
     pkgs.fzf
+    pkgs.gdu
     pkgs.ghostty
     pkgs.git
     pkgs.git-credential-manager

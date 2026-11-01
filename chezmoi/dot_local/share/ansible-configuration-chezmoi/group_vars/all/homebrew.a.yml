@@ -3,6 +3,7 @@
 homebrew_formulas:
   - chezmoi
   - fzf
+  - gdu
   - git-delta
   - jq
   - meta-package-manager
