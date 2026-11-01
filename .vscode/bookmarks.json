@@ -44,7 +44,7 @@
 			"path": "chezmoi/Library/Application Support/ansible-configuration-chezmoi/group_vars/all/homebrew.a.yml",
 			"bookmarks": [
 				{
-					"line": 12,
+					"line": 13,
 					"column": 0,
 					"label": "Homebrew Core Apps"
 				}

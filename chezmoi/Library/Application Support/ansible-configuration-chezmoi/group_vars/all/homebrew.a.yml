@@ -5,6 +5,7 @@ homebrew_taps:
 
 # Formulas (CLI tools / non-GUI packages)
 homebrew_formulas:
+  - awscli
   - chezmoi
   - coreutils
   - curl

@@ -33,6 +33,20 @@ path_part2 = "android"
 comment = "Android SDK: Repoint data from home"
 
 [[env_vars_apps]]
+name = "AWS_CONFIG_FILE"
+path_part1 = "$XDG_CONFIG_HOME"
+path_part2 = "aws"
+path_part3 = "config"
+comment = "AWS CLI: Repoint config from home"
+
+[[env_vars_apps]]
+name = "AWS_SHARED_CREDENTIALS_FILE"
+path_part1 = "$XDG_CONFIG_HOME"
+path_part2 = "aws"
+path_part3 = "credentials"
+comment = "AWS CLI: Repoint credentials from home"
+
+[[env_vars_apps]]
 name = "AZURE_CORE_SURVEY_MESSAGE"
 value = "false"
 comment = "Azure CLI: Disable prompts to take surveys"

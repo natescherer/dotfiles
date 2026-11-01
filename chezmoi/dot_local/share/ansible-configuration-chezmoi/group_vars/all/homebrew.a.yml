@@ -1,6 +1,7 @@
 ---
 # Formulas (CLI tools). Casks are macOS-only; GUI apps come from snaps and vendor apt repos.
 homebrew_formulas:
+  - awscli
   - chezmoi
   - fzf
   - gdu

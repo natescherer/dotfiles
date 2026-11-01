@@ -9,6 +9,11 @@ Feel free to use anything here according to your needs!
 
 Currently managed:
 
+- [AWS CLI](https://aws.amazon.com/cli/) 🐧 🍎 🪟
+  - Notes
+    - `~/.aws` still holds caches and history, whose paths the CLI hardcodes
+  - Config Files
+    - [chezmoi/.chezmoidata/env-vars.toml](chezmoi/.chezmoidata/env-vars.toml)
 - [Azure CLI](https://learn.microsoft.com/en-us/cli/azure/) 🐧 🍎 🪟
   - Config Files
     - [chezmoi/.chezmoidata/env-vars.toml](chezmoi/.chezmoidata/env-vars.toml)

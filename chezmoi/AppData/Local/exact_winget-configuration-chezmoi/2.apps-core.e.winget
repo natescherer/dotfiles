@@ -8,6 +8,15 @@ metadata:
       identifier: dscv3
 resources:
   - type: Microsoft.WinGet/Package
+    name: AWSCLI
+    metadata:
+      winget:
+        securityContext: elevated
+    properties:
+      id: Amazon.AWSCLI
+      source: winget
+      installMode: silent
+  - type: Microsoft.WinGet/Package
     name: AzureCLI
     metadata:
       winget:
