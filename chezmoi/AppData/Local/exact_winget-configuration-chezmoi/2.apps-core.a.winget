@@ -38,6 +38,12 @@ resources:
       source: winget
       installMode: silent
   - type: Microsoft.WinGet/Package
+    name: gh
+    properties:
+      id: GitHub.cli
+      source: winget
+      installMode: silent
+  - type: Microsoft.WinGet/Package
     name: micro
     properties:
       id: zyedidia.micro

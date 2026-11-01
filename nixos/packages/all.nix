@@ -11,6 +11,7 @@
     pkgs.delta
     pkgs.fzf
     pkgs.gdu
+    pkgs.gh
     pkgs.ghostty
     pkgs.git
     pkgs.git-credential-manager

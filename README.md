@@ -47,7 +47,6 @@ Currently managed:
     - [chezmoi/git/azdo](chezmoi/git/azdo) for Azure DevOps repos
 - [GitHub CLI](https://cli.github.com/) 🐧 🍎 🪟
   - Config Files
-    - [chezmoi/dot_config/mise/config.toml](chezmoi/dot_config/mise/config.toml)
     - [chezmoi/dot_config/gh/config.yml](chezmoi/dot_config/gh/config.yml)
 - [GnuPG](https://gnupg.org/) 🐧 🍎 🪟
   - Config Files

@@ -9,6 +9,18 @@
 - Always pass `--use-builtin-diff` when running `chezmoi diff`. The user might
   use an interactive, GUI diff tool like Visual Studio Code.
 
+## Choosing a package manager
+
+Use mise only for development environments that might need different versions
+installed, such as language runtimes and their toolchains.
+
+Install everything else through the per-platform package lists, keeping them
+in sync:
+
+- Windows: the winget configuration
+- macOS and Ubuntu: their separate Ansible Homebrew lists
+- NixOS: the Nix package lists
+
 ## Renovate `schedule` cron syntax is not standard cron
 
 Renovate's `schedule` option (see `renovate.json` / `template/renovate.json.jinja`)
