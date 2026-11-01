@@ -5,6 +5,10 @@
 # the one profile excluded from all_profile_extensions.
 default_profile_is_placeholder = true
 
+# Keybindings written to every profile, since VS Code keeps a separate copy per profile. This file
+# is rendered as a template; if it declares no keybindings, no keybindings file gets written.
+keybindings_file = ".chezmoitemplates/editors/keybindings.json.tmpl"
+
 # Extensions applied to every profile except Default (which is deliberately kept minimal -- see
 # its comment below). An entry can optionally gate itself with whenTrue and/or whenFalse, same
 # semantics as .chezmoidata/windows-ini-patches.toml: each is a list of top-level chezmoi variable

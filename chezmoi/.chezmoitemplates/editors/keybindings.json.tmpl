@@ -1,0 +1,17 @@
+{{- if eq .chezmoi.os "linux" }}
+[
+    {
+        // Copy only with a selection, so Ctrl+C still sends SIGINT otherwise
+        "key": "ctrl+c",
+        "command": "workbench.action.terminal.copySelection",
+        "when": "terminalFocus && terminalTextSelected"
+    },
+    {
+        "key": "ctrl+v",
+        "command": "workbench.action.terminal.paste",
+        "when": "terminalFocus"
+    }
+]
+{{- else }}
+[]
+{{- end }}

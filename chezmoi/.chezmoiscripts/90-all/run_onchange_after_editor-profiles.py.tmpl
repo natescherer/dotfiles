@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 # Installs each profile's extensions (from .chezmoidata/editors.toml) and syncs its settings.json
-# into the relevant editor's own profile folder - user_dir itself for Default, or the
-# machine-generated User/profiles/<hash>/ folder for named profiles. Drives both VS Code and
-# VSCodium, since both are VS Code-family editors with identical profile/extension/settings.json
-# mechanics -- just a different binary name and user-data folder.
+# and keybindings.json into the relevant editor's own profile folder - user_dir itself for
+# Default, or the machine-generated User/profiles/<hash>/ folder for named profiles. Drives both
+# VS Code and VSCodium, since both are VS Code-family editors with identical
+# profile/extension/settings.json mechanics -- just a different binary name and user-data folder.
 #
-# A profile's settings.json is only overwritten if it's untouched since the last time this
-# script wrote it (tracked via a settings.json.chezmoi-hash sidecar file), so local customizations
+# A profile's settings.json or keybindings.json is only overwritten if it's untouched since the last
+# time this script wrote it (tracked via a <file>.chezmoi-hash sidecar file), so local customizations
 # never get clobbered; if drift is detected, it warns instead of overwriting.
 
 # Why is this in a folder called '90-all' instead of one of the OS-specific script folders?
@@ -57,8 +57,13 @@ change, triggering the run_onchange_. */}}
 {{- end }}
 {{- $profiles = append $profiles (dict "name" .name "extensions" $extensions "settings_files" $settingsEntries "icon" $icon) }}
 {{- end }}
+{{- $keybindings := list }}
+{{- if hasKey $editorData "keybindings_file" }}
+{{- $keybindings = includeTemplate $editorData.keybindings_file $ | fromJsonc }}
+{{- end }}
 {{- $editors = append $editors (dict
     "key" $editorKey
+    "keybindings" $keybindings
     "profiles" $profiles
     "all_profile_extensions" ($editorData.all_profile_extensions | default (list))
     "default_profile_is_placeholder" ($editorData.default_profile_is_placeholder | default false)
@@ -98,8 +103,8 @@ if IS_WINDOWS:
     _user_path = _registry_path(winreg.HKEY_CURRENT_USER, "Environment")
     os.environ["PATH"] = _machine_path + os.pathsep + _user_path
 
-# Normally, a profile's settings.json that has drifted from what chezmoi last wrote is left alone
-# (see write_profile_settings) so local customizations never get silently clobbered. Setting this
+# Normally, a profile file that has drifted from what chezmoi last wrote is left alone
+# (see write_profile_file) so local customizations never get silently clobbered. Setting this
 # opts back into always overwriting it with what chezmoi wants instead, for both editors.
 CHEZMOI_EDITOR_CLOBBER = os.environ.get("CHEZMOI_EDITOR_CLOBBER", "").lower() in ("1", "true", "yes")
 
@@ -420,8 +425,8 @@ def set_profile_icon(user_dir, profile_name, icon):
     os.replace(tmp_path, storage_path)
 
 
-def write_profile_settings(editor_key, profile_name, profile_dir, settings_content):
-    # Returns False when it left drifted/untracked settings.json alone instead of writing (i.e.
+def write_profile_file(editor_key, profile_name, profile_dir, filename, content):
+    # Returns False when it left a drifted/untracked file alone instead of writing (i.e.
     # whenever it printed a warn_drifted message) -- the caller turns that into a non-zero exit,
     # the same "keep retrying every future apply" trick sync_editor's shutil.which() check already
     # uses for a missing editor binary. Without that, CHEZMOI_EDITOR_CLOBBER=true would only take
@@ -431,14 +436,14 @@ def write_profile_settings(editor_key, profile_name, profile_dir, settings_conte
     meta = EDITORS_META[editor_key]
     display_name = meta["display_name"]
     os.makedirs(profile_dir, exist_ok=True)
-    settings_path = os.path.join(profile_dir, "settings.json")
-    hash_path = os.path.join(profile_dir, "settings.json.chezmoi-hash")
-    desired_path = os.path.join(profile_dir, "settings.json.chezmoi-desired")
-    desired_hash = hash_string(settings_content)
+    file_path = os.path.join(profile_dir, filename)
+    hash_path = f"{file_path}.chezmoi-hash"
+    desired_path = f"{file_path}.chezmoi-desired"
+    desired_hash = hash_string(content)
 
-    def write_settings():
-        with open(settings_path, "w", encoding="utf-8", newline="") as f:
-            f.write(settings_content)
+    def write_file():
+        with open(file_path, "w", encoding="utf-8", newline="") as f:
+            f.write(content)
         with open(hash_path, "w", encoding="utf-8", newline="") as f:
             f.write(desired_hash)
         if os.path.exists(desired_path):
@@ -448,12 +453,12 @@ def write_profile_settings(editor_key, profile_name, profile_dir, settings_conte
         # We're writing a copy of the contents here in case the source file is a template, which
         # couldn't be directly compared against. The copy will be cleaned up by future runs.
         with open(desired_path, "w", encoding="utf-8", newline="") as f:
-            f.write(settings_content)
+            f.write(content)
         print(
             f"{YELLOW_TERM_COLOR}Warning: {display_name} profile '{profile_name}' {reason}.\n"
             f"\n"
             f"Compare it against what chezmoi would write with:\n"
-            f"{meta['binary']} --diff \"{settings_path}\" \"{desired_path}\"\n"
+            f"{meta['binary']} --diff \"{file_path}\" \"{desired_path}\"\n"
             f"\n"
             f"Then either reconcile the differences manually, or run the following to have chezmoi\n"
             f"overwrite it automatically:\n"
@@ -461,38 +466,38 @@ def write_profile_settings(editor_key, profile_name, profile_dir, settings_conte
             file=sys.stderr,
         )
 
-    if not os.path.exists(settings_path):
-        write_settings()
+    if not os.path.exists(file_path):
+        write_file()
         return True
 
     if not os.path.exists(hash_path):
         if CHEZMOI_EDITOR_CLOBBER:
-            print(f"{CYAN_TERM_COLOR}{display_name} profile '{profile_name}' had an untracked settings.json; "
+            print(f"{CYAN_TERM_COLOR}{display_name} profile '{profile_name}' had an untracked {filename}; "
                   f"overwriting it since CHEZMOI_EDITOR_CLOBBER is set.{RESET_TERM_STYLE}\n")
-            write_settings()
+            write_file()
             return True
-        warn_drifted("has a settings.json that is not chezmoi-managed")
+        warn_drifted(f"has a {filename} that is not chezmoi-managed")
         return False
 
     with open(hash_path, "r", encoding="utf-8", newline="") as f:
         last_written_hash = f.read().strip()
-    with open(settings_path, "r", encoding="utf-8", newline="") as f:
+    with open(file_path, "r", encoding="utf-8", newline="") as f:
         live_hash = hash_string(f.read())
 
     if live_hash != last_written_hash:
         if CHEZMOI_EDITOR_CLOBBER:
-            print(f"{CYAN_TERM_COLOR}{display_name} profile '{profile_name}' had local changes to settings.json; "
+            print(f"{CYAN_TERM_COLOR}{display_name} profile '{profile_name}' had local changes to {filename}; "
                   f"overwriting them since CHEZMOI_EDITOR_CLOBBER is set.{RESET_TERM_STYLE}\n")
-            write_settings()
+            write_file()
             return True
-        warn_drifted("has local changes to settings.json that aren't tracked in chezmoi; leaving it as-is")
+        warn_drifted(f"has local changes to {filename} that aren't tracked in chezmoi; leaving it as-is")
         return False
 
     if os.path.exists(desired_path):
         os.remove(desired_path)
 
     if live_hash != desired_hash:
-        write_settings()
+        write_file()
 
     return True
 
@@ -579,8 +584,13 @@ def sync_editor(editor):
             continue
 
         settings_content = json.dumps(settings, indent=2, sort_keys=True) + "\n"
-        if not write_profile_settings(key, name, profile_dir, settings_content):
+        if not write_profile_file(key, name, profile_dir, "settings.json", settings_content):
             all_succeeded = False
+
+        if editor["keybindings"]:
+            keybindings_content = json.dumps(editor["keybindings"], indent=2) + "\n"
+            if not write_profile_file(key, name, profile_dir, "keybindings.json", keybindings_content):
+                all_succeeded = False
 
     return all_succeeded
 
