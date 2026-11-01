@@ -33,7 +33,10 @@ in {
 
     users.users.${specialArgs.userName}.extraGroups = ["docker"];
 
-    virtualisation.docker.enable = true;
+    virtualisation.docker = {
+      enable = true;
+      autoPrune.enable = true;
+    };
 
     xdg.mime.defaultApplications = lib.mkIf (available pkgs.protonmail-desktop) {
       "text/calendar" = "proton-mail.desktop";

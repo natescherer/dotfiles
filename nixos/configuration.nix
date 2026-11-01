@@ -17,6 +17,7 @@
   boot.loader = {
     systemd-boot = {
       enable = true;
+      editor = false; # Editing kernel parameters at the boot menu grants root
       configurationLimit = lib.mkDefault 10; # This limits the number of bootloaders kept from auto-updates
     };
     efi.canTouchEfiVariables = true;
@@ -32,6 +33,8 @@
   };
   nix.settings.auto-optimise-store = true;
   nix.settings.experimental-features = ["nix-command" "flakes"];
+  # Keeps large builds out of the RAM-backed /tmp.
+  systemd.services.nix-daemon.environment.TMPDIR = "/var/tmp";
 
   networking.networkmanager.enable = true;
 
@@ -43,7 +46,7 @@
     maxretry = 5;
   };
 
-  # These settings optimize journal size to stay in RAM
+  # These settings cap the journal's size on disk and in RAM
   services.journald.settings.Journal = {
     SystemMaxUse = "200M";
     RuntimeMaxUse = "50M";
@@ -66,7 +69,6 @@
   sops.defaultSopsFormat = "yaml";
   sops.secrets."${specialArgs.userName}@${specialArgs.hostName}_passwordhash".neededForUsers = true;
 
-  system.autoUpgrade.enable = false;
   system.stateVersion = "26.05";
 
   zramSwap.enable = true;
