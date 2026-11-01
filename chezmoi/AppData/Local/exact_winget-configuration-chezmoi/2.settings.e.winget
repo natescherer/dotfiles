@@ -145,6 +145,71 @@ resources:
       valueData:
         DWord: 1
       _exist: true
+  # Policy "Interactive logon: Machine inactivity limit": locks after 20 minutes on either power
+  # source. On battery, sleep at 15 minutes comes first and requires sign-in on wake.
+  - type: Microsoft.Windows/Registry
+    name: MachineInactivityLock
+    metadata:
+      winget:
+        securityContext: elevated
+    properties:
+      keyPath: HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System
+      valueName: InactivityTimeoutSecs
+      valueData:
+        DWord: 1200
+      _exist: true
+  # Timeouts are in seconds, and 0 means never. Lid actions: 0 do nothing, 1 sleep. Each row holds
+  # the AC and battery values; battery hibernation stays at the Windows default so a sleeping laptop
+  # can still save its state before the battery runs out. powercfg applies these to the active plan.
+  # The last two hex values powercfg prints for a setting are its AC and battery values.
+  - type: Microsoft.DSC.Transitional/PowerShellScript
+    name: PowerSettings
+    metadata:
+      winget:
+        securityContext: elevated
+    properties:
+      getScript: |
+        $Settings = @(
+          @('SUB_VIDEO', 'VIDEOIDLE'),
+          @('SUB_SLEEP', 'STANDBYIDLE'),
+          @('SUB_SLEEP', 'HIBERNATEIDLE'),
+          @('SUB_BUTTONS', 'LIDACTION'),
+          @('SUB_NONE', 'CONSOLELOCK')
+        )
+        foreach ($Setting in $Settings) {
+          $Values = (powercfg /qh SCHEME_CURRENT $Setting[0] $Setting[1] | Select-String '0x[0-9a-f]+' -AllMatches).Matches.Value | Select-Object -Last 2
+          "$($Setting[1]): AC $([Convert]::ToInt32($Values[0], 16)), battery $([Convert]::ToInt32($Values[1], 16))"
+        }
+      testScript: |
+        $Settings = @(
+          @('SUB_VIDEO', 'VIDEOIDLE', 600, 300),
+          @('SUB_SLEEP', 'STANDBYIDLE', 0, 900),
+          @('SUB_SLEEP', 'HIBERNATEIDLE', 0, $null),
+          @('SUB_BUTTONS', 'LIDACTION', 0, 1),
+          @('SUB_NONE', 'CONSOLELOCK', 1, 1)
+        )
+        foreach ($Setting in $Settings) {
+          $Values = (powercfg /qh SCHEME_CURRENT $Setting[0] $Setting[1] | Select-String '0x[0-9a-f]+' -AllMatches).Matches.Value | Select-Object -Last 2
+          if ($Values.Count -ne 2) { return $false }
+          if ([Convert]::ToInt32($Values[0], 16) -ne $Setting[2]) { return $false }
+          if (($null -ne $Setting[3]) -and ([Convert]::ToInt32($Values[1], 16) -ne $Setting[3])) { return $false }
+        }
+        return $true
+      setScript: |
+        $Settings = @(
+          @('SUB_VIDEO', 'VIDEOIDLE', 600, 300),
+          @('SUB_SLEEP', 'STANDBYIDLE', 0, 900),
+          @('SUB_SLEEP', 'HIBERNATEIDLE', 0, $null),
+          @('SUB_BUTTONS', 'LIDACTION', 0, 1),
+          @('SUB_NONE', 'CONSOLELOCK', 1, 1)
+        )
+        foreach ($Setting in $Settings) {
+          powercfg /setacvalueindex SCHEME_CURRENT $Setting[0] $Setting[1] $Setting[2]
+          if ($null -ne $Setting[3]) {
+            powercfg /setdcvalueindex SCHEME_CURRENT $Setting[0] $Setting[1] $Setting[3]
+          }
+        }
+        powercfg /setactive SCHEME_CURRENT
   # Windows sudo mode: 0 disabled, 1 new window, 2 input disabled, 3 inline.
   - type: Microsoft.Windows/Registry
     name: Sudo
