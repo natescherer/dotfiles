@@ -64,6 +64,20 @@ path_part2 = "azure"
 comment = "Azure CLI: Repoint data from home"
 
 [[env_vars_apps]]
+name = "BIGQUERYRC"
+path_part1 = "$XDG_CONFIG_HOME"
+path_part2 = "bigquery"
+path_part3 = "bigqueryrc"
+comment = "BigQuery CLI: Repoint config from home"
+
+[[env_vars_apps]]
+name = "BOTO_CONFIG"
+path_part1 = "$XDG_CONFIG_HOME"
+path_part2 = "gsutil"
+path_part3 = "boto"
+comment = "gsutil: Repoint config from home, which in turn repoints state"
+
+[[env_vars_apps]]
 name = "CARGO_HOME"
 path_part1 = "$XDG_DATA_HOME"
 path_part2 = "cargo"

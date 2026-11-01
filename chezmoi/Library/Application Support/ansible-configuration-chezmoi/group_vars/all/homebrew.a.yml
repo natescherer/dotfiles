@@ -36,6 +36,7 @@ homebrew_casks:
   - firefox
   - font-cascadia-mono-nf
   - font-overpass
+  - gcloud-cli
   - ghostty
   - git-credential-manager
   - keka

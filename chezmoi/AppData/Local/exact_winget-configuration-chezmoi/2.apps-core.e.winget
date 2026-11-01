@@ -71,6 +71,15 @@ resources:
       source: winget
       installMode: silent
   - type: Microsoft.WinGet/Package
+    name: GoogleCloudSDK
+    metadata:
+      winget:
+        securityContext: elevated
+    properties:
+      id: Google.CloudSDK
+      source: winget
+      installMode: silent
+  - type: Microsoft.WinGet/Package
     name: PowerShell
     metadata:
       winget:

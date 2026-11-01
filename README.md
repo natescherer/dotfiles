@@ -59,6 +59,10 @@ Currently managed:
 - [Go](https://https://go.dev/) 🐧 🍎 🪟
   - Config Files
     - [chezmoi/.chezmoidata/env-vars.toml](chezmoi/.chezmoidata/env-vars.toml)
+- [Google Cloud CLI](https://cloud.google.com/cli) 🐧 🍎 🪟
+  - Config Files
+    - [chezmoi/.chezmoidata/env-vars.toml](chezmoi/.chezmoidata/env-vars.toml)
+    - [chezmoi/dot_config/gsutil/boto.tmpl](chezmoi/dot_config/gsutil/boto.tmpl)
 - [k9s](https://github.com/derailed/k9s) 🐧 🍎 🪟
   - Config Files
     - [chezmoi/dot_config/k9s/config.yaml.tmpl](chezmoi/dot_config/k9s/config.yaml.tmpl)

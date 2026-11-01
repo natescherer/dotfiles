@@ -17,6 +17,7 @@
     pkgs.ghostty
     pkgs.git
     pkgs.git-credential-manager
+    pkgs.google-cloud-sdk
     pkgs.jq
     pkgs.libnotify
     pkgs.micro
