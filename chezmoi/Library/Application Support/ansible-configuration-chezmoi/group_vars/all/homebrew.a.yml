@@ -26,9 +26,10 @@ homebrew_formulas:
   - utiluti
   - yq
 
-# Casks (GUI apps / fonts)
+# Casks (GUI apps / fonts / CLI tools Homebrew ships only as casks)
 homebrew_casks:
   - alt-tab
+  - azure-cli
   - brave-browser
 #  - browsers # disabled until https://github.com/Browsers-software/homebrew-tap/pull/3 is merged
   - firefox

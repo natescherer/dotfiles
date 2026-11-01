@@ -6,7 +6,7 @@
     suites: "{{ item.suites }}"
     components: "{{ item.components }}"
     signed_by: "{{ item.signed_by }}"
-  loop: "{{ apt_repos_personal | default([]) }}"
+  loop: "{{ apt_repos + (apt_repos_personal | default([])) }}"
   loop_control:
     label: "{{ item.name }}"
   register: apt_repos_added
@@ -25,10 +25,9 @@
 
 - name: Install packages from vendor apt repositories
   ansible.builtin.apt:
-    name: "{{ apt_repos_personal | default([]) | map(attribute='packages') | flatten }}"
+    name: "{{ (apt_repos + (apt_repos_personal | default([]))) | map(attribute='packages') | flatten }}"
     state: present
     update_cache: "{{ apt_repos_added is changed }}"
-  when: apt_repos_personal | default([]) | length > 0
   become: true
 
 - name: Gather installed package versions

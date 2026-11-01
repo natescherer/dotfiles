@@ -6,6 +6,7 @@
   # Packages for every machine. Those without a build for the host platform are
   # skipped.
   environment.systemPackages = lib.filter (lib.meta.availableOn pkgs.stdenv.hostPlatform) [
+    pkgs.azure-cli
     pkgs.brave
     pkgs.curl
     pkgs.delta
