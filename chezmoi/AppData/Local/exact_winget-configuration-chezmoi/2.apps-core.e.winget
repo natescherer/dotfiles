@@ -53,6 +53,15 @@ resources:
       source: winget
       installMode: silent
   - type: Microsoft.WinGet/Package
+    name: gh
+    metadata:
+      winget:
+        securityContext: elevated
+    properties:
+      id: GitHub.cli
+      source: winget
+      installMode: silent
+  - type: Microsoft.WinGet/Package
     name: PowerShell
     metadata:
       winget:
