@@ -61,11 +61,29 @@
     - report-technical-problems
     - send-software-usage-stats
 
-- name: Prevent idle sleep on power adapter
+# Sleep after 15 minutes on battery and never on the power adapter. Timeouts are in seconds.
+- name: Configure idle sleep
   community.general.dconf:
-    key: /org/gnome/settings-daemon/plugins/power/sleep-inactive-ac-type
-    value: "'nothing'"
+    key: "/org/gnome/settings-daemon/plugins/power/{{ item.key }}"
+    value: "{{ item.value }}"
     state: present
+  loop:
+    - { key: sleep-inactive-ac-type, value: "'nothing'" }
+    - { key: sleep-inactive-battery-timeout, value: "900" }
+    - { key: sleep-inactive-battery-type, value: "'suspend'" }
+
+# idle-delay blanks the display after 10 minutes on either power source. lock-delay counts from
+# there, so the screen locks at 20 minutes; on battery, sleep at 15 minutes comes first and locks.
+- name: Configure display blanking and screen lock
+  community.general.dconf:
+    key: "{{ item.key }}"
+    value: "{{ item.value }}"
+    state: present
+  loop:
+    - { key: /org/gnome/desktop/screensaver/lock-delay, value: "uint32 600" }
+    - { key: /org/gnome/desktop/screensaver/lock-enabled, value: "true" }
+    - { key: /org/gnome/desktop/screensaver/ubuntu-lock-on-suspend, value: "true" }
+    - { key: /org/gnome/desktop/session/idle-delay, value: "uint32 600" }
 
 - name: Create logind drop-in directory
   ansible.builtin.file:
