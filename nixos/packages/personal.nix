@@ -13,7 +13,6 @@ in {
   config = lib.mkIf specialArgs.isPersonal {
     environment.systemPackages = lib.filter available [
       pkgs.discord
-      pkgs.localsend
       pkgs.obsidian
       pkgs.proton-pass
       pkgs.proton-pass-cli
@@ -23,6 +22,14 @@ in {
       pkgs.ticktick
       pkgs.yubioath-flutter
     ];
+
+    programs.localsend = {
+      enable = true;
+      openFirewall = true;
+    };
+
+    # Yubico Authenticator reaches the key through this.
+    services.pcscd.enable = true;
 
     users.users.${specialArgs.userName}.extraGroups = ["docker"];
 

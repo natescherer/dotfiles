@@ -24,6 +24,7 @@ file is only written once.
 - No Linux build: AnyList, Paprika (use their web apps)
 {{- end }}
 
+{{ if not $isNixos -}}
 ## Settings
 {{ if eq $os "darwin" }}
 ### Settings.app
@@ -73,9 +74,6 @@ file is only written once.
 
 - ncpa.cpl
   - [ ] Disable unneeded connections
-{{- else if $isNixos }}
-- **Bluetooth**
-  - [ ] Pair devices
 {{- else }}
 - **Privacy & Security > Location**
   - [ ] Turn on Location Services, so the time zone can be set automatically
@@ -85,6 +83,7 @@ file is only written once.
   - [ ] Enroll a fingerprint
 {{- end }}
 
+{{ end -}}
 ## Login and Setup
 
 {{ if not $isNixos -}}
