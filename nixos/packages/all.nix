@@ -31,7 +31,9 @@
   # skipped.
   environment.systemPackages = lib.filter (lib.meta.availableOn pkgs.stdenv.hostPlatform) [
     pkgs.awscli2
-    pkgs.azure-cli
+    # The Python in azure-cli has no pip, so `az extension add` fails. Declare
+    # extensions here instead.
+    (pkgs.azure-cli.withExtensions [pkgs.azure-cli.extensions.azure-devops])
     pkgs.brave
     pkgs.curl
     pkgs.delta
