@@ -9,6 +9,9 @@
   inputs.plasma-manager.url = "github:nix-community/plasma-manager";
   inputs.plasma-manager.inputs.nixpkgs.follows = "nixpkgs";
   inputs.plasma-manager.inputs.home-manager.follows = "home-manager";
+  inputs.comin.url = "github:nlewo/comin";
+  inputs.comin.inputs.nixpkgs.follows = "nixpkgs";
+  inputs.comin.inputs.treefmt-nix.inputs.nixpkgs.follows = "nixpkgs";
 
   outputs = {
     nixpkgs,

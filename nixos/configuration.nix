@@ -11,6 +11,7 @@
     ./disko/${specialArgs.diskoConfig}
     ./components/console.nix
     ./components/chezmoi.nix
+    ./components/comin.nix
   ];
 
   boot.loader = {
