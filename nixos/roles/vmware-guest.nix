@@ -20,8 +20,25 @@
     '')
   ];
 
-  # Numlock off in the guest makes host keyboard software pop up a toggle notice.
-  home-manager.users.${specialArgs.userName}.programs.plasma.input.keyboard.numlockOnStartup = "on";
+  home-manager.users.${specialArgs.userName}.programs.plasma = {
+    # Numlock off in the guest makes host keyboard software pop up a toggle notice.
+    input.keyboard.numlockOnStartup = "on";
+
+    # VMs never turn off the display, lock, or sleep when idle, overriding the desktop role.
+    # Hypervisors can pass the host's battery through, so this covers every power state.
+    kscreenlocker = {
+      autoLock = lib.mkForce false;
+      lockOnResume = lib.mkForce false;
+    };
+    powerdevil = lib.genAttrs ["AC" "battery" "lowBattery"] (_: {
+      autoSuspend = {
+        action = lib.mkForce "nothing";
+        idleTimeout = lib.mkForce null;
+      };
+      dimDisplay.enable = false;
+      turnOffDisplay.idleTimeout = lib.mkForce "never";
+    });
+  };
   services.displayManager.sddm.autoNumlock = true;
 
   virtualisation.vmware.guest = {
