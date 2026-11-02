@@ -146,7 +146,8 @@ resources:
         DWord: 1
       _exist: true
   # Policy "Interactive logon: Machine inactivity limit": locks after 20 minutes on either power
-  # source. On battery, sleep at 15 minutes comes first and requires sign-in on wake.
+  # source. On battery, sleep at 15 minutes comes first and requires sign-in on wake. VMs never lock
+  # when idle: 0 disables the limit.
   - type: Microsoft.Windows/Registry
     name: MachineInactivityLock
     metadata:
@@ -156,12 +157,13 @@ resources:
       keyPath: HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System
       valueName: InactivityTimeoutSecs
       valueData:
-        DWord: 1200
+        DWord: {{ if .isVM }}0{{ else }}1200{{ end }}
       _exist: true
   # Timeouts are in seconds, and 0 means never. Lid actions: 0 do nothing, 1 sleep. Each row holds
   # the AC and battery values; battery hibernation stays at the Windows default so a sleeping laptop
   # can still save its state before the battery runs out. powercfg applies these to the active plan.
-  # The last two hex values powercfg prints for a setting are its AC and battery values.
+  # The last two hex values powercfg prints for a setting are its AC and battery values. VMs never
+  # turn off the display, sleep, or require sign-in on wake.
   - type: Microsoft.DSC.Transitional/PowerShellScript
     name: PowerSettings
     metadata:
@@ -182,11 +184,11 @@ resources:
         }
       testScript: |
         $Settings = @(
-          @('SUB_VIDEO', 'VIDEOIDLE', 600, 300),
-          @('SUB_SLEEP', 'STANDBYIDLE', 0, 900),
-          @('SUB_SLEEP', 'HIBERNATEIDLE', 0, $null),
+          @('SUB_VIDEO', 'VIDEOIDLE', {{ if .isVM }}0, 0{{ else }}600, 300{{ end }}),
+          @('SUB_SLEEP', 'STANDBYIDLE', 0, {{ if .isVM }}0{{ else }}900{{ end }}),
+          @('SUB_SLEEP', 'HIBERNATEIDLE', 0, {{ if .isVM }}0{{ else }}$null{{ end }}),
           @('SUB_BUTTONS', 'LIDACTION', 0, 1),
-          @('SUB_NONE', 'CONSOLELOCK', 1, 1)
+          @('SUB_NONE', 'CONSOLELOCK', {{ if .isVM }}0, 0{{ else }}1, 1{{ end }})
         )
         foreach ($Setting in $Settings) {
           $Values = (powercfg /qh SCHEME_CURRENT $Setting[0] $Setting[1] | Select-String '0x[0-9a-f]+' -AllMatches).Matches.Value | Select-Object -Last 2
@@ -197,11 +199,11 @@ resources:
         return $true
       setScript: |
         $Settings = @(
-          @('SUB_VIDEO', 'VIDEOIDLE', 600, 300),
-          @('SUB_SLEEP', 'STANDBYIDLE', 0, 900),
-          @('SUB_SLEEP', 'HIBERNATEIDLE', 0, $null),
+          @('SUB_VIDEO', 'VIDEOIDLE', {{ if .isVM }}0, 0{{ else }}600, 300{{ end }}),
+          @('SUB_SLEEP', 'STANDBYIDLE', 0, {{ if .isVM }}0{{ else }}900{{ end }}),
+          @('SUB_SLEEP', 'HIBERNATEIDLE', 0, {{ if .isVM }}0{{ else }}$null{{ end }}),
           @('SUB_BUTTONS', 'LIDACTION', 0, 1),
-          @('SUB_NONE', 'CONSOLELOCK', 1, 1)
+          @('SUB_NONE', 'CONSOLELOCK', {{ if .isVM }}0, 0{{ else }}1, 1{{ end }})
         )
         foreach ($Setting in $Settings) {
           powercfg /setacvalueindex SCHEME_CURRENT $Setting[0] $Setting[1] $Setting[2]
