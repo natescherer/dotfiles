@@ -168,15 +168,16 @@
   register: current_power_profiles
   changed_when: false
 
-# Values are in minutes, and 0 means never. Macs without a battery have no Battery Power profile.
+# Values are in minutes, and 0 means never. VMs never turn off the display or sleep. Macs without a
+# battery have no Battery Power profile.
 - name: Configure display and idle sleep
   ansible.builtin.command: "pmset {{ item.flag }} {{ item.key }} {{ item.value }}"
   become: true
   loop:
-    - { flag: -c, profile: AC Power, key: displaysleep, value: 10 }
+    - { flag: -c, profile: AC Power, key: displaysleep, value: "{{ is_vm | ternary(0, 10) }}" }
     - { flag: -c, profile: AC Power, key: sleep, value: 0 }
-    - { flag: -b, profile: Battery Power, key: displaysleep, value: 5 }
-    - { flag: -b, profile: Battery Power, key: sleep, value: 15 }
+    - { flag: -b, profile: Battery Power, key: displaysleep, value: "{{ is_vm | ternary(0, 5) }}" }
+    - { flag: -b, profile: Battery Power, key: sleep, value: "{{ is_vm | ternary(0, 15) }}" }
   when:
     - (item.profile ~ ':') in current_power_profiles.stdout
     - current_power_profiles.stdout is not regex('(?s)' ~ item.profile ~ ':.*?\\n *' ~ item.key ~ ' +' ~ item.value ~ '\\s')

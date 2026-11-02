@@ -31,9 +31,13 @@
 # recent known locations in case neither attempt lands on the right screen.
 
 {{- $profilesDir := print .chezmoi.sourceDir "/.scriptdata/macos-profiles" -}}
+{{- /* *.vm.mobileconfig applies only to VMs, and *.physical.mobileconfig only to everything else */ -}}
+{{- $excludedSuffix := ternary ".physical.mobileconfig" ".vm.mobileconfig" .isVM -}}
 {{- $profiles := list -}}
 {{- range joinPath $profilesDir "*.mobileconfig" | glob | sortAlpha -}}
+{{- if not (hasSuffix $excludedSuffix .) -}}
 {{- $profiles = append $profiles (dict "path" . "name" (base .) "hash" (include . | sha256sum)) -}}
+{{- end -}}
 {{- end }}
 #
 {{ range $profiles -}}
