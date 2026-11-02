@@ -44,10 +44,7 @@
 {{- $applyOSConfig = true }}
 {{- end }}
 
-{{- $isVM := false }}
-{{- if or (eq .chezmoi.os "windows") (eq .chezmoi.os "darwin") }}
-{{- $isVM = promptBoolOnce . "isVM" "Is this a VM? (Enter for default)" false }}
-{{- end }}
+{{- $isVM := promptBoolOnce . "isVM" "Is this a VM? (Enter for default)" false }}
 
 {{- $computerModel := "None" }}
 {{- if and (eq .chezmoi.os "windows") $isPersonal }}
