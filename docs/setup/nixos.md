@@ -39,15 +39,14 @@ Answer yes when asked whether your account has sudo rights.
 
 ## Updates
 
-- **System:** [comin](https://github.com/nlewo/comin) fetches `main` daily and
-  at boot, and builds any commit that changes the host. A desktop notification
-  announces the finished build; run `nixos-update` to switch to it. Renovate
-  updates the flake's `nixos-unstable` pin monthly.
+- **System:** `system.autoUpgrade` builds `main` daily and makes the result the
+  next boot's default. When that changes the system, a desktop notification
+  stays until dismissed; reboot to apply the update. Renovate updates the flake's
+  `nixos-unstable` pin monthly.
 - **Dotfiles:** run `chezmoi update`.
 
-comin records its own deployments in the `comin` system profile, so roll back by
-choosing an earlier boot entry; `nixos-rebuild switch --rollback` doesn't see them.
-If comin is down, run
+Roll back by choosing an earlier boot entry. Upgrade failures appear only in
+`journalctl -u nixos-upgrade`. To apply `main` without rebooting, run
 `sudo nixos-rebuild switch --flake github:natescherer/dotfiles --refresh`.
 
 ## Secrets
