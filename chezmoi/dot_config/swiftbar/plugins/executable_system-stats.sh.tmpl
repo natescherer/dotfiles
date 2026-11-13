@@ -1,0 +1,32 @@
+#!/usr/bin/env zsh
+
+# <swiftbar.title>System Stats</swiftbar.title>
+# <swiftbar.desc>CPU, GPU, RAM, SSD, and network usage charts.</swiftbar.desc>
+# <swiftbar.type>streamable</swiftbar.type>
+# <swiftbar.hideAbout>true</swiftbar.hideAbout>
+# <swiftbar.hideRunInTerminal>true</swiftbar.hideRunInTerminal>
+# <swiftbar.hideLastUpdated>true</swiftbar.hideLastUpdated>
+
+# Compiles ../system-stats.swift (kept outside the plugin folder so SwiftBar doesn't run it as a
+# plugin) whenever it's newer than the cached binary, then execs the binary, which streams updates.
+# The hash below changes this file whenever the source changes, so SwiftBar reloads the plugin.
+## system-stats.swift hash: {{ include "dot_config/swiftbar/system-stats.swift" | sha256sum }}
+
+src="${0:A:h:h}/system-stats.swift"
+bin="${SWIFTBAR_PLUGIN_CACHE_PATH:-${TMPDIR:-/tmp}}/system-stats"
+
+if [[ ! -x $bin || $src -nt $bin ]]; then
+  print "Stats | sfimage=hourglass"
+  mkdir -p "${bin:h}"
+  if ! output=$(xcrun swiftc -O -o "$bin.tmp" "$src" 2>&1); then
+    print "~~~"
+    print "Stats | sfimage=exclamationmark.triangle"
+    print -- "---"
+    print "Failed to compile $src"
+    print -r -- "$output" | sed 's/|/¦/g'
+    exit 1
+  fi
+  mv -f "$bin.tmp" "$bin"
+fi
+
+exec "$bin"

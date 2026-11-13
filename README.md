@@ -151,12 +151,15 @@ Currently managed:
   - Config Files
     - [chezmoi/.chezmoidata/env-vars.toml](chezmoi/.chezmoidata/env-vars.toml)
     - [chezmoi/dot_config/starship/config.toml.tmpl](chezmoi/dot_config/starship/config.toml.tmpl)
-- [Stats](https://github.com/exelban/stats) 🍎
+- [SwiftBar](https://github.com/swiftbar/SwiftBar) 🍎
   - Notes
-    - Configuration is imported via script [chezmoi/.chezmoiscripts/30-macos/run_onchange_defaults-importer.sh.tmpl](chezmoi/.chezmoiscripts/30-macos/run_onchange_defaults-importer.sh.tmpl)
+    - Shows CPU, GPU, RAM, SSD, and network usage as menu bar charts, with exact values in its dropdown
+    - The plugin compiles the Swift source on first run (and whenever it changes), so it needs the Xcode Command Line Tools
+    - Plugin folder and login item are set by the `app_settings` role of the Ansible playbook
   - Config Files
-    - [chezmoi/.scriptdata/macos-defaults/eu.exelban.Stats.plist](chezmoi/.scriptdata/macos-defaults/eu.exelban.Stats.plist)
-      - Note this is a non-editable binary file, made via `defaults export eu.exelban.Stats eu.exelban.Stats.plist`
+    - [chezmoi/dot_config/swiftbar/system-stats.swift](chezmoi/dot_config/swiftbar/system-stats.swift)
+    - [chezmoi/dot_config/swiftbar/plugins/executable_system-stats.sh.tmpl](chezmoi/dot_config/swiftbar/plugins/executable_system-stats.sh.tmpl)
+    - [chezmoi/Library/Application Support/ansible-configuration-chezmoi/roles/app_settings/tasks/main.yml](<chezmoi/Library/Application Support/ansible-configuration-chezmoi/roles/app_settings/tasks/main.yml>)
 - [Ubuntu](https://ubuntu.com/desktop) 🐧
   - Notes
     - Ubuntu 26.04 Desktop only; other distros and WSL get dotfiles alone

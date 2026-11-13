@@ -1,7 +1,33 @@
 ---
-# Settings for individual apps that live in the app's own config files rather than in macOS
-# preferences domains. The apps themselves are installed earlier in the run (homebrew,
-# mac_app_store), so each block here can assume its app is present.
+# Settings for individual apps that a static plist in .scriptdata/macos-defaults can't express:
+# app-specific config files, per-machine paths, and login items. The apps themselves are installed
+# earlier in the run (homebrew, mac_app_store), so each block here can assume its app is present.
+
+# The plugin folder holds the system-stats plugin from dot_config/swiftbar. Setting it up front
+# also skips SwiftBar's first-launch folder picker. SwiftBar has no launch-at-login preference of
+# its own, so it's added as a login item.
+- name: Configure SwiftBar
+  block:
+    - name: Set SwiftBar's plugin folder
+      community.general.osx_defaults:
+        domain: com.ameba.SwiftBar
+        key: PluginDirectory
+        type: string
+        value: "{{ ansible_facts.env.HOME }}/.config/swiftbar/plugins"
+        state: present
+
+    - name: Check whether SwiftBar opens at login
+      ansible.builtin.command: >-
+        osascript -e 'tell application "System Events" to get the name of every login item'
+      register: login_items
+      changed_when: false
+
+    - name: Open SwiftBar at login
+      ansible.builtin.command: >-
+        osascript -e 'tell application "System Events" to make login item at end
+        with properties {path:"/Applications/SwiftBar.app", hidden:false}'
+      when: "'SwiftBar' not in login_items.stdout"
+      changed_when: true
 
 # VLC keeps its settings in a plain-text vlcrc (not a defaults domain), which it only creates on
 # first launch. macosx-interfacestyle is a boolean: 1 is the dark interface style. VLC writes every
