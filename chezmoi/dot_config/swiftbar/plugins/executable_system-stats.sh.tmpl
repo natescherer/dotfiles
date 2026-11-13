@@ -3,6 +3,7 @@
 # <swiftbar.title>System Stats</swiftbar.title>
 # <swiftbar.desc>CPU, GPU, RAM, SSD, and network usage charts.</swiftbar.desc>
 # <swiftbar.type>streamable</swiftbar.type>
+# <swiftbar.useTrailingStreamSeparator>true</swiftbar.useTrailingStreamSeparator>
 # <swiftbar.hideAbout>true</swiftbar.hideAbout>
 # <swiftbar.hideRunInTerminal>true</swiftbar.hideRunInTerminal>
 # <swiftbar.hideLastUpdated>true</swiftbar.hideLastUpdated>
@@ -16,14 +17,14 @@ src="${0:A:h:h}/system-stats.swift"
 bin="${SWIFTBAR_PLUGIN_CACHE_PATH:-${TMPDIR:-/tmp}}/system-stats"
 
 if [[ ! -x $bin || $src -nt $bin ]]; then
-  print "Stats | sfimage=hourglass"
+  print "Stats | sfimage=hourglass\n~~~"
   mkdir -p "${bin:h}"
   if ! output=$(xcrun swiftc -O -o "$bin.tmp" "$src" 2>&1); then
-    print "~~~"
     print "Stats | sfimage=exclamationmark.triangle"
     print -- "---"
     print "Failed to compile $src"
     print -r -- "$output" | sed 's/|/¦/g'
+    print "~~~"
     exit 1
   fi
   mv -f "$bin.tmp" "$bin"

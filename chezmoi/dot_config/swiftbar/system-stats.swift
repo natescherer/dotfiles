@@ -404,7 +404,9 @@ while true {
             }?.base64EncodedString()
         }
         guard images.count == 2 else { return }
-        print("~~~\n" + menu(sample, light: images[0], dark: images[1]))
+        // A frame spans several pipe reads; the trailing separator (see the plugin's metadata) keeps
+        // SwiftBar from drawing it until it's complete.
+        print(menu(sample, light: images[0], dark: images[1]) + "\n~~~")
         fflush(stdout)
     }
 }
