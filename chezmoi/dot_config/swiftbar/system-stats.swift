@@ -8,10 +8,12 @@ import IOKit
 import SystemConfiguration
 
 let interval: TimeInterval = 1
-let chartHeight: CGFloat = 18
-let chartWidth: CGFloat = 32
-let labelWidth: CGFloat = 6
-let moduleGap: CGFloat = 5
+// 22pt is NSStatusBar's thickness; a taller image would be clipped.
+let imageHeight: CGFloat = 22
+let labelHeight: CGFloat = 7
+let chartHeight = imageHeight - labelHeight
+let chartWidth: CGFloat = 28
+let moduleGap: CGFloat = 4
 // One sample per point of chart width.
 let historyLength = Int(chartWidth) - 2
 // Smallest full-scale value for the rate charts, so idle background traffic stays near the axis.
@@ -248,17 +250,13 @@ func drawSeries(_ points: [NSPoint], baseline: CGFloat, color: NSColor) {
     line.stroke()
 }
 
-/// Draws a vertical label and an empty frame at x, returning the frame's inner rect.
+/// Draws an empty frame at x with its label centered beneath, returning the frame's inner rect.
 func drawModule(_ label: String, at x: CGFloat) -> NSRect {
     let font = NSFont.systemFont(ofSize: 6.5, weight: .bold)
-    let letterHeight = chartHeight / CGFloat(label.count)
-    for (index, letter) in label.enumerated() {
-        let text = NSAttributedString(string: String(letter), attributes: [.font: font, .foregroundColor: NSColor.labelColor])
-        let size = text.size()
-        let y = chartHeight - letterHeight * CGFloat(index + 1) + (letterHeight - size.height) / 2
-        text.draw(at: NSPoint(x: x + (labelWidth - size.width) / 2, y: y))
-    }
-    let frame = NSRect(x: x + labelWidth + 1, y: 0, width: chartWidth, height: chartHeight).insetBy(dx: 0.5, dy: 0.5)
+    let text = NSAttributedString(string: label, attributes: [.font: font, .foregroundColor: NSColor.labelColor, .kern: 0.5])
+    let size = text.size()
+    text.draw(at: NSPoint(x: x + (chartWidth - size.width) / 2, y: (labelHeight - size.height) / 2 - 0.5))
+    let frame = NSRect(x: x, y: labelHeight, width: chartWidth, height: chartHeight).insetBy(dx: 0.5, dy: 0.5)
     let border = NSBezierPath(roundedRect: frame, xRadius: 2.5, yRadius: 2.5)
     border.lineWidth = 1
     NSColor.secondaryLabelColor.setStroke()
@@ -298,11 +296,11 @@ func drawRateChart(_ label: String, up: History, down: History, floor: Double, a
 /// Dynamic colors (label, system green, etc.) resolve for the given appearance.
 func renderPNG(width: CGFloat, appearance: NSAppearance.Name, _ draw: () -> Void) -> Data? {
     guard let bitmap = NSBitmapImageRep(
-        bitmapDataPlanes: nil, pixelsWide: Int(width * 2), pixelsHigh: Int(chartHeight * 2),
+        bitmapDataPlanes: nil, pixelsWide: Int(width * 2), pixelsHigh: Int(imageHeight * 2),
         bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true, isPlanar: false,
         colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0
     ) else { return nil }
-    bitmap.size = NSSize(width: width, height: chartHeight)
+    bitmap.size = NSSize(width: width, height: imageHeight)
     NSGraphicsContext.saveGraphicsState()
     NSGraphicsContext.current = NSGraphicsContext(bitmapImageRep: bitmap)
     NSAppearance(named: appearance)?.performAsCurrentDrawingAppearance(draw)
@@ -378,8 +376,7 @@ var sampler = Sampler()
 var cpuHistory = History(), gpuHistory = History(), ramHistory = History()
 var diskReadHistory = History(), diskWriteHistory = History()
 var networkInHistory = History(), networkOutHistory = History()
-let moduleWidth = labelWidth + 1 + chartWidth
-let imageWidth = moduleWidth * 5 + moduleGap * 4
+let imageWidth = chartWidth * 5 + moduleGap * 4
 
 while true {
     Thread.sleep(forTimeInterval: interval)
@@ -395,7 +392,7 @@ while true {
 
         let images = [NSAppearance.Name.aqua, .darkAqua].compactMap { appearance in
             renderPNG(width: imageWidth, appearance: appearance) {
-                let x = { (index: Int) in CGFloat(index) * (moduleWidth + moduleGap) }
+                let x = { (index: Int) in CGFloat(index) * (chartWidth + moduleGap) }
                 drawLineChart("CPU", cpuHistory, at: x(0))
                 drawLineChart("GPU", gpuHistory, at: x(1))
                 drawLineChart("RAM", ramHistory, at: x(2))
