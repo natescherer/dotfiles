@@ -1,5 +1,5 @@
 // Streams CPU, GPU, RAM, SSD, and network usage to SwiftBar as one menu bar item: an image of small
-// framed, colored line charts (like Stats' line_chart and network_chart widgets), rendered once for
+// labeled, colored line charts (like Stats' line_chart and network_chart widgets), rendered once for
 // a light menu bar and once for a dark one, plus a dropdown with exact values. Everything is read from Mach, IOKit, and SystemConfiguration directly, so no
 // helper processes are spawned per sample. Built and launched by plugins/system-stats.sh.
 
@@ -12,10 +12,10 @@ let interval: TimeInterval = 1
 let imageHeight: CGFloat = 22
 let labelHeight: CGFloat = 7
 let chartHeight = imageHeight - labelHeight
-let chartWidth: CGFloat = 28
-let moduleGap: CGFloat = 4
+let chartWidth: CGFloat = 24
+let moduleGap: CGFloat = 3
 // One sample per point of chart width.
-let historyLength = Int(chartWidth) - 2
+let historyLength = Int(chartWidth) + 1
 // Smallest full-scale value for the rate charts, so idle background traffic stays near the axis.
 let diskScaleFloor = 1_000_000.0
 let networkScaleFloor = 100_000.0
@@ -250,23 +250,24 @@ func drawSeries(_ points: [NSPoint], baseline: CGFloat, color: NSColor) {
     line.stroke()
 }
 
-/// Draws an empty frame at x with its label centered beneath, returning the frame's inner rect.
+/// Draws a label centered beneath the chart column at x, returning the plot rect above it.
 func drawModule(_ label: String, at x: CGFloat) -> NSRect {
     let font = NSFont.systemFont(ofSize: 6.5, weight: .bold)
     let text = NSAttributedString(string: label, attributes: [.font: font, .foregroundColor: NSColor.labelColor, .kern: 0.5])
     let size = text.size()
     text.draw(at: NSPoint(x: x + (chartWidth - size.width) / 2, y: (labelHeight - size.height) / 2 - 0.5))
-    let frame = NSRect(x: x, y: labelHeight, width: chartWidth, height: chartHeight).insetBy(dx: 0.5, dy: 0.5)
-    let border = NSBezierPath(roundedRect: frame, xRadius: 2.5, yRadius: 2.5)
-    border.lineWidth = 1
-    NSColor.secondaryLabelColor.setStroke()
-    border.stroke()
-    return frame.insetBy(dx: 1.5, dy: 1.5)
+    return NSRect(x: x, y: labelHeight + 1.5, width: chartWidth, height: chartHeight - 2)
 }
 
-/// Colored by the latest value, as Stats does.
+/// Colored by the latest value, as Stats does, over a neutral baseline that stays visible at zero.
 func drawLineChart(_ label: String, _ history: History, at x: CGFloat) {
     let rect = drawModule(label, at: x)
+    let base = NSBezierPath()
+    base.move(to: NSPoint(x: rect.minX, y: rect.minY - 0.5))
+    base.line(to: NSPoint(x: rect.maxX, y: rect.minY - 0.5))
+    base.lineWidth = 1
+    NSColor.secondaryLabelColor.setStroke()
+    base.stroke()
     let color = utilizationColor(history.values.last ?? 0)
     drawSeries(chartPoints(history.values, in: rect, baseline: rect.minY, height: rect.height), baseline: rect.minY, color: color)
 }
