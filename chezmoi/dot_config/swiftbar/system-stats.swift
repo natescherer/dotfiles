@@ -1,6 +1,6 @@
-// Streams CPU, GPU, RAM, SSD, and network usage to SwiftBar as one menu bar item: a template image
-// of small framed line charts (like Stats' line_chart and network_chart widgets), plus a dropdown
-// with exact values. Everything is read from Mach, IOKit, and SystemConfiguration directly, so no
+// Streams CPU, GPU, RAM, SSD, and network usage to SwiftBar as one menu bar item: an image of small
+// framed, colored line charts (like Stats' line_chart and network_chart widgets), rendered once for
+// a light menu bar and once for a dark one, plus a dropdown with exact values. Everything is read from Mach, IOKit, and SystemConfiguration directly, so no
 // helper processes are spawned per sample. Built and launched by plugins/system-stats.sh.
 
 import AppKit
@@ -222,7 +222,16 @@ func chartPoints(_ values: [Double], in rect: NSRect, baseline: CGFloat, height:
     }
 }
 
-func drawSeries(_ points: [NSPoint], baseline: CGFloat) {
+/// Stats' "utilization" color scheme (usageColor in its Kit/extensions.swift).
+func utilizationColor(_ fraction: Double) -> NSColor {
+    switch fraction {
+    case ...0.6: .systemBlue
+    case ...0.8: .orange
+    default: .red
+    }
+}
+
+func drawSeries(_ points: [NSPoint], baseline: CGFloat, color: NSColor) {
     guard let first = points.first, let last = points.last else { return }
     let line = NSBezierPath()
     line.move(to: first)
@@ -231,9 +240,9 @@ func drawSeries(_ points: [NSPoint], baseline: CGFloat) {
     fill.line(to: NSPoint(x: last.x, y: baseline))
     fill.line(to: NSPoint(x: first.x, y: baseline))
     fill.close()
-    NSColor.black.withAlphaComponent(0.35).setFill()
+    color.withAlphaComponent(0.35).setFill()
     fill.fill()
-    NSColor.black.setStroke()
+    color.setStroke()
     line.lineWidth = 1
     line.lineJoinStyle = .round
     line.stroke()
@@ -244,7 +253,7 @@ func drawModule(_ label: String, at x: CGFloat) -> NSRect {
     let font = NSFont.systemFont(ofSize: 6.5, weight: .bold)
     let letterHeight = chartHeight / CGFloat(label.count)
     for (index, letter) in label.enumerated() {
-        let text = NSAttributedString(string: String(letter), attributes: [.font: font, .foregroundColor: NSColor.black])
+        let text = NSAttributedString(string: String(letter), attributes: [.font: font, .foregroundColor: NSColor.labelColor])
         let size = text.size()
         let y = chartHeight - letterHeight * CGFloat(index + 1) + (letterHeight - size.height) / 2
         text.draw(at: NSPoint(x: x + (labelWidth - size.width) / 2, y: y))
@@ -252,28 +261,42 @@ func drawModule(_ label: String, at x: CGFloat) -> NSRect {
     let frame = NSRect(x: x + labelWidth + 1, y: 0, width: chartWidth, height: chartHeight).insetBy(dx: 0.5, dy: 0.5)
     let border = NSBezierPath(roundedRect: frame, xRadius: 2.5, yRadius: 2.5)
     border.lineWidth = 1
-    NSColor.black.withAlphaComponent(0.6).setStroke()
+    NSColor.secondaryLabelColor.setStroke()
     border.stroke()
     return frame.insetBy(dx: 1.5, dy: 1.5)
 }
 
+/// Colored by the latest value, as Stats does.
 func drawLineChart(_ label: String, _ history: History, at x: CGFloat) {
     let rect = drawModule(label, at: x)
-    drawSeries(chartPoints(history.values, in: rect, baseline: rect.minY, height: rect.height), baseline: rect.minY)
+    let color = utilizationColor(history.values.last ?? 0)
+    drawSeries(chartPoints(history.values, in: rect, baseline: rect.minY, height: rect.height), baseline: rect.minY, color: color)
 }
 
-/// Incoming rate above the midline and outgoing below it, on a shared autoscaled axis.
+/// Incoming rate (blue) above the midline and outgoing (red) below it, on a shared autoscaled axis,
+/// in Stats' default read/write colors.
 func drawRateChart(_ label: String, up: History, down: History, floor: Double, at x: CGFloat) {
     let rect = drawModule(label, at: x)
     let scale = max(floor, up.values.max() ?? 0, down.values.max() ?? 0)
     let mid = rect.midY
     let half = rect.height / 2
-    drawSeries(chartPoints(up.values.map { $0 / scale }, in: rect, baseline: mid, height: half), baseline: mid)
-    drawSeries(chartPoints(down.values.map { $0 / scale }, in: rect, baseline: mid, height: -half), baseline: mid)
+    drawSeries(chartPoints(up.values.map { $0 / scale }, in: rect, baseline: mid, height: half), baseline: mid, color: .systemBlue)
+    drawSeries(chartPoints(down.values.map { $0 / scale }, in: rect, baseline: mid, height: -half), baseline: mid, color: .systemRed)
+    // A neutral axis on top, so idle stretches (both series flat at zero) don't read as red. It
+    // replaces the pixels beneath rather than blending, since the color is translucent.
+    let axis = NSBezierPath()
+    axis.move(to: NSPoint(x: rect.minX, y: mid))
+    axis.line(to: NSPoint(x: rect.maxX, y: mid))
+    axis.lineWidth = 1
+    NSColor.secondaryLabelColor.setStroke()
+    NSGraphicsContext.current?.compositingOperation = .copy
+    axis.stroke()
+    NSGraphicsContext.current?.compositingOperation = .sourceOver
 }
 
 /// Renders at 2x with 144 DPI metadata, which SwiftBar's NSImage(data:) reads as a 1x point size.
-func renderPNG(width: CGFloat, _ draw: () -> Void) -> Data? {
+/// Dynamic colors (label, system green, etc.) resolve for the given appearance.
+func renderPNG(width: CGFloat, appearance: NSAppearance.Name, _ draw: () -> Void) -> Data? {
     guard let bitmap = NSBitmapImageRep(
         bitmapDataPlanes: nil, pixelsWide: Int(width * 2), pixelsHigh: Int(chartHeight * 2),
         bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true, isPlanar: false,
@@ -282,7 +305,7 @@ func renderPNG(width: CGFloat, _ draw: () -> Void) -> Data? {
     bitmap.size = NSSize(width: width, height: chartHeight)
     NSGraphicsContext.saveGraphicsState()
     NSGraphicsContext.current = NSGraphicsContext(bitmapImageRep: bitmap)
-    draw()
+    NSAppearance(named: appearance)?.performAsCurrentDrawingAppearance(draw)
     NSGraphicsContext.restoreGraphicsState()
     return bitmap.representation(using: .png, properties: [:])
 }
@@ -317,12 +340,13 @@ func interfaceDescription(_ name: String) -> String {
     return description
 }
 
-func menu(_ sample: Sample, image: String) -> String {
+/// light and dark are base64 PNGs; SwiftBar picks one to match the menu bar's appearance.
+func menu(_ sample: Sample, light: String, dark: String) -> String {
     let pressure = [1: "Normal", 2: "Warning", 4: "Critical"][Int(sample.memory.pressure)] ?? "Unknown"
     let gpu = sample.gpu.map(percent) ?? "n/a"
     let tooltip = "CPU \(percent(sample.cpu)), GPU \(gpu), RAM \(percent(sample.ram))"
     var lines = [
-        "| templateImage=\(image) tooltip=\"\(tooltip)\"",
+        "| image=\(light),\(dark) tooltip=\"\(tooltip)\"",
         "---",
         "CPU: \(percent(sample.cpu)) | sfimage=cpu",
         "User \(percent(sample.cpuUser)), System \(percent(sample.cpuSystem))",
@@ -369,16 +393,18 @@ while true {
         networkInHistory.append(sample.networkIn)
         networkOutHistory.append(sample.networkOut)
 
-        let png = renderPNG(width: imageWidth) {
-            let x = { (index: Int) in CGFloat(index) * (moduleWidth + moduleGap) }
-            drawLineChart("CPU", cpuHistory, at: x(0))
-            drawLineChart("GPU", gpuHistory, at: x(1))
-            drawLineChart("RAM", ramHistory, at: x(2))
-            drawRateChart("SSD", up: diskReadHistory, down: diskWriteHistory, floor: diskScaleFloor, at: x(3))
-            drawRateChart("NET", up: networkInHistory, down: networkOutHistory, floor: networkScaleFloor, at: x(4))
+        let images = [NSAppearance.Name.aqua, .darkAqua].compactMap { appearance in
+            renderPNG(width: imageWidth, appearance: appearance) {
+                let x = { (index: Int) in CGFloat(index) * (moduleWidth + moduleGap) }
+                drawLineChart("CPU", cpuHistory, at: x(0))
+                drawLineChart("GPU", gpuHistory, at: x(1))
+                drawLineChart("RAM", ramHistory, at: x(2))
+                drawRateChart("SSD", up: diskReadHistory, down: diskWriteHistory, floor: diskScaleFloor, at: x(3))
+                drawRateChart("NET", up: networkInHistory, down: networkOutHistory, floor: networkScaleFloor, at: x(4))
+            }?.base64EncodedString()
         }
-        guard let png else { return }
-        print("~~~\n" + menu(sample, image: png.base64EncodedString()))
+        guard images.count == 2 else { return }
+        print("~~~\n" + menu(sample, light: images[0], dark: images[1]))
         fflush(stdout)
     }
 }
