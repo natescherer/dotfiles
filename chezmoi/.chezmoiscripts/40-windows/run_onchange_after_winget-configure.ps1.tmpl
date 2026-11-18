@@ -4,8 +4,9 @@
 # Flow: preflight checks (Group Policy), prerequisite installs and upstream-bug workarounds, then
 # one `winget configure` run per changed *.winget file, with recorded applied hashes so unchanged
 # files are skipped on later runs. Files with elevated resources all run through one elevated
-# worker process, so a run shows at most one UAC prompt. When a run ends with a reboot pending, the files it applied are
-# listed for verification, and the first run after the reboot applies them once more.
+# worker process, so a run shows at most one UAC prompt. When a run ends with a reboot pending,
+# the files it applied are listed for verification, and the first run after the reboot applies
+# them once more.
 
 # {{ $wingetConfigDirName := "winget-configuration-chezmoi" }}
 # {{ $wingetConfigSourceDir := joinPath .chezmoi.sourceDir "AppData/Local" (print "exact_" $wingetConfigDirName) }}
@@ -173,7 +174,6 @@ function Invoke-WithRetry {
 # the apply loop can skip unchanged files.
 function Get-ConfigFileHash {
   param([string] $Path)
-  if (-not (Test-Path $Path)) { return $null }
   return (Get-FileHash -Path $Path -Algorithm SHA256).Hash
 }
 
@@ -197,12 +197,9 @@ function Test-ConfigFileChanged {
 
 function Set-ConfigFileAppliedHash {
   param([string] $Path)
-  $Hash = Get-ConfigFileHash -Path $Path
-  if ($null -ne $Hash) {
-    $Hashes = Get-AppliedHashes
-    $Hashes[$Path] = $Hash
-    $Hashes | ConvertTo-Json | Set-Content -Path $AppliedHashesPath
-  }
+  $Hashes = Get-AppliedHashes
+  $Hashes[$Path] = Get-ConfigFileHash -Path $Path
+  $Hashes | ConvertTo-Json | Set-Content -Path $AppliedHashesPath
 }
 
 # File renames queued for the next boot, each as "source -> destination". Installers queue these
@@ -666,8 +663,6 @@ foreach ($File in $ConfigFiles) {
 
   $Elevated = $File -in $ElevatedFiles
   Write-Host "`nApplying $File via 'winget configure'$(if ($Elevated) { ' (elevated)' })..." -ForegroundColor Cyan
-  Write-Log "=== $File ==="
-  # If https://github.com/microsoft/winget-cli/issues/6419) is ever implemented, we'll want to add its flag here
   $ConfigureArgs = @('-f', $Path, '--accept-configuration-agreements', '--disable-interactivity', '--suppress-initial-details', '--verbose-logs', '--ignore-warnings')
   Invoke-WithRetry -Name $File -ScriptBlock {
     if ($Elevated) {
