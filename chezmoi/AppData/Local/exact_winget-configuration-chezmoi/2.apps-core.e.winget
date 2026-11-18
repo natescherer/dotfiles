@@ -114,6 +114,7 @@ resources:
     properties:
       id: 9PDXGNCFSCZV
       source: msstore
+      acceptAgreements: true
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: VLC

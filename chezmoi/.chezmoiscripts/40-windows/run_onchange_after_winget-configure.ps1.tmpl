@@ -460,22 +460,6 @@ function Get-ConfigFileDismProblems {
   }
 }
 
-# Emits package ids whose source is msstore from a configuration file (see the msstore
-# pre-install workaround below). Line-based scan: an "id:" followed later by "source: msstore".
-function Get-MsstoreIds {
-  param([string] $Path)
-  $PendingId = $null
-  foreach ($Line in Get-Content -Path $Path) {
-    if ($Line -match '^\s*id:\s*(\S+)\s*$') {
-      $PendingId = $Matches[1]
-    }
-    elseif ($Line -match '^\s*source:\s*msstore\s*$' -and $PendingId) {
-      $PendingId
-      $PendingId = $null
-    }
-  }
-}
-
 # The newest installed PSResourceGet, if it satisfies the 1.3.0-preview1+ requirement of the
 # Microsoft.PowerShell.PSResourceGet/PSResourceList resource; nothing otherwise.
 function Get-SufficientPSResourceGet {
@@ -651,65 +635,6 @@ if (-not (Get-SufficientPSResourceGet)) {
 }
 
 Write-Detail 'Prerequisites in place.'
-
-Write-Step 'Store apps'
-
-# Workaround for https://github.com/microsoft/winget-cli/issues/6091, which prevents winget
-# configure from installing Store apps for the first time: pre-install them here instead. Scans
-# every *.winget file
-$MsstoreIds = [System.Collections.Generic.HashSet[string]]::new()
-foreach ($File in $ConfigFiles) {
-  $Path = Join-Path $ConfigDir $File
-  if (Test-ConfigFileNeedsApply -Path $Path) {
-    Get-MsstoreIds -Path $Path | ForEach-Object { [void]$MsstoreIds.Add($_) }
-  }
-}
-if ($MsstoreIds.Count -eq 0) {
-  Write-Log "=== no *.winget files to apply reference msstore ids, skipping pre-install pass ==="
-  Write-Detail 'No Store apps in the files to apply.'
-}
-
-# Already-installed Store apps make winget install fail with 0x8A15002B (no applicable update) --
-# not a real failure, just an upgrade check against a current package. Filter them out first so
-# the header below only announces a pre-install pass when one will actually happen.
-$MsstoreIdsToInstall = [System.Collections.Generic.List[string]]::new()
-$i = 0
-foreach ($Id in $MsstoreIds) {
-  $i++
-  Invoke-WithSpinner -Activity "Checking Store app $Id ($i/$($MsstoreIds.Count))" -ArgumentList $Id -ScriptBlock {
-    param($Id)
-    winget list --id $Id -e --accept-source-agreements 2>&1
-  } | Write-Log
-  if ($LASTEXITCODE -eq 0) {
-    Write-Log "=== $Id already installed, skipping pre-install ==="
-    continue
-  }
-  $MsstoreIdsToInstall.Add($Id)
-}
-if ($MsstoreIds.Count -gt 0) {
-  Write-Detail "$($MsstoreIds.Count - $MsstoreIdsToInstall.Count) of $($MsstoreIds.Count) Store app(s) already installed."
-}
-
-if ($MsstoreIdsToInstall.Count -gt 0) {
-  Write-Log "=== Pre-installing Store apps referenced in configuration files: $($MsstoreIdsToInstall -join ', ') ==="
-}
-foreach ($Id in $MsstoreIdsToInstall) {
-  Write-Log "=== winget install $Id (msstore pre-install) ==="
-  Invoke-WithRetry -Name "msstore pre-install: $Id" -ScriptBlock {
-    # Log-only: winget can't suppress its per-package "Found X / Agreements" narration, and with
-    # many Store apps that's console noise the spinner and the result line below already cover.
-    Invoke-WithSpinner -Activity "Pre-installing Store app $Id" -ArgumentList $Id -ScriptBlock {
-      param($Id)
-      winget install --id $Id --source msstore --accept-package-agreements --accept-source-agreements --disable-interactivity 2>&1
-    } | Write-Log
-  }
-  if ($LASTEXITCODE -ne 0) {
-    Write-Detail "Pre-installing $Id failed (exit code $LASTEXITCODE) -- its winget configure resource will likely fail too. See $LogPath" -Color Yellow
-  }
-  else {
-    Write-Detail "Pre-installed $Id."
-  }
-}
 
 #endregion
 

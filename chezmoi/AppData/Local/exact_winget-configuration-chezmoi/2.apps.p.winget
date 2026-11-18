@@ -12,12 +12,14 @@ resources:
     properties:
       id: 9PFHDD62MXS1
       source: msstore
+      acceptAgreements: true
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: AppleTV
     properties:
       id: 9NM4T8B9JQZ1
       source: msstore
+      acceptAgreements: true
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: Claude
@@ -36,6 +38,7 @@ resources:
     properties:
       id: 9N0866FS04W8
       source: msstore
+      acceptAgreements: true
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: LocalSend

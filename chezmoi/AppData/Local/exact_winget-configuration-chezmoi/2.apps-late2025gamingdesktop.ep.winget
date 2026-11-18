@@ -51,6 +51,7 @@ resources:
     properties:
       id: XP8CLZL93F5Z4P
       source: msstore
+      acceptAgreements: true
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: OBSStudio
@@ -78,6 +79,7 @@ resources:
     properties:
       id: XPDDT99J9GKB5C
       source: msstore
+      acceptAgreements: true
       installMode: silent
   - type: Microsoft.WinGet/Package
     name: Steam
