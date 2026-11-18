@@ -18,3 +18,9 @@ Within a file, either every resource sets `securityContext: elevated` or none do
 script runs each file that has any elevated resource from a single elevated process, so an
 unelevated resource in such a file would also run elevated. Put unelevated resources in a
 separate file without the **e** letter.
+
+Call DISM (optional features, capabilities, Features on Demand) only through
+`Microsoft.DSC.Transitional/WindowsPowerShellScript` or `dism.exe`. DISM fails inside MSIX
+packages, which rules out DSC's own DISM resources under the Appx-packaged DSC and DISM cmdlets
+under PowerShell 7.7+ (see <https://github.com/PowerShell/PowerShell/issues/13866>). The apply
+script refuses to run a file that does either.

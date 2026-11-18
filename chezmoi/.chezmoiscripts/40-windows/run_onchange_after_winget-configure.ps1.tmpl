@@ -409,6 +409,57 @@ function Stop-ElevatedWorker {
   }
 }
 
+# Emits one message per use of DISM in a configuration file that is known to fail. DISM starts
+# dismhost.exe outside any MSIX package, so a caller running inside one can't see the COM class
+# dismhost.exe registers, and fails after a ~30-second hang:
+# - DSC's own DISM resources, under the Appx-packaged dsc.exe that winget configure uses
+#   (https://github.com/PowerShell/DSC/issues/1653, closed as a Windows limitation).
+# - DISM cmdlets run by pwsh (PowerShellScript, or RunCommandOnSet with pwsh as its executable),
+#   since PowerShell 7.7+ installs only as MSIX. The error there is "Class not registered"
+#   (0x80040154).
+# Windows PowerShell is never packaged, so WindowsPowerShellScript with the DISM cmdlets works,
+# as does dism.exe. Line-based scan, grouping lines by the resource they belong to.
+# Once https://github.com/PowerShell/PowerShell/issues/13866 is fixed, retest both cases: a fix
+# in DISM or Windows covers both, but a fix in PowerShell alone covers only the pwsh case.
+function Get-ConfigFileDismProblems {
+  param([string] $Path)
+  $DismResourceTypes = @(
+    'Microsoft.Windows/OptionalFeatureList'
+    'Microsoft.Windows/FeatureOnDemandList'
+    'Microsoft.Windows/WindowsFeatureList'
+  )
+  $DismCmdletPattern = '\b[a-z]+-Windows(OptionalFeature|Capability|Package|Driver|Image|Edition)\b|\bImport-Module\s+(-Name\s+)?[''"]?Dism\b'
+  $Fix = 'use Microsoft.DSC.Transitional/WindowsPowerShellScript with the DISM cmdlets instead'
+  $File = Split-Path -Leaf $Path
+  $Resources = [System.Collections.Generic.List[object]]::new()
+  $Resource = $null
+  $LineNumber = 0
+  foreach ($Line in Get-Content -Path $Path) {
+    $LineNumber++
+    if ($Line -match '^\s*-\s*type:\s*[''"]?([^''"\s#]+)') {
+      $Resource = [pscustomobject]@{ Type = $Matches[1]; Line = $LineNumber; Executable = $null; Cmdlets = [System.Collections.Generic.List[string]]::new() }
+      $Resources.Add($Resource)
+    }
+    elseif ($Resource -and $Line -notmatch '^\s*#') {
+      if ($Line -match '^\s*executable:\s*[''"]?([^''"\s#]+)') {
+        $Resource.Executable = $Matches[1]
+      }
+      elseif ($Line -match $DismCmdletPattern) {
+        $Resource.Cmdlets.Add("${File}:${LineNumber}: $($Matches[0])")
+      }
+    }
+  }
+  foreach ($Resource in $Resources) {
+    if ($Resource.Type -in $DismResourceTypes) {
+      "${File}:$($Resource.Line): $($Resource.Type) fails under the Appx-packaged DSC that winget configure uses -- $Fix."
+    }
+    elseif ($Resource.Type -eq 'Microsoft.DSC.Transitional/PowerShellScript' -or
+      ($Resource.Type -eq 'Microsoft.DSC.Transitional/RunCommandOnSet' -and $Resource.Executable -and (Split-Path -Leaf $Resource.Executable) -in 'pwsh', 'pwsh.exe')) {
+      $Resource.Cmdlets | ForEach-Object { "$_ in $($Resource.Type) fails under MSIX-packaged pwsh -- $Fix." }
+    }
+  }
+}
+
 # Emits package ids whose source is msstore from a configuration file (see the msstore
 # pre-install workaround below). Line-based scan: an "id:" followed later by "source: msstore".
 function Get-MsstoreIds {
@@ -472,6 +523,13 @@ if ($null -ne $PolicyValue -and [int]$PolicyValue -eq 0) {
   throw "winget configure is disabled by Group Policy ($PolicyPath\EnableWindowsPackageManagerConfiguration = 0). This is the 'Enable Windows Package Manager Configuration' ADMX policy (Computer Configuration > Administrative Templates > Windows Components > App Installer). Fix the policy, then rerun."
 }
 Write-Detail "winget $WingetVersionRaw, PowerShell $($PSVersionTable.PSVersion), $DiskFreeGB GB free on C:"
+
+# Every file, not only changed ones, so a known-broken DISM use fails the run before any UAC
+# prompt or install, with the fix, instead of failing partway with DISM's own error.
+$DismProblems = @($ConfigFiles | ForEach-Object { Get-ConfigFileDismProblems -Path (Join-Path $ConfigDir $_) })
+if ($DismProblems.Count -gt 0) {
+  throw "DISM can't run where these configuration files call it (see https://github.com/PowerShell/PowerShell/issues/13866):`n  $($DismProblems -join "`n  ")"
+}
 
 # Renames already queued before anything below installs, so the reboot check at the end counts
 # only the ones this run queued.
