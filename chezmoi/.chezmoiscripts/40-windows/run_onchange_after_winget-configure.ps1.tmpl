@@ -74,7 +74,17 @@ $CanAnimate = -not [Console]::IsOutputRedirected
 $SpinnerFrames = '|', '/', '-', '\'
 $SpinnerFrame = 0
 
-# Prints a header for each phase of the run, so the console shows which one is underway.
+# Prints a header for each of the run's two phases: Prepare, which may need the user, and
+# Apply, which runs unattended. $Attendance says which, in the color of the user's cues.
+function Write-Phase {
+  param([Parameter(Mandatory)] [int] $Number, [Parameter(Mandatory)] [string] $Name, [Parameter(Mandatory)] [string] $Attendance)
+  Write-Host "`n=== Phase $Number of 2: $Name " -ForegroundColor White -NoNewline
+  Write-Host "($Attendance)" -ForegroundColor Magenta -NoNewline
+  Write-Host ' ===' -ForegroundColor White
+  Write-Log "######## Phase $Number of 2: $Name ########"
+}
+
+# Prints a header for each step within a phase, so the console shows which one is underway.
 function Write-Step {
   param([Parameter(Mandatory)] [string] $Text)
   Write-Host "`n==> $Text" -ForegroundColor Green
@@ -444,6 +454,7 @@ function Get-SufficientPSResourceGet {
 
 #region Preflight
 
+Write-Phase -Number 1 -Name 'Prepare' -Attendance 'stay nearby'
 Write-Step 'Preflight checks'
 
 # System-state snapshot for the log, useful for troubleshooting later.
@@ -640,6 +651,7 @@ Write-Host "`nNothing else needs your input. You can step away until the run fin
 
 #region Apply configuration files
 
+Write-Phase -Number 2 -Name 'Apply' -Attendance 'unattended'
 Write-Step 'Applying configuration files'
 
 $AppliedFiles = [System.Collections.Generic.List[string]]::new()
