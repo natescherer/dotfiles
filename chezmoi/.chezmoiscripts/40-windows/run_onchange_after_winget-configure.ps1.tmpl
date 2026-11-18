@@ -76,6 +76,79 @@ function Write-Log {
 
 #endregion
 
+#region Console progress
+
+# Whether the console can redraw a line in place. When output is redirected, spinners print one
+# plain line per step instead.
+$CanAnimate = -not [Console]::IsOutputRedirected
+$SpinnerFrames = '|', '/', '-', '\'
+$SpinnerFrame = 0
+
+# Prints a header for each phase of the run, so the console shows which one is underway.
+function Write-Step {
+  param([Parameter(Mandatory)] [string] $Text)
+  Write-Host "`n==> $Text" -ForegroundColor Green
+  Write-Log "##### $Text #####"
+}
+
+# Prints an indented one-line result under the current step.
+function Write-Detail {
+  param([Parameter(Mandatory)] [string] $Text, [string] $Color = 'DarkGray')
+  Write-Host "    $Text" -ForegroundColor $Color
+}
+
+# Redraws the spinner line in place with the next frame, $Text, and the elapsed seconds. Cut to
+# the console width so it never wraps, since a wrapped line can't be redrawn in place.
+function Write-SpinnerFrame {
+  param([string] $Text, [timespan] $Elapsed)
+  if (-not $CanAnimate) { return }
+  $Line = "  {0} {1} ({2:N0}s)" -f $SpinnerFrames[$script:SpinnerFrame++ % $SpinnerFrames.Count], $Text, $Elapsed.TotalSeconds
+  $Width = [Math]::Max([Console]::WindowWidth - 1, 20)
+  if ($Line.Length -gt $Width) { $Line = $Line.Substring(0, $Width) }
+  Write-Host -NoNewline ("`r" + $Line.PadRight($Width)) -ForegroundColor DarkGray
+}
+
+function Clear-SpinnerLine {
+  if (-not $CanAnimate) { return }
+  Write-Host -NoNewline ("`r" + ' ' * [Math]::Max([Console]::WindowWidth - 1, 20) + "`r")
+}
+
+# Runs $ScriptBlock on a background thread and draws a spinner until it finishes, so a slow step
+# that prints nothing doesn't look hung. The block runs in its own runspace and can't see this
+# script's variables or functions: pass what it needs through -ArgumentList. Returns the block's
+# output, sets $LASTEXITCODE from the block's last native command (0 if none ran), and rethrows
+# anything the block throws.
+function Invoke-WithSpinner {
+  param(
+    [Parameter(Mandatory)] [string] $Activity,
+    [Parameter(Mandatory)] [scriptblock] $ScriptBlock,
+    [object[]] $ArgumentList = @()
+  )
+  if (-not $CanAnimate) { Write-Host "  $Activity..." -ForegroundColor DarkGray }
+  $Job = Start-ThreadJob -ArgumentList $ScriptBlock.ToString(), $ArgumentList -ScriptBlock {
+    param($Code, $CodeArgs)
+    $global:LASTEXITCODE = 0
+    try {
+      $Output = & ([scriptblock]::Create($Code)) @CodeArgs
+      [pscustomobject]@{ Output = @($Output); ExitCode = $LASTEXITCODE; Error = $null }
+    }
+    catch {
+      [pscustomobject]@{ Output = @(); ExitCode = 1; Error = $_.Exception.Message }
+    }
+  }
+  $Timer = [System.Diagnostics.Stopwatch]::StartNew()
+  while (-not $Job.Finished.WaitOne(120)) {
+    Write-SpinnerFrame -Text $Activity -Elapsed $Timer.Elapsed
+  }
+  Clear-SpinnerLine
+  $Result = Receive-Job -Job $Job -Wait -AutoRemoveJob
+  if ($Result.Error) { throw $Result.Error }
+  $global:LASTEXITCODE = $Result.ExitCode
+  $Result.Output
+}
+
+#endregion
+
 #region Helpers
 
 # Retries with exponential backoff to ride out transient network blips; every attempt is logged.
@@ -177,7 +250,10 @@ function Invoke-AlertSound {
 function Test-ConfigFileRequiresElevation {
   param([string] $Path)
   try {
-    $Output = winget configure show -f $Path --disable-interactivity 2>&1 | Out-String
+    $Output = (Invoke-WithSpinner -Activity "Checking $(Split-Path -Leaf $Path)" -ArgumentList $Path -ScriptBlock {
+        param($Path)
+        winget configure show -f $Path --disable-interactivity 2>&1
+      }) -join "`n"
     if ($LASTEXITCODE -ne 0) {
       Write-Log "=== 'winget configure show' for $Path exited ${LASTEXITCODE}: $Output -- assuming elevation required ==="
       return $true
@@ -233,12 +309,17 @@ function Start-ElevatedWorker {
     throw "Could not start the elevated worker ($($_.Exception.Message)) -- the UAC prompt may have been declined. Rerun 'chezmoi apply' and approve it."
   }
   $ReadyFile = Join-Path $WorkerQueueDir 'ready'
+  $Timer = [System.Diagnostics.Stopwatch]::StartNew()
   while (-not (Test-Path $ReadyFile)) {
     if ($Worker.HasExited) {
+      Clear-SpinnerLine
       throw "The elevated worker exited before it was ready (exit code $($Worker.ExitCode)). See $LogPath and rerun."
     }
-    Start-Sleep -Milliseconds 250
+    Write-SpinnerFrame -Text 'Starting the elevated worker' -Elapsed $Timer.Elapsed
+    Start-Sleep -Milliseconds 120
   }
+  Clear-SpinnerLine
+  Write-Detail 'Elevated worker running.'
   Write-Log "=== elevated worker started (PID $($Worker.Id)), queue: $WorkerQueueDir ==="
 }
 
@@ -263,23 +344,32 @@ function Invoke-ElevatedRequest {
   $LogFile = Join-Path $WorkerQueueDir "worker-$Id.log"
   $ResultFile = Join-Path $WorkerQueueDir "result-$Id.json"
   $LinesShown = 0
+  # Resets on each new line of output, so the spinner shows how long winget has been quiet.
+  $Timer = [System.Diagnostics.Stopwatch]::StartNew()
   while ($true) {
     # Checked before reading the log, so the final read includes every line written before the
     # result.
     $Done = Test-Path $ResultFile
     $Lines = @(Get-Content -Path $LogFile -ErrorAction SilentlyContinue)
+    if ($LinesShown -lt $Lines.Count) {
+      Clear-SpinnerLine
+      $Timer.Restart()
+    }
     for (; $LinesShown -lt $Lines.Count; $LinesShown++) {
       Write-Host $Lines[$LinesShown]
       Write-Log $Lines[$LinesShown]
     }
     if ($Done) { break }
     if ($Worker.HasExited) {
+      Clear-SpinnerLine
       Write-Log "=== elevated worker exited unexpectedly (exit code $($Worker.ExitCode)) ==="
       $global:LASTEXITCODE = 1
       return
     }
-    Start-Sleep -Milliseconds 250
+    Write-SpinnerFrame -Text 'winget is working (elevated)' -Elapsed $Timer.Elapsed
+    Start-Sleep -Milliseconds 120
   }
+  Clear-SpinnerLine
   $global:LASTEXITCODE = [int](Get-Content -Path $ResultFile -Raw | ConvertFrom-Json).ExitCode
 }
 
@@ -336,6 +426,8 @@ function Get-SufficientPSResourceGet {
 
 #region Preflight
 
+Write-Step 'Preflight checks'
+
 # System-state snapshot for the log, useful for troubleshooting later.
 try {
   $Os = Get-CimInstance -ClassName Win32_OperatingSystem -ErrorAction Stop
@@ -369,6 +461,7 @@ $PolicyValue = (Get-ItemProperty -Path $PolicyPath -Name 'EnableWindowsPackageMa
 if ($null -ne $PolicyValue -and [int]$PolicyValue -eq 0) {
   throw "winget configure is disabled by Group Policy ($PolicyPath\EnableWindowsPackageManagerConfiguration = 0). This is the 'Enable Windows Package Manager Configuration' ADMX policy (Computer Configuration > Administrative Templates > Windows Components > App Installer). Fix the policy, then rerun."
 }
+Write-Detail "winget $WingetVersionRaw, PowerShell $($PSVersionTable.PSVersion), $DiskFreeGB GB free on C:"
 
 #endregion
 
@@ -399,6 +492,12 @@ if ($VerifyList) {
     Write-Log "=== verify list still waiting on a reboot: $($PendingVerifyFiles -join ', ') ==="
   }
 }
+if ($VerifyFiles.Count -gt 0) {
+  Write-Detail "Rebooted since the last run: verifying $($VerifyFiles.Count) file(s) it applied." -Color Yellow
+}
+elseif ($PendingVerifyFiles.Count -gt 0) {
+  Write-Detail "$($PendingVerifyFiles.Count) file(s) from an earlier run still wait on a reboot to be verified." -Color Yellow
+}
 
 # Whether a configuration file needs applying this run: changed since its last apply, or listed
 # for verification after a reboot.
@@ -410,6 +509,8 @@ function Test-ConfigFileNeedsApply {
 #endregion
 
 #region Prerequisites and upstream workarounds
+
+Write-Step 'Prerequisites'
 
 # Fresh machines refuse `winget configure` until its extended-features flag is enabled once.
 # `--enable`/`--disable` must be passed alone -- newer winget rejects it combined with any other
@@ -450,10 +551,11 @@ if ((Get-ItemProperty -Path $VCRedistKey -Name 'Installed' -ErrorAction Silently
 
 # The Microsoft.PowerShell.PSResourceGet/PSResourceList resource needs PSResourceGet 1.3.0-preview1+.
 if (-not (Get-SufficientPSResourceGet)) {
-  Write-Host "`nInstalling PSResourceGet 1.3.0+..." -ForegroundColor Cyan
   Write-Log "=== Installing Microsoft.PowerShell.PSResourceGet (prerelease) ==="
   try {
-    Install-PSResource -Name Microsoft.PowerShell.PSResourceGet -Prerelease -TrustRepository -Scope CurrentUser -ErrorAction Stop *>&1 | Write-Log
+    Invoke-WithSpinner -Activity 'Installing PSResourceGet 1.3.0+' -ScriptBlock {
+      Install-PSResource -Name Microsoft.PowerShell.PSResourceGet -Prerelease -TrustRepository -Scope CurrentUser -ErrorAction Stop *>&1 | Out-String
+    } | Write-Log
   }
   catch {
     Write-Log "PSResourceGet install threw: $($_.Exception.Message)"
@@ -463,6 +565,7 @@ if (-not (Get-SufficientPSResourceGet)) {
     Write-Host "Warning: failed to install PSResourceGet 1.3.0+ . See $LogPath" -ForegroundColor Yellow
   }
   else {
+    Write-Detail "Installed PSResourceGet $($PSResourceGetInstalled.Version) $($PSResourceGetInstalled.Prerelease)"
     Write-Log "=== PSResourceGet install verified: $($PSResourceGetInstalled.Version) $($PSResourceGetInstalled.Prerelease) ==="
     # winget configure runs through WindowsPackageManagerServer, a COM server that stays resident
     # across invocations (confirmed: one ran for over a week) and caches its DSC resource
@@ -543,7 +646,11 @@ else {
   # unelevated script fails the same way), so the elevated worker does it below.
   $AdminSettings = (winget settings export 2>$null | ConvertFrom-Json).adminSettings
   $NeedsProcessorPathSetting = -not $AdminSettings.ConfigurationProcessorPath
+  Write-Detail "DSC ZIP package ready for: $($DscZipFiles -join ', ')"
 }
+Write-Detail 'Prerequisites in place.'
+
+Write-Step 'Store apps'
 
 # Workaround for https://github.com/microsoft/winget-cli/issues/6091, which prevents winget
 # configure from installing Store apps for the first time: pre-install them here instead. Scans
@@ -557,35 +664,48 @@ foreach ($File in $ConfigFiles) {
 }
 if ($MsstoreIds.Count -eq 0) {
   Write-Log "=== no *.winget files to apply reference msstore ids, skipping pre-install pass ==="
+  Write-Detail 'No Store apps in the files to apply.'
 }
 
 # Already-installed Store apps make winget install fail with 0x8A15002B (no applicable update) --
 # not a real failure, just an upgrade check against a current package. Filter them out first so
 # the header below only announces a pre-install pass when one will actually happen.
 $MsstoreIdsToInstall = [System.Collections.Generic.List[string]]::new()
+$i = 0
 foreach ($Id in $MsstoreIds) {
-  winget list --id $Id -e --accept-source-agreements 2>&1 | Write-Log
+  $i++
+  Invoke-WithSpinner -Activity "Checking Store app $Id ($i/$($MsstoreIds.Count))" -ArgumentList $Id -ScriptBlock {
+    param($Id)
+    winget list --id $Id -e --accept-source-agreements 2>&1
+  } | Write-Log
   if ($LASTEXITCODE -eq 0) {
     Write-Log "=== $Id already installed, skipping pre-install ==="
     continue
   }
   $MsstoreIdsToInstall.Add($Id)
 }
+if ($MsstoreIds.Count -gt 0) {
+  Write-Detail "$($MsstoreIds.Count - $MsstoreIdsToInstall.Count) of $($MsstoreIds.Count) Store app(s) already installed."
+}
 
 if ($MsstoreIdsToInstall.Count -gt 0) {
-  Write-Host "`nPre-installing Store apps referenced in configuration files..." -ForegroundColor Cyan
   Write-Log "=== Pre-installing Store apps referenced in configuration files: $($MsstoreIdsToInstall -join ', ') ==="
 }
 foreach ($Id in $MsstoreIdsToInstall) {
-  Write-Host "Pre-installing Store app $Id..." -ForegroundColor Cyan
   Write-Log "=== winget install $Id (msstore pre-install) ==="
   Invoke-WithRetry -Name "msstore pre-install: $Id" -ScriptBlock {
     # Log-only: winget can't suppress its per-package "Found X / Agreements" narration, and with
-    # many Store apps that's console noise the Write-Host above and warning below already cover.
-    winget install --id $Id --source msstore --accept-package-agreements --accept-source-agreements --disable-interactivity 2>&1 | Write-Log
+    # many Store apps that's console noise the spinner and the result line below already cover.
+    Invoke-WithSpinner -Activity "Pre-installing Store app $Id" -ArgumentList $Id -ScriptBlock {
+      param($Id)
+      winget install --id $Id --source msstore --accept-package-agreements --accept-source-agreements --disable-interactivity 2>&1
+    } | Write-Log
   }
   if ($LASTEXITCODE -ne 0) {
-    Write-Host "Warning: pre-installing $Id failed (exit code $LASTEXITCODE) -- its winget configure resource will likely fail too. See $LogPath" -ForegroundColor Yellow
+    Write-Detail "Pre-installing $Id failed (exit code $LASTEXITCODE) -- its winget configure resource will likely fail too. See $LogPath" -Color Yellow
+  }
+  else {
+    Write-Detail "Pre-installed $Id."
   }
 }
 
@@ -593,15 +713,23 @@ foreach ($Id in $MsstoreIdsToInstall) {
 
 #region Elevated worker
 
+Write-Step 'Elevation'
+
 # Files to apply that winget would elevate for. They all run through one elevated worker, so the
 # run shows a single UAC prompt instead of one per file.
 $ElevatedFiles = @($ConfigFiles | Where-Object {
     $Path = Join-Path $ConfigDir $_
-    (Test-ConfigFileNeedsApply -Path $Path) -and (Test-ConfigFileRequiresElevation -Path $Path)
+    if (-not (Test-ConfigFileNeedsApply -Path $Path)) { return $false }
+    $RequiresElevation = Test-ConfigFileRequiresElevation -Path $Path
+    Write-Detail "${_}: $(if ($RequiresElevation) { 'elevated' } else { 'unelevated' })"
+    $RequiresElevation
   })
+if ($ElevatedFiles.Count -eq 0 -and -not $NeedsProcessorPathSetting) {
+  Write-Detail 'Nothing to apply needs elevation.'
+}
 Write-Log "=== files to apply elevated: $($ElevatedFiles -join ', ') | ConfigurationProcessorPath needs enabling: $NeedsProcessorPathSetting ==="
 if ($ElevatedFiles.Count -gt 0 -or $NeedsProcessorPathSetting) {
-  Write-Host "`nElevation needed for: $(@($ElevatedFiles) + @(if ($NeedsProcessorPathSetting) { "winget's ConfigurationProcessorPath setting" }) -join ', '). Expect one UAC prompt for all of it." -ForegroundColor Yellow
+  Write-Host "`n$($ElevatedFiles.Count) file(s)$(if ($NeedsProcessorPathSetting) { " and winget's ConfigurationProcessorPath setting" }) need elevation. Expect one UAC prompt for all of it." -ForegroundColor Yellow
   Invoke-AlertSound
   Write-Host "Press Enter once you're ready to approve it..." -ForegroundColor Yellow -NoNewline
   Read-Host | Out-Null
@@ -609,7 +737,7 @@ if ($ElevatedFiles.Count -gt 0 -or $NeedsProcessorPathSetting) {
 }
 
 if ($NeedsProcessorPathSetting) {
-  Write-Host "`nEnabling winget's ConfigurationProcessorPath admin setting..." -ForegroundColor Cyan
+  Write-Detail "Enabling winget's ConfigurationProcessorPath admin setting..." -Color Cyan
   Write-Log "=== Enabling ConfigurationProcessorPath admin setting (elevated worker) ==="
   Invoke-ElevatedRequest -Request @{ Kind = 'enable-processor-path' }
   if ($LASTEXITCODE -ne 0) {
@@ -622,14 +750,20 @@ if ($NeedsProcessorPathSetting) {
 
 #region Apply configuration files
 
+Write-Step 'Applying configuration files'
+
 $AppliedFiles = [System.Collections.Generic.List[string]]::new()
+# One row per configuration file for the summary at the end.
+$Results = [System.Collections.Generic.List[pscustomobject]]::new()
 foreach ($File in $ConfigFiles) {
   $Path = Join-Path $ConfigDir $File
   if (-not (Test-ConfigFileNeedsApply -Path $Path)) {
-    Write-Host "`nSkipping $File -- unchanged since last successful apply." -ForegroundColor DarkGray
+    Write-Detail "Skipping $File -- unchanged since last successful apply."
     Write-Log "=== ${File}: unchanged, skipping ==="
+    $Results.Add([pscustomobject]@{ File = $File; Result = 'skipped (unchanged)'; Seconds = $null; Ok = $true })
     continue
   }
+  $FileTimer = [System.Diagnostics.Stopwatch]::StartNew()
   if ($Path -in $VerifyFiles) {
     Write-Log "=== ${File}: verifying after reboot ==="
   }
@@ -656,10 +790,15 @@ foreach ($File in $ConfigFiles) {
     }
   }
   Write-Log "--- exit code: $LASTEXITCODE ---"
-  if ($LASTEXITCODE -ne 0) {
+  $Result = if ($Path -in $VerifyFiles) { 'verified after reboot' } else { 'applied' }
+  if ($Elevated) { $Result += ' (elevated)' }
+  $Ok = $LASTEXITCODE -eq 0
+  if (-not $Ok) {
     Write-Log "=== winget's own diagnostic logs for this failure: $WingetLogDir ==="
     Write-Host "Warning: $File exited with code $LASTEXITCODE after retries. This may be a benign warning (e.g. 'module not provided') or a real failure -- see $LogPath" -ForegroundColor Yellow
+    $Result += ", exit code $LASTEXITCODE"
   }
+  $Results.Add([pscustomobject]@{ File = $File; Result = $Result; Seconds = [int]$FileTimer.Elapsed.TotalSeconds; Ok = $Ok })
 
   # Recorded regardless of winget's exit code (unreliable, see bottom of script) -- gating on a
   # clean exit would permanently defeat the skip check for files with benign non-zero warnings.
@@ -668,6 +807,20 @@ foreach ($File in $ConfigFiles) {
 }
 
 Stop-ElevatedWorker
+
+#endregion
+
+#region Summary
+
+Write-Step 'Summary'
+$NameWidth = ($Results.File | Measure-Object -Property Length -Maximum).Maximum
+foreach ($Row in $Results) {
+  $Time = if ($null -ne $Row.Seconds) { " ($($Row.Seconds)s)" } else { '' }
+  $Color = if (-not $Row.Ok) { 'Yellow' } elseif ($null -eq $Row.Seconds) { 'DarkGray' } else { 'Gray' }
+  Write-Host "    $($Row.File.PadRight($NameWidth))  $($Row.Result)$Time" -ForegroundColor $Color
+  Write-Log "summary: $($Row.File): $($Row.Result)$Time"
+}
+Write-Detail "Log: $LogPath"
 
 #endregion
 
