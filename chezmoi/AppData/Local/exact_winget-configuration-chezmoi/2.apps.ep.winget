@@ -105,12 +105,6 @@ resources:
       source: winget
       installMode: silent
   - type: Microsoft.WinGet/Package
-    name: ProtonMail
-    properties:
-      id: Proton.ProtonMail
-      source: winget
-      installMode: silent
-  - type: Microsoft.WinGet/Package
     name: ProtonPass
     properties:
       id: Proton.ProtonPass
@@ -135,6 +129,15 @@ resources:
     name: Slack
     properties:
       id: SlackTechnologies.Slack
+      source: winget
+      installMode: silent
+  - type: Microsoft.WinGet/Package
+    name: Thunderbird
+    metadata:
+      winget:
+        securityContext: elevated
+    properties:
+      id: Mozilla.Thunderbird
       source: winget
       installMode: silent
   - type: Microsoft.WinGet/Package

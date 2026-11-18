@@ -12,10 +12,7 @@
     {desktop = "systemsettings";}
     {desktop = "org.kde.plasma-systemmonitor";}
     {desktop = "com.mitchellh.ghostty";}
-    {
-      desktop = "proton-mail";
-      package = pkgs.protonmail-desktop;
-    }
+    {desktop = "thunderbird";}
     {
       desktop = "discord";
       package = pkgs.discord;

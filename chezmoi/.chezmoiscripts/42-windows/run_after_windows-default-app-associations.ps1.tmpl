@@ -22,8 +22,9 @@
 $AssociationsJson = @'
 {{ get . "windows_default_app_associations" | default (list) | toJson }}
 '@
-$Associations = $AssociationsJson | ConvertFrom-Json
-if (-not $Associations) { exit 0 }
+$IsPersonal = ${{ .isPersonal }}
+$Associations = @($AssociationsJson | ConvertFrom-Json | Where-Object { $IsPersonal -or -not $_.personalOnly })
+if ($Associations.Count -eq 0) { exit 0 }
 
 # AssocQueryString returns the ProgId Windows itself resolves for a type, whichever storage format
 # (UserChoice or UserChoiceLatest) backs it, so this needn't parse either one.

@@ -1,5 +1,5 @@
 ---
-# Personal-only vendor apt repos and .deb packages. Excluded on non-personal machines via
+# Personal-only vendor apt repos. Excluded on non-personal machines via
 # .chezmoiignore.tmpl.
 apt_repos_personal:
   - name: claude-desktop
@@ -27,7 +27,3 @@ apt_repos_personal:
     signed_by: https://repo.protonvpn.com/debian/public_key.asc
     packages:
       - proton-vpn-gnome-desktop
-
-apt_debs_personal:
-  - package: proton-mail
-    url: https://proton.me/download/mail/linux/ProtonMail-desktop-beta.deb

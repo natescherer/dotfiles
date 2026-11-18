@@ -10,7 +10,7 @@ dock_pinned_apps:
   - org.gnome.Settings.desktop
   - net.nokyan.Resources.desktop
   - ghostty_ghostty.desktop
-  - proton-mail.desktop
+  - thunderbird_thunderbird.desktop
   - discord_discord.desktop
   - firefox_firefox.desktop
   - brave_brave.desktop

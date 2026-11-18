@@ -7,4 +7,5 @@ snaps_personal:
     classic: true
   - name: proton-pass
   - name: slack
+  - name: thunderbird
   - name: ticktick

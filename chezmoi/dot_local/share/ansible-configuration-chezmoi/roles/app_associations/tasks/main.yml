@@ -1,25 +1,28 @@
 ---
 # Personal machines only. The default browser stays as shipped.
-- name: Check whether Proton Mail is installed
+- name: Check whether Thunderbird is installed
   ansible.builtin.stat:
-    path: /usr/share/applications/proton-mail.desktop
-  register: proton_mail_app
+    path: /var/lib/snapd/desktop/applications/thunderbird_thunderbird.desktop
+  register: thunderbird_app
 
-- name: Make Proton Mail the default mail and calendar app
-  when: proton_mail_app.stat.exists and is_personal_machine
+- name: Make Thunderbird the default mail and calendar app
+  when: thunderbird_app.stat.exists and is_personal_machine
   block:
     - name: Check current mail and calendar handlers
       ansible.builtin.command: xdg-mime query default {{ item }}
       loop:
-        - x-scheme-handler/mailto
+        - message/rfc822
         - text/calendar
+        - x-scheme-handler/mailto
+        - x-scheme-handler/webcal
+        - x-scheme-handler/webcals
       register: current_mail_handlers
       changed_when: false
 
-    - name: Set Proton Mail as the mail and calendar handler
-      ansible.builtin.command: xdg-mime default proton-mail.desktop {{ item.item }}
+    - name: Set Thunderbird as the mail and calendar handler
+      ansible.builtin.command: xdg-mime default thunderbird_thunderbird.desktop {{ item.item }}
       loop: "{{ current_mail_handlers.results }}"
       loop_control:
         label: "{{ item.item }}"
-      when: item.stdout | trim != 'proton-mail.desktop'
+      when: item.stdout | trim != 'thunderbird_thunderbird.desktop'
       changed_when: true

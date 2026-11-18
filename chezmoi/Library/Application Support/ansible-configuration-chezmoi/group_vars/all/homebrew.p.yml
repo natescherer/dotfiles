@@ -14,6 +14,6 @@ homebrew_casks_personal:
   - localsend
   - obsidian
   - proton-drive
-  - proton-mail
   - proton-pass
   - protonvpn
+  - thunderbird

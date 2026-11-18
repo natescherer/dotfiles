@@ -17,6 +17,7 @@
 # comes from that app's Capabilities\FileAssociations or \URLAssociations registration rather than
 # being hardcoded here, since a ProgId can drift between app versions. An entry whose app isn't
 # installed or registered yet is skipped with a warning and picks itself up on a later apply.
+# personalOnly = true limits an entry to personal machines, for apps only those install.
 [[windows_default_app_associations]]
 identifier = ".pdf"
 # Acrobat comes from a Creative Cloud sign-in, not winget, so it may not be installed yet.
@@ -33,3 +34,30 @@ appNameMatch = "BrowserPicker"
 [[windows_default_app_associations]]
 identifier = "https"
 appNameMatch = "BrowserPicker"
+
+# Thunderbird registers separate mail, news, and calendar apps: "Thunderbird",
+# "Thunderbird (News)", and "Thunderbird (Calendar)". The anchors pick exactly one.
+[[windows_default_app_associations]]
+identifier = ".eml"
+appNameMatch = '^Thunderbird$'
+personalOnly = true
+
+[[windows_default_app_associations]]
+identifier = "mailto"
+appNameMatch = '^Thunderbird$'
+personalOnly = true
+
+[[windows_default_app_associations]]
+identifier = ".ics"
+appNameMatch = '^Thunderbird \(Calendar\)$'
+personalOnly = true
+
+[[windows_default_app_associations]]
+identifier = "webcal"
+appNameMatch = '^Thunderbird \(Calendar\)$'
+personalOnly = true
+
+[[windows_default_app_associations]]
+identifier = "webcals"
+appNameMatch = '^Thunderbird \(Calendar\)$'
+personalOnly = true

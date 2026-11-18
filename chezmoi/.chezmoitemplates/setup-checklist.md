@@ -117,6 +117,8 @@ file is only written once.
       - [ ] Disable Leo AI
       - [ ] Disable Wallet
       - [ ] Disable Rewards
+- [ ] Thunderbird
+  - [ ] Add the mailbox.org account
 {{- if eq $os "darwin" }}
 - [ ] Ghostty
   - [ ] Enable self update

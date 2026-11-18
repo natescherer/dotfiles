@@ -34,60 +34,57 @@
 #   changed_when: true
 #   failed_when: false
 
-- name: Check whether Proton Mail is installed
+# Only types Thunderbird's Info.plist declares (the .eml document type and the
+# mailto URL scheme) or that it registers itself for at runtime (webcal and
+# webcals). It declares no .ics document type, so utiluti refuses to make it
+# the .ics handler.
+- name: Check whether Thunderbird is installed
   ansible.builtin.stat:
-    path: "/Applications/Proton Mail.app"
-  register: proton_mail_app
+    path: "/Applications/Thunderbird.app"
+  register: thunderbird_app
 
-- name: Check current default mail app
-  ansible.builtin.command: utiluti url mailto --bundle-id
+- name: Make Thunderbird the default mail and calendar subscription app
+  when: thunderbird_app.stat.exists and is_personal_machine
   environment:
     PATH: "/opt/homebrew/bin:{{ ansible_facts.env.PATH }}"
-  register: current_default_mail_app
-  when: proton_mail_app.stat.exists
-  changed_when: false
-  failed_when: false
+  block:
+    - name: Check current handlers for mail and calendar URL schemes
+      ansible.builtin.command: utiluti url {{ item }} --bundle-id
+      loop:
+        - mailto
+        - webcal
+        - webcals
+      register: current_url_handlers
+      changed_when: false
+      failed_when: false
 
-- name: Set Proton Mail as the default mail app
-  ansible.builtin.command: utiluti url set mailto ch.protonmail.desktop
-  environment:
-    PATH: "/opt/homebrew/bin:{{ ansible_facts.env.PATH }}"
-  when: proton_mail_app.stat.exists and is_personal_machine and current_default_mail_app.stdout | trim != 'ch.protonmail.desktop'
-  changed_when: true
-  failed_when: false
+    - name: Set Thunderbird as the handler for mail and calendar URL schemes
+      ansible.builtin.command: utiluti url set {{ item.item }} org.mozilla.thunderbird
+      loop: "{{ current_url_handlers.results }}"
+      loop_control:
+        label: "{{ item.item }}"
+      when: item.stdout | trim != 'org.mozilla.thunderbird'
+      changed_when: true
+      failed_when: false
 
-# .ics is a file-type/UTI association rather than a URL scheme — still
-# scriptable as of this writing, but macOS 26.4+ started requiring the same
-# kind of confirmation for some file-type changes too, so this may start
-# prompting the same way on a future OS update.
-#
-# Speculative as of writing: Proton Mail's own build config declares only the
-# mailto: URL scheme, with no CFBundleDocumentTypes entry for .ics, so it may
-# not be a registered candidate handler for this UTI yet. failed_when: false
-# means that just shows up as a no-op (utiluti errors, ansible doesn't) until
-# Proton adds that declaration.
-- name: Get the UTI for .ics files
-  ansible.builtin.command: utiluti get-uti ics
-  environment:
-    PATH: "/opt/homebrew/bin:{{ ansible_facts.env.PATH }}"
-  register: ics_uti
-  when: proton_mail_app.stat.exists
-  changed_when: false
-  failed_when: false
+    # .eml is a file-type/UTI association rather than a URL scheme. It's still
+    # scriptable as of this writing, but macOS 26.4+ started requiring the
+    # same kind of confirmation for some file-type changes too, so this may
+    # start prompting the same way on a future OS update.
+    - name: Get the UTI for .eml files
+      ansible.builtin.command: utiluti get-uti eml
+      register: eml_uti
+      changed_when: false
+      failed_when: false
 
-- name: Check current handler for .ics files
-  ansible.builtin.command: "utiluti type {{ ics_uti.stdout | trim }} --bundle-id"
-  environment:
-    PATH: "/opt/homebrew/bin:{{ ansible_facts.env.PATH }}"
-  register: current_ics_handler
-  when: proton_mail_app.stat.exists
-  changed_when: false
-  failed_when: false
+    - name: Check current handler for .eml files
+      ansible.builtin.command: "utiluti type {{ eml_uti.stdout | trim }} --bundle-id"
+      register: current_eml_handler
+      changed_when: false
+      failed_when: false
 
-- name: Associate .ics files with Proton Mail
-  ansible.builtin.command: utiluti type set extension:ics ch.protonmail.desktop
-  environment:
-    PATH: "/opt/homebrew/bin:{{ ansible_facts.env.PATH }}"
-  when: proton_mail_app.stat.exists and is_personal_machine and current_ics_handler.stdout | trim != 'ch.protonmail.desktop'
-  changed_when: true
-  failed_when: false
+    - name: Associate .eml files with Thunderbird
+      ansible.builtin.command: utiluti type set extension:eml org.mozilla.thunderbird
+      when: current_eml_handler.stdout | trim != 'org.mozilla.thunderbird'
+      changed_when: true
+      failed_when: false

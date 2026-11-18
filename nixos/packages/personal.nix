@@ -17,8 +17,8 @@ in {
       pkgs.proton-pass
       pkgs.proton-pass-cli
       pkgs.proton-vpn
-      pkgs.protonmail-desktop
       pkgs.slack
+      pkgs.thunderbird
       pkgs.ticktick
       pkgs.yubioath-flutter
     ];
@@ -38,9 +38,10 @@ in {
       autoPrune.enable = true;
     };
 
-    xdg.mime.defaultApplications = lib.mkIf (available pkgs.protonmail-desktop) {
-      "text/calendar" = "proton-mail.desktop";
-      "x-scheme-handler/mailto" = "proton-mail.desktop";
+    xdg.mime.defaultApplications = {
+      "message/rfc822" = "thunderbird.desktop";
+      "text/calendar" = "thunderbird.desktop";
+      "x-scheme-handler/mailto" = "thunderbird.desktop";
     };
   };
 }
