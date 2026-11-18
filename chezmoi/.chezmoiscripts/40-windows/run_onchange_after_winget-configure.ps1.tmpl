@@ -296,8 +296,13 @@ function Start-ElevatedWorker {
   $script:WorkerQueueDir = Join-Path $StateDir "Worker\$(Get-Date -Format 'yyyy-MM-dd_HHmmss')"
   New-Item -ItemType Directory -Path $WorkerQueueDir -Force | Out-Null
   $ArgumentList = "-NoProfile -ExecutionPolicy Bypass -File `"$WorkerScript`" -QueueDir `"$WorkerQueueDir`" -ConfigDir `"$ConfigDir`" -ParentPid $PID"
+  # Start-Process returns only once the UAC prompt is answered, and the prompt can open behind
+  # other windows, so the spinner shows the script is waiting on it rather than hung.
   try {
-    $script:Worker = Start-Process -FilePath (Get-Process -Id $PID).Path -ArgumentList $ArgumentList -Verb RunAs -WindowStyle Hidden -PassThru
+    $script:Worker = Invoke-WithSpinner -Activity "Waiting for you to approve the UAC prompt (check the taskbar if it's hidden)" -ArgumentList (Get-Process -Id $PID).Path, $ArgumentList -ScriptBlock {
+      param($Exe, $Arguments)
+      Start-Process -FilePath $Exe -ArgumentList $Arguments -Verb RunAs -WindowStyle Hidden -PassThru
+    }
   }
   catch {
     throw "Could not start the elevated worker ($($_.Exception.Message)) -- the UAC prompt may have been declined. Rerun 'chezmoi apply' and approve it."
@@ -625,7 +630,7 @@ if ($ElevatedFiles.Count -eq 0) {
 }
 else {
   Write-Host "`n$($ElevatedFiles.Count) file(s) need elevation. Expect one UAC prompt for all of it." -ForegroundColor Yellow
-  Write-Host "Press Enter once you're ready to approve it..." -ForegroundColor Yellow -NoNewline
+  Write-Host "Press Enter, then approve the UAC prompt when it appears..." -ForegroundColor Yellow -NoNewline
   Read-Host | Out-Null
   Start-ElevatedWorker
 }
