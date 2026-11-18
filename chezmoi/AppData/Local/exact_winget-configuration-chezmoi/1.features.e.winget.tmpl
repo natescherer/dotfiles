@@ -1,0 +1,97 @@
+## WARNING: This file is chezmoi-managed and should not be manually edited!
+
+# It's fine to install these features at the same time as the requirements, as they only need
+# Windows PowerShell, which ships with Windows
+# Features take a LONG time to install so it's probably good to get out of the way at first anyway
+
+# yaml-language-server: $schema=https://aka.ms/configuration-dsc-schema/0.3
+$schema: https://raw.githubusercontent.com/PowerShell/DSC/main/schemas/2023/08/config/document.json
+metadata:
+  winget:
+    processor:
+      identifier: dscv3
+resources:
+  - type: Microsoft.DSC.Transitional/WindowsPowerShellScript
+    name: WindowsOptionalFeatures
+    metadata:
+      description: >-
+        Stands in for Microsoft.Windows/WindowsFeatureList, which fails under the Appx-packaged
+        DSC that winget configure uses: DISM's dismhost.exe starts outside the package, so the
+        packaged caller can't see the COM class it registers (REGDB_E_CLASSNOTREG). Windows
+        PowerShell (powershell.exe in System32) is never packaged, so it and dismhost.exe both
+        run outside the package. PowerShell 7.7+ ships only as MSIX, which rules out
+        PowerShellScript (pwsh) for the same reason. Each input entry takes the native resource's
+        properties: featureName; state (Installed, NotPresent, or Removed, which also deletes the
+        payload); and, for Installed, optional enableAll (also enable parent features),
+        limitAccess (don't use Windows Update), and sourcePaths. Pending states count as done;
+        a feature that needs a reboot sets the CBS RebootPending key, which the apply script
+        checks after every run. The resource always runs setScript without consulting
+        testScript, so setScript skips features already in their desired state, and it checks
+        every entry before changing any.
+      winget:
+        securityContext: elevated
+    properties:
+      input:
+        - featureName: NetFx3 # .NET Framework 3.5 (includes 2.0 and 3.0)
+          state: Installed
+          enableAll: true
+        - featureName: SimpleTCP # Simple TCP/IP Services (echo, daytime, chargen, etc.)
+          state: Installed
+          enableAll: true
+        - featureName: TelnetClient # telnet.exe
+          state: Installed
+          enableAll: true
+        - featureName: TFTP # TFTP client (tftp.exe)
+          state: Installed
+          enableAll: true
+        - featureName: VirtualMachinePlatform # For WSL2
+          state: Installed
+          enableAll: true
+{{- if not .isVM }}
+        # Needs hardware virtualization, which a VM only has with nested virtualization enabled
+        - featureName: Containers-DisposableClientVM # Windows Sandbox
+          state: Installed
+          enableAll: true
+{{- end }}
+      getScript: |
+        param([object[]] $Features)
+        $States = @{}
+        Get-WindowsOptionalFeature -Online | ForEach-Object { $States[$_.FeatureName] = $_.State.ToString() }
+        $Result = [ordered]@{}
+        foreach ($F in $Features) { $Result[$F.featureName] = if ($States[$F.featureName]) { $States[$F.featureName] } else { 'NotFound' } }
+        [pscustomobject]$Result
+      testScript: |
+        param([object[]] $Features)
+        $Satisfied = @{ Installed = @('Enabled', 'EnablePending'); NotPresent = @('Disabled', 'DisablePending', 'DisabledWithPayloadRemoved'); Removed = @('DisabledWithPayloadRemoved', 'DisablePending') }
+        foreach ($F in $Features) { if (-not $Satisfied.ContainsKey([string]$F.state)) { throw "$($F.featureName): state must be Installed, NotPresent, or Removed, not '$($F.state)'" } }
+        $States = @{}
+        Get-WindowsOptionalFeature -Online | ForEach-Object { $States[$_.FeatureName] = $_.State.ToString() }
+        @($Features | Where-Object { $States[$_.featureName] -notin $Satisfied[[string]$_.state] }).Count -eq 0
+      setScript: |
+        param([object[]] $Features)
+        $Satisfied = @{ Installed = @('Enabled', 'EnablePending'); NotPresent = @('Disabled', 'DisablePending', 'DisabledWithPayloadRemoved'); Removed = @('DisabledWithPayloadRemoved', 'DisablePending') }
+        foreach ($F in $Features) { if (-not $Satisfied.ContainsKey([string]$F.state)) { throw "$($F.featureName): state must be Installed, NotPresent, or Removed, not '$($F.state)'" } }
+        $States = @{}
+        Get-WindowsOptionalFeature -Online | ForEach-Object { $States[$_.FeatureName] = $_.State.ToString() }
+        $Unknown = @($Features | Where-Object { -not $States.ContainsKey($_.featureName) } | ForEach-Object { $_.featureName })
+        if ($Unknown.Count -gt 0) { throw "Not optional features on this system: $($Unknown -join ', ')" }
+        foreach ($F in $Features) {
+          if ($States[$F.featureName] -in $Satisfied[[string]$F.state]) { continue }
+          $Params = @{ Online = $true; FeatureName = $F.featureName; NoRestart = $true }
+          if ($F.state -eq 'Installed') {
+            if ($F.enableAll) { $Params.All = $true }
+            if ($F.limitAccess) { $Params.LimitAccess = $true }
+            if ($F.sourcePaths) { $Params.Source = @($F.sourcePaths) }
+            Write-Verbose "Enabling optional feature $($F.featureName)"
+            $null = Enable-WindowsOptionalFeature @Params
+          }
+          else {
+            if ($F.state -eq 'Removed') { $Params.Remove = $true }
+            Write-Verbose "Disabling optional feature $($F.featureName)$(if ($Params.Remove) { ' and removing its payload' })"
+            $null = Disable-WindowsOptionalFeature @Params
+          }
+        }
+        Get-WindowsOptionalFeature -Online | ForEach-Object { $States[$_.FeatureName] = $_.State.ToString() }
+        $Result = [ordered]@{}
+        foreach ($F in $Features) { $Result[$F.featureName] = $States[$F.featureName] }
+        [pscustomobject]$Result
