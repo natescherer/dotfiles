@@ -214,12 +214,40 @@ function Set-ConfigFileAppliedHash {
   }
 }
 
+# File renames queued for the next boot, each as "source -> destination". Installers queue these
+# to replace files in use. The queue also holds deletes (an empty destination), which installers
+# use to clean up rollback and temp files; those are left out, since no configuration waits on
+# them.
+function Get-PendingFileRenames {
+  $SessionManager = Get-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager' -ErrorAction SilentlyContinue
+  foreach ($Name in 'PendingFileRenameOperations', 'PendingFileRenameOperations2') {
+    $Entries = @($SessionManager.$Name)
+    for ($i = 0; $i + 1 -lt $Entries.Count; $i += 2) {
+      if ($Entries[$i + 1]) { "$($Entries[$i]) -> $($Entries[$i + 1])" }
+    }
+  }
+}
+
 # winget configure gives no indication a resource left a reboot pending, so infer it from the
-# registry. Checked once, at the end of the run.
+# registry. Checked once, at the end of the run. Two signals count:
+# - Component Based Servicing's RebootPending key, set only when servicing (optional features,
+#   WSL, Windows updates) can't finish a change until a reboot. Counted even if it was already
+#   set when the run started, since a file applied this run may depend on that same reboot.
+# - File renames queued during this run, compared against $FileRenamesAtStart, so renames left
+#   behind by earlier installs don't count.
+# Windows Update's RebootRequired key doesn't count: nothing this script applies sets it, and an
+# update that needs a reboot to finish also sets the servicing key.
 function Test-RebootPending {
-  return (Test-Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending') `
-    -or (Test-Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\RebootRequired') `
-    -or ($null -ne (Get-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager' -Name PendingFileRenameOperations -ErrorAction SilentlyContinue))
+  if (Test-Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending') {
+    Write-Log '=== reboot pending: Component Based Servicing\RebootPending is set ==='
+    return $true
+  }
+  $NewRenames = @(Get-PendingFileRenames | Where-Object { $_ -notin $FileRenamesAtStart })
+  if ($NewRenames.Count -gt 0) {
+    Write-Log "=== reboot pending: file renames queued this run: $($NewRenames -join '; ') ==="
+    return $true
+  }
+  return $false
 }
 
 # Plays a short built-in Windows sound so someone away from the screen notices when the script
@@ -444,6 +472,11 @@ if ($null -ne $PolicyValue -and [int]$PolicyValue -eq 0) {
   throw "winget configure is disabled by Group Policy ($PolicyPath\EnableWindowsPackageManagerConfiguration = 0). This is the 'Enable Windows Package Manager Configuration' ADMX policy (Computer Configuration > Administrative Templates > Windows Components > App Installer). Fix the policy, then rerun."
 }
 Write-Detail "winget $WingetVersionRaw, PowerShell $($PSVersionTable.PSVersion), $DiskFreeGB GB free on C:"
+
+# Renames already queued before anything below installs, so the reboot check at the end counts
+# only the ones this run queued.
+$FileRenamesAtStart = @(Get-PendingFileRenames)
+Write-Log "Preflight: $($FileRenamesAtStart.Count) file rename(s) already queued for the next boot"
 
 #endregion
 
