@@ -36,13 +36,17 @@ irm https://raw.githubusercontent.com/natescherer/dotfiles/main/init-windows.ps1
 > winget source reset --force
 > ```
 
-Install the latest PowerShell using this command SPECIFICALLY, as the default
-MSIX install has sandboxing issues, see
-<https://github.com/PowerShell/PowerShell/issues/13866>
+Install the latest PowerShell. PowerShell 7.7 and later install only as MSIX.
 
 ```PowerShell
-winget install --id Microsoft.PowerShell --source winget --installer-type wix
+winget install --id Microsoft.PowerShell -e --source winget
 ```
+
+> NOTE: If an MSI install of PowerShell 7.6 or earlier is present, winget
+> installs the MSIX alongside it, and the MSI copy stays first on `PATH`.
+> In `Settings` > `Apps` > `Installed apps`, uninstall the
+> `PowerShell 7.x.y.z-x64` entry; its uninstaller also removes the
+> `PowerShell 7-x64` entry. Then reopen Windows Terminal.
 
 Once PowerShell is installed, reopen Windows Terminal and launch a PowerShell
 tab instead of Windows PowerShell.

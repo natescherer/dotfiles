@@ -8,7 +8,7 @@ if ($currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administ
 if ($PSVersionTable.PSVersion.Major -lt 7) {
     Write-Host "`nInstalling PowerShell 7+..." -ForegroundColor Green
 
-    winget install --id Microsoft.PowerShell --source winget --installer-type wix --accept-source-agreements --accept-package-agreements
+    winget install --id Microsoft.PowerShell -e --source winget --accept-source-agreements --accept-package-agreements
 
     Write-Host "`nSetting Windows Terminal default profile to PowerShell..." -ForegroundColor Green
 
@@ -41,9 +41,10 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
     $continueScriptPath = Join-Path $env:TEMP "init-windows.ps1"
     Invoke-RestMethod -Uri "https://raw.githubusercontent.com/natescherer/dotfiles/main/init-windows.ps1" -OutFile $continueScriptPath
 
-    # Use pwsh's full path rather than relying on PATH: the installer updated the
-    # registry, but this process's inherited PATH doesn't have pwsh's directory yet.
-    $pwshPath = Join-Path $env:ProgramFiles "PowerShell\7\pwsh.exe"
+    # PowerShell 7.7+ installs only as MSIX, which registers pwsh.exe as an app execution
+    # alias in the user's WindowsApps directory. Use that full path rather than relying on
+    # PATH, which may not include WindowsApps.
+    $pwshPath = Join-Path $env:LOCALAPPDATA "Microsoft\WindowsApps\pwsh.exe"
     Start-Process wt.exe -ArgumentList "`"$pwshPath`"", "-NoExit", "-File", $continueScriptPath
 
     Write-Host "`nSetup is continuing in the new window; this Windows PowerShell window can be closed." -ForegroundColor Yellow
