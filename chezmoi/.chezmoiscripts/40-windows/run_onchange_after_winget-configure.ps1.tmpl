@@ -1,10 +1,10 @@
 #Requires -Version 7.0
 
 # Applies the WinGet Configuration files that declaratively configure this Windows machine.
-# Flow: preflight checks (pending reboot, Group Policy), prerequisite installs and upstream-bug
-# workarounds, then one `winget configure` run per changed *.winget file, with
-# recorded applied hashes so unchanged files are skipped on later runs. A reboot left pending by a
-# file is reported at the end, or stops the run on the spot when $AtomicReboots is set.
+# Flow: preflight checks (Group Policy), prerequisite installs and upstream-bug workarounds, then
+# one `winget configure` run per changed *.winget file, with recorded applied hashes so unchanged
+# files are skipped on later runs. When a run ends with a reboot pending, the files it applied are
+# listed for verification, and the first run after the reboot applies them once more.
 
 # {{ $wingetConfigDirName := "winget-configuration-chezmoi" }}
 # {{ $wingetConfigSourceDir := joinPath .chezmoi.sourceDir "AppData/Local" (print "exact_" $wingetConfigDirName) }}
@@ -15,13 +15,8 @@
 #      changes. Squeezed onto one line so "#" it all out to avoid pwsh parser errors */}}
 # {{ "\n" }}{{ range $wingetConfigFiles }}## {{ base . }} hash: {{ include . | sha256sum }}{{ "\n" }}{{ end -}}
 
-# Whether to stop as soon as a configuration file leaves a reboot pending, and resume at next
-# logon. When $false, every file is applied in one run and a pending reboot is only reported at
-# the end. A reboot already pending at the start stops the run either way.
-$AtomicReboots = $false
-
 # Whether to play an audible alert when the script needs attention (an elevation prompt about to
-# appear, or a stop for a pending reboot).
+# appear, or a reboot needed to verify the configuration).
 $AlertSounds = $false
 
 # chezmoi apply runs many scripts back to back with no indication which is running -- announce
@@ -52,6 +47,8 @@ $ConfigFiles = (Get-ChildItem -Path $ConfigDir -Filter "*.winget" -File | Sort-O
 # $ConfigDir, which chezmoi manages in exact mode and so purges of anything it doesn't own.
 $StateDir = Join-Path $env:LOCALAPPDATA 'AtomicWingetConfigure'
 $AppliedHashesPath = Join-Path $StateDir 'applied-hashes.json'
+# Files to apply once more after the next reboot, with the boot time of the run that listed them.
+$VerifyListPath = Join-Path $StateDir 'verify-after-reboot.json'
 
 # winget's exit code isn't reliable (see bottom of script) and this runs unattended, so log
 # everything -- otherwise a real failure leaves no record once the terminal closes. Timestamped
@@ -142,8 +139,7 @@ function Set-ConfigFileAppliedHash {
 }
 
 # winget configure gives no indication a resource left a reboot pending, so infer it from the
-# registry. Backs the upfront check, the per-file check made under $AtomicReboots, and the
-# end-of-run report.
+# registry. Checked once, at the end of the run.
 function Test-RebootPending {
   return (Test-Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending') `
     -or (Test-Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\RebootRequired') `
@@ -211,26 +207,6 @@ function Register-ChezmoiApplyOnNextLogon {
   Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\RunOnce' -Name 'ChezmoiApply' -Value $Command
   Write-Log "=== registered RunOnce 'ChezmoiApply' to rerun 'chezmoi apply' at next logon ==="
   return $true
-}
-
-# Stops the script when a reboot is pending: queues the RunOnce rerun, tells the user what to do,
-# and exits non-zero so chezmoi retries this run_onchange_ script on the next apply even if
-# nothing else changed -- the script always exits 0 otherwise (see bottom), which would make
-# chezmoi treat it as already-successful and skip a bare rerun.
-function Stop-ForPendingReboot {
-  param(
-    [Parameter(Mandatory)] [string] $Reason,
-    [Parameter(Mandatory)] [string] $LogMessage
-  )
-  if (Register-ChezmoiApplyOnNextLogon) {
-    Write-Host "`n$Reason Reboot -- 'chezmoi apply' will rerun automatically at next logon to finish applying the configuration." -ForegroundColor Yellow
-  }
-  else {
-    Write-Host "`n$Reason Reboot, then rerun 'chezmoi apply' to finish applying the configuration." -ForegroundColor Yellow
-  }
-  Invoke-AlertSound
-  Write-Log $LogMessage
-  exit 1
 }
 
 # Locates dsc.exe under an extracted DSC ZIP-release directory (see the DSC ZIP workaround below).
@@ -301,13 +277,6 @@ if ($WingetVersion -lt $MinimumWingetVersion) {
   throw "winget $WingetVersionRaw is unsupported -- winget $MinimumWingetVersion or newer is required. Update App Installer, then rerun."
 }
 
-# A reboot already pending (e.g. from Windows Update) before this script even runs makes
-# applying configuration unreliable -- bail out now, regardless of $AtomicReboots.
-if (Test-RebootPending) {
-  Stop-ForPendingReboot -Reason "A reboot is already pending." `
-    -LogMessage "=== reboot already pending before any configuration was applied -- exiting ==="
-}
-
 # If winget configure is disabled by Group Policy, nothing below can work. Throw rather than
 # warn -- the non-zero exit makes chezmoi retry on every `chezmoi apply` until the policy is
 # fixed, with no repo change needed.
@@ -315,6 +284,43 @@ $PolicyPath = 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppInstaller'
 $PolicyValue = (Get-ItemProperty -Path $PolicyPath -Name 'EnableWindowsPackageManagerConfiguration' -ErrorAction SilentlyContinue).EnableWindowsPackageManagerConfiguration
 if ($null -ne $PolicyValue -and [int]$PolicyValue -eq 0) {
   throw "winget configure is disabled by Group Policy ($PolicyPath\EnableWindowsPackageManagerConfiguration = 0). This is the 'Enable Windows Package Manager Configuration' ADMX policy (Computer Configuration > Administrative Templates > Windows Components > App Installer). Fix the policy, then rerun."
+}
+
+#endregion
+
+#region Verify-after-reboot list
+
+# A previous run that ended with a reboot pending listed the files it applied. Once the machine
+# has rebooted since, those files count as needing apply this run, so their effects are checked
+# against the post-reboot state. Before that reboot, the list just carries over to the end of
+# this run.
+$VerifyFiles = @()
+$PendingVerifyFiles = @()
+# Derived from uptime, which needs no CIM query. It jitters by milliseconds between runs, hence
+# the one-minute margin below.
+$BootTime = (Get-Date) - [timespan]::FromMilliseconds([Environment]::TickCount64)
+try {
+  $VerifyList = Get-Content -Path $VerifyListPath -Raw -ErrorAction Stop | ConvertFrom-Json
+}
+catch {
+  $VerifyList = $null
+}
+if ($VerifyList) {
+  if ($BootTime -gt ([datetime]$VerifyList.BootTime).AddMinutes(1)) {
+    $VerifyFiles = @($VerifyList.Files)
+    Write-Log "=== rebooted since the verify list was written -- verifying: $($VerifyFiles -join ', ') ==="
+  }
+  else {
+    $PendingVerifyFiles = @($VerifyList.Files)
+    Write-Log "=== verify list still waiting on a reboot: $($PendingVerifyFiles -join ', ') ==="
+  }
+}
+
+# Whether a configuration file needs applying this run: changed since its last apply, or listed
+# for verification after a reboot.
+function Test-ConfigFileNeedsApply {
+  param([string] $Path)
+  return ($Path -in $VerifyFiles) -or (Test-ConfigFileChanged -Path $Path)
 }
 
 #endregion
@@ -398,13 +404,13 @@ if (-not (Get-SufficientPSResourceGet)) {
 $DscZipResourceTypes = @('Microsoft.Windows/OptionalFeatureList')
 $DscZipFiles = @($ConfigFiles | Where-Object {
     $Path = Join-Path $ConfigDir $_
-    (Test-ConfigFileChanged -Path $Path) -and (Test-ConfigFileNeedsDscZip -Path $Path)
+    (Test-ConfigFileNeedsApply -Path $Path) -and (Test-ConfigFileNeedsDscZip -Path $Path)
   })
 if ($DscZipFiles.Count -eq 0) {
-  Write-Log "=== no changed *.winget files need the DSC ZIP package, skipping its setup ==="
+  Write-Log "=== no *.winget files to apply need the DSC ZIP package, skipping its setup ==="
 }
 else {
-  Write-Log "=== changed *.winget files needing the DSC ZIP package: $($DscZipFiles -join ', ') ==="
+  Write-Log "=== *.winget files to apply needing the DSC ZIP package: $($DscZipFiles -join ', ') ==="
   $DscZipRoot = Join-Path $StateDir 'dsc-zip'
   try {
     $DscLatestRelease = Invoke-RestMethod -Uri 'https://api.github.com/repos/PowerShell/DSC/releases/latest' -ErrorAction Stop
@@ -470,12 +476,12 @@ else {
 $MsstoreIds = [System.Collections.Generic.HashSet[string]]::new()
 foreach ($File in $ConfigFiles) {
   $Path = Join-Path $ConfigDir $File
-  if (Test-ConfigFileChanged -Path $Path) {
+  if (Test-ConfigFileNeedsApply -Path $Path) {
     Get-MsstoreIds -Path $Path | ForEach-Object { [void]$MsstoreIds.Add($_) }
   }
 }
 if ($MsstoreIds.Count -eq 0) {
-  Write-Log "=== no changed *.winget files reference msstore ids, skipping pre-install pass ==="
+  Write-Log "=== no *.winget files to apply reference msstore ids, skipping pre-install pass ==="
 }
 
 # Already-installed Store apps make winget install fail with 0x8A15002B (no applicable update) --
@@ -512,12 +518,19 @@ foreach ($Id in $MsstoreIdsToInstall) {
 
 #region Apply configuration files
 
+$AppliedFiles = [System.Collections.Generic.List[string]]::new()
 foreach ($File in $ConfigFiles) {
   $Path = Join-Path $ConfigDir $File
-  if (-not (Test-ConfigFileChanged -Path $Path)) {
+  if (-not (Test-ConfigFileNeedsApply -Path $Path)) {
     Write-Host "`nSkipping $File -- unchanged since last successful apply." -ForegroundColor DarkGray
     Write-Log "=== ${File}: unchanged, skipping ==="
     continue
+  }
+  if ($Path -in $VerifyFiles) {
+    Write-Log "=== ${File}: verifying after reboot ==="
+  }
+  else {
+    Write-Log "=== ${File}: changed ==="
   }
 
   if (Test-ConfigFileRequiresElevation -Path $Path) {
@@ -545,33 +558,46 @@ foreach ($File in $ConfigFiles) {
     Write-Host "Warning: $File exited with code $LASTEXITCODE after retries. This may be a benign warning (e.g. 'module not provided') or a real failure -- see $LogPath" -ForegroundColor Yellow
   }
 
-  # A file's resources (e.g. enabling a feature, WSL setup) can leave a reboot pending that
-  # winget configure won't report. Under $AtomicReboots, stop as soon as one appears: checked
-  # fresh after every file, since any could trigger one, and before recording the hash below. If
-  # this file caused it, its effects may not be fully in place yet, so its hash (and every later
-  # file's, never reached this run) stays unrecorded, and the skip check re-picks them up once
-  # chezmoi retries.
-  if ($AtomicReboots -and (Test-RebootPending)) {
-    Stop-ForPendingReboot -Reason "A reboot is pending after applying $File." `
-      -LogMessage "=== reboot pending after ${File}: not recording applied-hash, exiting ==="
-  }
-
   # Recorded regardless of winget's exit code (unreliable, see bottom of script) -- gating on a
   # clean exit would permanently defeat the skip check for files with benign non-zero warnings.
   Set-ConfigFileAppliedHash -Path $Path
+  $AppliedFiles.Add($Path)
 }
 
 #endregion
 
-# Only reachable with a reboot pending when $AtomicReboots is off (otherwise the script has
-# already stopped for it). Every file's hash is recorded, so there is nothing to rerun afterwards.
+#region Reboot check
+
+# Resources such as optional features or WSL can leave a reboot pending that winget configure
+# won't report. Files applied this run get listed for one more apply after the reboot, along with
+# any listed by an earlier run still waiting on that reboot. Files verified this run aren't listed
+# again, so a reboot flag that keeps reappearing (e.g. from Windows Update) can't cause a loop.
+$ToVerify = @(@($PendingVerifyFiles) + @($AppliedFiles | Where-Object { $_ -notin $VerifyFiles }) | Select-Object -Unique)
+Remove-Item -Path $VerifyListPath -Force -ErrorAction SilentlyContinue
+
 if (Test-RebootPending) {
+  if ($ToVerify.Count -gt 0) {
+    [ordered]@{ BootTime = $BootTime.ToString('o'); Files = $ToVerify } | ConvertTo-Json | Set-Content -Path $VerifyListPath
+    Write-Log "=== reboot pending at end of run -- listed for verification after reboot: $($ToVerify -join ', ') ==="
+    if (Register-ChezmoiApplyOnNextLogon) {
+      Write-Host "`nWindows configuration applied. Reboot -- 'chezmoi apply' reruns automatically at next logon to verify $($ToVerify.Count) file(s)." -ForegroundColor Yellow
+    }
+    else {
+      Write-Host "`nWindows configuration applied. Reboot, then rerun 'chezmoi apply' to verify $($ToVerify.Count) file(s)." -ForegroundColor Yellow
+    }
+    Invoke-AlertSound
+    # Non-zero so chezmoi reruns this run_onchange_ script on the next apply even if nothing else
+    # changed; on success it would record the script as done and skip the verification run.
+    exit 1
+  }
   Write-Host "`nWindows configuration applied. A reboot is needed to finish putting it into effect." -ForegroundColor Yellow
-  Write-Log "=== reboot pending at end of run ==="
+  Write-Log "=== reboot pending at end of run, nothing left to verify ==="
 }
 else {
   Write-Host "`nWindows configuration applied -- no reboot needed." -ForegroundColor Green
 }
+
+#endregion
 
 # winget's exit code isn't reliable even on success (e.g. benign "module not provided" warnings)
 # -- real failures are already visible above and logged to $LogPath.
