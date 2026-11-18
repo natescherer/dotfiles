@@ -1,6 +1,7 @@
 ## WARNING: This file is chezmoi-managed and should not be manually edited!
 
-# It's fine to install these features at the same time as the requirements, as OptionalFeatureList and FeatureOnDemandList are included in DSCv3.2.0+
+# It's fine to install these features at the same time as the requirements, as they only need
+# Windows PowerShell, which ships with Windows
 # Features take a LONG time to install so it's probably good to get out of the way at first anyway
 
 # yaml-language-server: $schema=https://aka.ms/configuration-dsc-schema/0.3
@@ -10,20 +11,51 @@ metadata:
     processor:
       identifier: dscv3
 resources:
-  - type: Microsoft.Windows/OptionalFeatureList
+  - type: Microsoft.DSC.Transitional/WindowsPowerShellScript
     name: WindowsOptionalFeatures
     metadata:
+      description: >-
+        Uses Windows PowerShell's DISM cmdlets instead of Microsoft.Windows/OptionalFeatureList,
+        which fails under the Appx-packaged DSC that winget configure uses: DISM's dismhost.exe
+        starts outside the package, so the packaged caller can't see the COM class it registers
+        (REGDB_E_CLASSNOTREG). Windows PowerShell (powershell.exe in System32) is never packaged,
+        so it and dismhost.exe both run outside the package. PowerShell 7.7+ ships only as MSIX,
+        which rules out PowerShellScript (pwsh) for the same reason. The resource always runs
+        setScript without consulting testScript, so setScript skips features already enabled.
+        A feature that needs a reboot sets the CBS RebootPending key, which the apply script
+        checks after every run.
       winget:
         securityContext: elevated
     properties:
-      features:
-        - featureName: NetFx3 # .NET Framework 3.5 (includes 2.0 and 3.0)
-          state: Installed
-        - featureName: SimpleTCP # Simple TCP/IP Services (echo, daytime, chargen, etc.)
-          state: Installed
-        - featureName: TelnetClient # telnet.exe
-          state: Installed
-        - featureName: TFTP # TFTP client (tftp.exe)
-          state: Installed
-        - featureName: VirtualMachinePlatform # For WSL2
-          state: Installed
+      input:
+        - NetFx3 # .NET Framework 3.5 (includes 2.0 and 3.0)
+        - SimpleTCP # Simple TCP/IP Services (echo, daytime, chargen, etc.)
+        - TelnetClient # telnet.exe
+        - TFTP # TFTP client (tftp.exe)
+        - VirtualMachinePlatform # For WSL2
+      getScript: |
+        param([string[]] $Features)
+        $States = @{}
+        Get-WindowsOptionalFeature -Online | ForEach-Object { $States[$_.FeatureName] = $_.State.ToString() }
+        $Result = [ordered]@{}
+        foreach ($Name in $Features) { $Result[$Name] = if ($States[$Name]) { $States[$Name] } else { 'NotFound' } }
+        [pscustomobject]$Result
+      testScript: |
+        param([string[]] $Features)
+        $States = @{}
+        Get-WindowsOptionalFeature -Online | ForEach-Object { $States[$_.FeatureName] = $_.State.ToString() }
+        @($Features | Where-Object { $States[$_] -notin 'Enabled', 'EnablePending' }).Count -eq 0
+      setScript: |
+        param([string[]] $Features)
+        $States = @{}
+        Get-WindowsOptionalFeature -Online | ForEach-Object { $States[$_.FeatureName] = $_.State.ToString() }
+        # A name missing from $States isn't a feature on this system; enabling it raises the error.
+        $ToEnable = @($Features | Where-Object { $States[$_] -notin 'Enabled', 'EnablePending' })
+        if ($ToEnable.Count -gt 0) {
+          Write-Verbose "Enabling optional features: $($ToEnable -join ', ')"
+          $null = Enable-WindowsOptionalFeature -Online -FeatureName $ToEnable -All -NoRestart
+          Get-WindowsOptionalFeature -Online | ForEach-Object { $States[$_.FeatureName] = $_.State.ToString() }
+        }
+        $Result = [ordered]@{}
+        foreach ($Name in $Features) { $Result[$Name] = if ($States[$Name]) { $States[$Name] } else { 'NotFound' } }
+        [pscustomobject]$Result

@@ -11,14 +11,12 @@
 #
 # Requests come from a directory the unelevated user can write to, so the worker runs only
 # winget, and only with arguments it validates itself: `configure` against a *.winget file
-# directly under -ConfigDir (optionally with a dsc.exe under -DscZipRoot as the processor), or
-# `settings --enable ConfigurationProcessorPath`. It exits on a `stop` request, or once the
-# process that started it is gone.
+# directly under -ConfigDir. It exits on a `stop` request, or once the process that started it
+# is gone.
 
 param(
   [Parameter(Mandatory)] [string] $QueueDir,
   [Parameter(Mandatory)] [string] $ConfigDir,
-  [Parameter(Mandatory)] [string] $DscZipRoot,
   [Parameter(Mandatory)] [int] $ParentPid
 )
 
@@ -34,22 +32,18 @@ $AllowedConfigureFlags = @(
   '--ignore-warnings'
 )
 
-# Whether $Path resolves to a file directly inside $Dir (or anywhere under it, with -Recurse).
+# Whether $Path resolves to a file directly inside $Dir.
 function Test-PathInDirectory {
-  param([string] $Path, [string] $Dir, [switch] $Recurse)
+  param([string] $Path, [string] $Dir)
   $FullPath = [System.IO.Path]::GetFullPath($Path)
   $FullDir = [System.IO.Path]::GetFullPath($Dir).TrimEnd('\') + '\'
-  if (-not $FullPath.StartsWith($FullDir, [System.StringComparison]::OrdinalIgnoreCase)) { return $false }
-  return $Recurse -or ([System.IO.Path]::GetDirectoryName($FullPath) + '\') -ieq $FullDir
+  return ([System.IO.Path]::GetDirectoryName($FullPath) + '\') -ieq $FullDir
 }
 
 # Turns a request into the winget argument list to run, or throws if the request isn't allowed.
 function Get-WingetArgumentList {
   param($Request)
   switch ($Request.Kind) {
-    'enable-processor-path' {
-      return @('settings', '--enable', 'ConfigurationProcessorPath')
-    }
     'configure' {
       $In = @($Request.Args)
       $Out = [System.Collections.Generic.List[string]]::new()
@@ -64,13 +58,6 @@ function Get-WingetArgumentList {
           }
           $Out.Add('-f'); $Out.Add($Path)
           $HasFile = $true
-        }
-        elseif ($Arg -eq '--processor-path') {
-          $Path = $In[++$i]
-          if (-not ((Split-Path -Leaf $Path) -ieq 'dsc.exe' -and (Test-PathInDirectory -Path $Path -Dir $DscZipRoot -Recurse) -and (Test-Path -LiteralPath $Path -PathType Leaf))) {
-            throw "rejected processor path '$Path': not a dsc.exe under $DscZipRoot"
-          }
-          $Out.Add('--processor-path'); $Out.Add($Path)
         }
         elseif ($Arg -in $AllowedConfigureFlags) {
           $Out.Add($Arg)
