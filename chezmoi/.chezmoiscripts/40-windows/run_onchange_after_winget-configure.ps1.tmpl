@@ -3,7 +3,8 @@
 # Applies the WinGet Configuration files that declaratively configure this Windows machine.
 # Flow: preflight checks (Group Policy), prerequisite installs and upstream-bug workarounds, then
 # one `winget configure` run per changed *.winget file, with recorded applied hashes so unchanged
-# files are skipped on later runs. When a run ends with a reboot pending, the files it applied are
+# files are skipped on later runs. Files with elevated resources all run through one elevated
+# worker process, so a run shows at most one UAC prompt. When a run ends with a reboot pending, the files it applied are
 # listed for verification, and the first run after the reboot applies them once more.
 
 # {{ $wingetConfigDirName := "winget-configuration-chezmoi" }}
@@ -23,10 +24,10 @@ $AlertSounds = $false
 # this one, since it can take a while.
 Write-Host "`nApplying Windows configuration via winget configure..." -ForegroundColor Green
 if ($AlertSounds) {
-  Write-Host "This may pause for an elevation prompt or a pending reboot, each announced with an audible alert -- turn your volume up so you don't miss one.`n" -ForegroundColor Green
+  Write-Host "This may pause once for an elevation prompt, and may ask for a reboot at the end, each announced with an audible alert -- turn your volume up so you don't miss one.`n" -ForegroundColor Green
 }
 else {
-  Write-Host "This may pause for an elevation prompt or a pending reboot.`n" -ForegroundColor Green
+  Write-Host "This may pause once for an elevation prompt, and may ask for a reboot at the end.`n" -ForegroundColor Green
 }
 
 # winget writes UTF-8 to stdout, including the shield glyph that marks elevated resources in
@@ -49,6 +50,10 @@ $StateDir = Join-Path $env:LOCALAPPDATA 'AtomicWingetConfigure'
 $AppliedHashesPath = Join-Path $StateDir 'applied-hashes.json'
 # Files to apply once more after the next reboot, with the boot time of the run that listed them.
 $VerifyListPath = Join-Path $StateDir 'verify-after-reboot.json'
+# Extracted DSC ZIP releases, one directory per version (see the DSC ZIP workaround below).
+$DscZipRoot = Join-Path $StateDir 'dsc-zip'
+# Runs every elevated configuration file for this script; see its header comment.
+$WorkerScript = Join-Path $env:LOCALAPPDATA 'WindowsWorkstationDSC\winget-elevated-worker.ps1'
 
 # winget's exit code isn't reliable (see bottom of script) and this runs unattended, so log
 # everything -- otherwise a real failure leaves no record once the terminal closes. Timestamped
@@ -167,8 +172,8 @@ function Invoke-AlertSound {
 # registry write). `configure show` renders a file's resources without applying them, and winget
 # marks each elevated resource with a shield glyph (U+1F6E1) in that output; there's no
 # scriptable/JSON form of `show` to check instead. Defaults to $true (assume elevation, so the
-# pause below still happens) if the check itself fails -- an unnecessary pause is safer than
-# silently skipping the alert right before a UAC prompt.
+# file goes to the elevated worker) if the check itself fails -- running a file elevated
+# unnecessarily is safer than running elevated resources without elevation.
 function Test-ConfigFileRequiresElevation {
   param([string] $Path)
   try {
@@ -207,6 +212,85 @@ function Register-ChezmoiApplyOnNextLogon {
   Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\RunOnce' -Name 'ChezmoiApply' -Value $Command
   Write-Log "=== registered RunOnce 'ChezmoiApply' to rerun 'chezmoi apply' at next logon ==="
   return $true
+}
+
+# The elevated worker process, started on demand by Start-ElevatedWorker; $null until then.
+$Worker = $null
+$WorkerQueueDir = $null
+$WorkerRequestCount = 0
+
+# Starts the elevated worker, which shows the run's one UAC prompt, and waits until it's polling
+# its queue. Each run gets a fresh queue directory under $StateDir, kept afterwards alongside the
+# logs.
+function Start-ElevatedWorker {
+  $script:WorkerQueueDir = Join-Path $StateDir "Worker\$(Get-Date -Format 'yyyy-MM-dd_HHmmss')"
+  New-Item -ItemType Directory -Path $WorkerQueueDir -Force | Out-Null
+  $ArgumentList = "-NoProfile -ExecutionPolicy Bypass -File `"$WorkerScript`" -QueueDir `"$WorkerQueueDir`" -ConfigDir `"$ConfigDir`" -DscZipRoot `"$DscZipRoot`" -ParentPid $PID"
+  try {
+    $script:Worker = Start-Process -FilePath (Get-Process -Id $PID).Path -ArgumentList $ArgumentList -Verb RunAs -WindowStyle Hidden -PassThru
+  }
+  catch {
+    throw "Could not start the elevated worker ($($_.Exception.Message)) -- the UAC prompt may have been declined. Rerun 'chezmoi apply' and approve it."
+  }
+  $ReadyFile = Join-Path $WorkerQueueDir 'ready'
+  while (-not (Test-Path $ReadyFile)) {
+    if ($Worker.HasExited) {
+      throw "The elevated worker exited before it was ready (exit code $($Worker.ExitCode)). See $LogPath and rerun."
+    }
+    Start-Sleep -Milliseconds 250
+  }
+  Write-Log "=== elevated worker started (PID $($Worker.Id)), queue: $WorkerQueueDir ==="
+}
+
+# Queues one request for the elevated worker. Written by rename so the worker never reads a
+# half-written file. Returns the request's id.
+function Send-ElevatedRequest {
+  param([Parameter(Mandatory)] [hashtable] $Request)
+  $script:WorkerRequestCount++
+  $Id = '{0:D4}' -f $WorkerRequestCount
+  $RequestPath = Join-Path $WorkerQueueDir "request-$Id.json"
+  $Request | ConvertTo-Json -Compress | Set-Content -Path "$RequestPath.tmp"
+  Move-Item -Path "$RequestPath.tmp" -Destination $RequestPath -Force
+  return $Id
+}
+
+# Runs one request through the elevated worker and waits for it, echoing the worker's output to
+# the console and this script's log as it arrives. Sets $LASTEXITCODE like a native command, so
+# Invoke-WithRetry works with it unchanged.
+function Invoke-ElevatedRequest {
+  param([Parameter(Mandatory)] [hashtable] $Request)
+  $Id = Send-ElevatedRequest -Request $Request
+  $LogFile = Join-Path $WorkerQueueDir "worker-$Id.log"
+  $ResultFile = Join-Path $WorkerQueueDir "result-$Id.json"
+  $LinesShown = 0
+  while ($true) {
+    # Checked before reading the log, so the final read includes every line written before the
+    # result.
+    $Done = Test-Path $ResultFile
+    $Lines = @(Get-Content -Path $LogFile -ErrorAction SilentlyContinue)
+    for (; $LinesShown -lt $Lines.Count; $LinesShown++) {
+      Write-Host $Lines[$LinesShown]
+      Write-Log $Lines[$LinesShown]
+    }
+    if ($Done) { break }
+    if ($Worker.HasExited) {
+      Write-Log "=== elevated worker exited unexpectedly (exit code $($Worker.ExitCode)) ==="
+      $global:LASTEXITCODE = 1
+      return
+    }
+    Start-Sleep -Milliseconds 250
+  }
+  $global:LASTEXITCODE = [int](Get-Content -Path $ResultFile -Raw | ConvertFrom-Json).ExitCode
+}
+
+# Asks the elevated worker to exit. If this script stops early instead (e.g. a throw), the worker
+# exits on its own once it sees this process is gone.
+function Stop-ElevatedWorker {
+  if (-not $Worker -or $Worker.HasExited) { return }
+  Send-ElevatedRequest -Request @{ Kind = 'stop' } | Out-Null
+  if (-not $Worker.WaitForExit(10000)) {
+    Write-Log "=== elevated worker did not exit within 10s of a stop request ==="
+  }
 }
 
 # Locates dsc.exe under an extracted DSC ZIP-release directory (see the DSC ZIP workaround below).
@@ -402,6 +486,7 @@ if (-not (Get-SufficientPSResourceGet)) {
 # above, and the --processor-path handling in the apply loop once the linked issue is fixed
 # upstream.
 $DscZipResourceTypes = @('Microsoft.Windows/OptionalFeatureList')
+$NeedsProcessorPathSetting = $false
 $DscZipFiles = @($ConfigFiles | Where-Object {
     $Path = Join-Path $ConfigDir $_
     (Test-ConfigFileNeedsApply -Path $Path) -and (Test-ConfigFileNeedsDscZip -Path $Path)
@@ -411,7 +496,6 @@ if ($DscZipFiles.Count -eq 0) {
 }
 else {
   Write-Log "=== *.winget files to apply needing the DSC ZIP package: $($DscZipFiles -join ', ') ==="
-  $DscZipRoot = Join-Path $StateDir 'dsc-zip'
   try {
     $DscLatestRelease = Invoke-RestMethod -Uri 'https://api.github.com/repos/PowerShell/DSC/releases/latest' -ErrorAction Stop
     $DscZipDir = Join-Path $DscZipRoot $DscLatestRelease.tag_name.TrimStart('v')
@@ -455,19 +539,10 @@ else {
 
   # winget refuses --processor-path without this admin setting enabled first ("This feature needs
   # to be enabled by administrators"). `winget settings export` gives a reliable unelevated read of
-  # its current state; enabling it needs its own elevated process (a plain `winget settings
-  # --enable` from this unelevated script fails the same way), so this only prompts UAC the first
-  # time -- or after whatever store backs admin settings gets reset.
+  # its current state; enabling it needs elevation (a plain `winget settings --enable` from this
+  # unelevated script fails the same way), so the elevated worker does it below.
   $AdminSettings = (winget settings export 2>$null | ConvertFrom-Json).adminSettings
-  if (-not $AdminSettings.ConfigurationProcessorPath) {
-    Write-Host "`nEnabling winget's ConfigurationProcessorPath admin setting (requires elevation -- expect a UAC prompt)..." -ForegroundColor Cyan
-    Write-Log "=== Enabling ConfigurationProcessorPath admin setting (elevated) ==="
-    $Proc = Start-Process -FilePath 'winget' -ArgumentList 'settings', '--enable', 'ConfigurationProcessorPath' -Verb RunAs -Wait -PassThru
-    if ($Proc.ExitCode -ne 0) {
-      throw "Failed to enable ConfigurationProcessorPath admin setting (exit code $($Proc.ExitCode)) -- Microsoft.Windows/OptionalFeatureList resources will fail. Enable it manually by running 'winget settings --enable ConfigurationProcessorPath' as administrator, then rerun."
-    }
-    Write-Log "=== ConfigurationProcessorPath admin setting enabled ==="
-  }
+  $NeedsProcessorPathSetting = -not $AdminSettings.ConfigurationProcessorPath
 }
 
 # Workaround for https://github.com/microsoft/winget-cli/issues/6091, which prevents winget
@@ -516,6 +591,35 @@ foreach ($Id in $MsstoreIdsToInstall) {
 
 #endregion
 
+#region Elevated worker
+
+# Files to apply that winget would elevate for. They all run through one elevated worker, so the
+# run shows a single UAC prompt instead of one per file.
+$ElevatedFiles = @($ConfigFiles | Where-Object {
+    $Path = Join-Path $ConfigDir $_
+    (Test-ConfigFileNeedsApply -Path $Path) -and (Test-ConfigFileRequiresElevation -Path $Path)
+  })
+Write-Log "=== files to apply elevated: $($ElevatedFiles -join ', ') | ConfigurationProcessorPath needs enabling: $NeedsProcessorPathSetting ==="
+if ($ElevatedFiles.Count -gt 0 -or $NeedsProcessorPathSetting) {
+  Write-Host "`nElevation needed for: $(@($ElevatedFiles) + @(if ($NeedsProcessorPathSetting) { "winget's ConfigurationProcessorPath setting" }) -join ', '). Expect one UAC prompt for all of it." -ForegroundColor Yellow
+  Invoke-AlertSound
+  Write-Host "Press Enter once you're ready to approve it..." -ForegroundColor Yellow -NoNewline
+  Read-Host | Out-Null
+  Start-ElevatedWorker
+}
+
+if ($NeedsProcessorPathSetting) {
+  Write-Host "`nEnabling winget's ConfigurationProcessorPath admin setting..." -ForegroundColor Cyan
+  Write-Log "=== Enabling ConfigurationProcessorPath admin setting (elevated worker) ==="
+  Invoke-ElevatedRequest -Request @{ Kind = 'enable-processor-path' }
+  if ($LASTEXITCODE -ne 0) {
+    throw "Failed to enable ConfigurationProcessorPath admin setting (exit code $LASTEXITCODE) -- Microsoft.Windows/OptionalFeatureList resources will fail. Enable it manually by running 'winget settings --enable ConfigurationProcessorPath' as administrator, then rerun."
+  }
+  Write-Log "=== ConfigurationProcessorPath admin setting enabled ==="
+}
+
+#endregion
+
 #region Apply configuration files
 
 $AppliedFiles = [System.Collections.Generic.List[string]]::new()
@@ -533,14 +637,8 @@ foreach ($File in $ConfigFiles) {
     Write-Log "=== ${File}: changed ==="
   }
 
-  if (Test-ConfigFileRequiresElevation -Path $Path) {
-    Write-Host "`n$File requires an elevated account and may show a UAC prompt." -ForegroundColor Yellow
-    Invoke-AlertSound
-    Write-Host "Press Enter once you're ready to approve it..." -ForegroundColor Yellow -NoNewline
-    Read-Host | Out-Null
-  }
-
-  Write-Host "`nApplying $File via 'winget configure'..." -ForegroundColor Cyan
+  $Elevated = $File -in $ElevatedFiles
+  Write-Host "`nApplying $File via 'winget configure'$(if ($Elevated) { ' (elevated)' })..." -ForegroundColor Cyan
   Write-Log "=== $File ==="
   # If https://github.com/microsoft/winget-cli/issues/6419) is ever implemented, we'll want to add its flag here
   $ConfigureArgs = @('-f', $Path, '--accept-configuration-agreements', '--disable-interactivity', '--suppress-initial-details', '--verbose-logs', '--ignore-warnings')
@@ -550,7 +648,12 @@ foreach ($File in $ConfigFiles) {
     Write-Log "=== ${File}: using the DSC ZIP package at $DscZipExe ==="
   }
   Invoke-WithRetry -Name $File -ScriptBlock {
-    winget configure @ConfigureArgs
+    if ($Elevated) {
+      Invoke-ElevatedRequest -Request @{ Kind = 'configure'; Args = $ConfigureArgs }
+    }
+    else {
+      winget configure @ConfigureArgs
+    }
   }
   Write-Log "--- exit code: $LASTEXITCODE ---"
   if ($LASTEXITCODE -ne 0) {
@@ -563,6 +666,8 @@ foreach ($File in $ConfigFiles) {
   Set-ConfigFileAppliedHash -Path $Path
   $AppliedFiles.Add($Path)
 }
+
+Stop-ElevatedWorker
 
 #endregion
 

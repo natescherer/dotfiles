@@ -13,3 +13,8 @@ METADATA = One or more of these letters, sorted alphabetically, to indicate info
     - **p**: Personal Machines Only
 .winget = File extension [recommended by Microsoft](https://learn.microsoft.com/en-us/windows/package-manager/configuration/create-v3)
 .tmpl = [OPTIONAL] When needed, to allow templating the file using chezmoi
+
+Within a file, either every resource sets `securityContext: elevated` or none does. The apply
+script runs each file that has any elevated resource from a single elevated process, so an
+unelevated resource in such a file would also run elevated. Put unelevated resources in a
+separate file without the **e** letter.
