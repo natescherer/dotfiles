@@ -15,6 +15,9 @@ $PSStyle.Formatting.CustomTableHeaderLabel = $PSStyle.Formatting.TableHeader
 # Import aliases
 . $(Join-Path $PSScriptRoot "aliases.ps1")
 
+# Import Docker helpers
+. $(Join-Path $PSScriptRoot "docker.ps1")
+
 # Import local aliases (if present)
 if (Test-Path $(Join-Path $PSScriptRoot "aliases-local.ps1")) {
   . $(Join-Path $PSScriptRoot "aliases-local.ps1")
