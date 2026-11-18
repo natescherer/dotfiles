@@ -17,14 +17,47 @@
 #      changes. Squeezed onto one line so "#" it all out to avoid pwsh parser errors */}}
 # {{ "\n" }}{{ range $wingetConfigFiles }}## {{ base . }} hash: {{ include . | sha256sum }}{{ "\n" }}{{ end -}}
 
-# chezmoi apply runs many scripts back to back with no indication which is running -- announce
-# this one, since it can take a while.
-Write-Host "`nApplying Windows configuration with winget configure..." -ForegroundColor White
-
 # winget writes UTF-8 to stdout, including the shield glyph that marks elevated resources in
 # `configure show` output (see Test-ConfigFileRequiresElevation below). Without this the
 # console's default OEM code page mangles multi-byte output into unusable bytes when captured.
+# Set before the banner below, whose block characters need it too.
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+
+# chezmoi apply runs many scripts back to back with no indication which is running -- announce
+# this one, since it can take a while. Each banner row gets its own color, so the title fades
+# from white through cyan.
+$BannerColors = @(
+  'DarkBlue'
+  'Gray'
+  'White'
+  'White'
+  'Cyan'
+  'Cyan'
+  'DarkCyan'
+  'Cyan'
+  'Cyan'
+  'DarkCyan'
+  'Gray'
+  'DarkBlue'
+)
+$BannerLines = @'
+ ▀▄▀▄▀▄▀▄▀▄▀▄▀▄▀▄▀▄▀▄▀▄▀▄▀▄▀▄▀▄▀▄▀▄▀▄▀▄▀▄▀▄▀▄▀▄▀▄▀▄▀▄▀▄▀▄▀▄▀▄▀▄▀▄▀▄▀▄▀▄▀▄▀▄
+
+      ██████░   ██████████░   ██████░   ██░     ██░ ██████░   ████████░
+    ██░     ██░     ██░     ██░     ██░ ████░ ████░   ██░   ██░
+    ▓▓▓▓▓▓▓▓▓▓░     ▓▓░     ▓▓░     ▓▓░ ▓▓░ ▓▓░ ▓▓░   ▓▓░   ▓▓░
+    ▓▓░     ▓▓░     ▓▓░     ▓▓░     ▓▓░ ▓▓░     ▓▓░   ▓▓░   ▓▓░
+    ▒▒░     ▒▒░     ▒▒░       ▒▒▒▒▒▒░   ▒▒░     ▒▒░ ▒▒▒▒▒▒░   ▒▒▒▒▒▒▒▒░
+    █   █ ▀█▀ █▄ █ ▄▀▀▀ █▀▀ ▀█▀    ▄▀▀ ▄▀▄ █▄ █ █▀▀ ▀█▀ ▄▀▀▀ █ █ █▀▄ █▀▀
+    █▄▀▄█  █  █ ▀█ █ ▀█ █▀   █     █   █ █ █ ▀█ █▀   █  █ ▀█ █ █ █▀▄ █▀
+    ▀   ▀ ▀▀▀ ▀  ▀  ▀▀▀ ▀▀▀  ▀      ▀▀  ▀  ▀  ▀ ▀   ▀▀▀  ▀▀▀ ▀▀▀ ▀ ▀ ▀▀▀
+
+ ▄▀▄▀▄▀▄▀▄▀▄▀▄▀▄▀▄▀▄▀▄▀▄▀▄▀▄▀▄▀▄▀▄▀▄▀▄▀▄▀▄▀▄▀▄▀▄▀▄▀▄▀▄▀▄▀▄▀▄▀▄▀▄▀▄▀▄▀▄▀▄▀▄▀
+'@ -split "`r?`n"
+Write-Host ''
+for ($i = 0; $i -lt $BannerLines.Count; $i++) {
+  Write-Host $BannerLines[$i] -ForegroundColor $BannerColors[$i]
+}
 
 #region Paths and logging
 
