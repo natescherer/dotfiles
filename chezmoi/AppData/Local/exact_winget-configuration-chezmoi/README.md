@@ -1,4 +1,4 @@
-# REAME
+# README
 
 Each file is named using a specific naming pattern:
 

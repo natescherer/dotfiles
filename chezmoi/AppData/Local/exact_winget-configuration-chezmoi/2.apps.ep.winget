@@ -1,8 +1,5 @@
 ## WARNING: This file is chezmoi-managed and should not be manually edited!
 
-# There are some non-elevated apps in here, but I'm never going to have a personal computer where I
-# don't have admin rights, so there's no reason to split this into two files.
-
 # Microsoft 365 is deliberately NOT installed here via Microsoft.WinGet/Package. The winget-pkgs
 # manifest pins a SHA256 against officecdn.microsoft.com's setup.exe, which Microsoft rotates
 # independently of the manifest, so installs intermittently fail with "Package hash verification
@@ -27,30 +24,6 @@ resources:
       source: winget
       installMode: silent
   - type: Microsoft.WinGet/Package
-    name: AppleMusic
-    properties:
-      id: 9PFHDD62MXS1
-      source: msstore
-      installMode: silent
-  - type: Microsoft.WinGet/Package
-    name: AppleTV
-    properties:
-      id: 9NM4T8B9JQZ1
-      source: msstore
-      installMode: silent
-  - type: Microsoft.WinGet/Package
-    name: Claude
-    properties:
-      id: Anthropic.Claude
-      source: winget
-      installMode: silent
-  - type: Microsoft.WinGet/Package
-    name: Discord
-    properties:
-      id: Discord.Discord
-      source: winget
-      installMode: silent
-  - type: Microsoft.WinGet/Package
     name: DockerDesktop
     metadata:
       winget:
@@ -60,24 +33,12 @@ resources:
       source: winget
       installMode: silent
   - type: Microsoft.WinGet/Package
-    name: DolbyAccess
-    properties:
-      id: 9N0866FS04W8
-      source: msstore
-      installMode: silent
-  - type: Microsoft.WinGet/Package
     name: FirefoxPWA
     metadata:
       winget:
         securityContext: elevated
     properties:
       id: filips.FirefoxPWA
-      source: winget
-      installMode: silent
-  - type: Microsoft.WinGet/Package
-    name: LocalSend
-    properties:
-      id: LocalSend.LocalSend
       source: winget
       installMode: silent
   - type: Microsoft.WinGet/Package
@@ -99,36 +60,12 @@ resources:
       source: winget
       installMode: silent
   - type: Microsoft.WinGet/Package
-    name: ProtonDrive
-    properties:
-      id: Proton.ProtonDrive
-      source: winget
-      installMode: silent
-  - type: Microsoft.WinGet/Package
-    name: ProtonPass
-    properties:
-      id: Proton.ProtonPass
-      source: winget
-      installMode: silent
-  - type: Microsoft.WinGet/Package
-    name: ProtonPassCLI
-    properties:
-      id: Proton.ProtonPass.CLI
-      source: winget
-      installMode: silent
-  - type: Microsoft.WinGet/Package
     name: ProtonVPN
     metadata:
       winget:
         securityContext: elevated
     properties:
       id: Proton.ProtonVPN
-      source: winget
-      installMode: silent
-  - type: Microsoft.WinGet/Package
-    name: Slack
-    properties:
-      id: SlackTechnologies.Slack
       source: winget
       installMode: silent
   - type: Microsoft.WinGet/Package
