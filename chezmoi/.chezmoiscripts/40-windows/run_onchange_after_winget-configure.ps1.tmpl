@@ -20,7 +20,7 @@
 # chezmoi apply runs many scripts back to back with no indication which is running -- announce
 # this one, since it can take a while.
 Write-Host "`nApplying Windows configuration with winget configure..." -ForegroundColor Green
-Write-Host "Stay nearby until the script says you can step away. It first checks which files need elevation, then may ask you to approve a UAC prompt.`n" -ForegroundColor Green
+Write-Host "Stay nearby until the script says you can step away. It first checks which files need elevation, then may ask you to approve a UAC prompt.`n" -ForegroundColor Magenta
 
 # winget writes UTF-8 to stdout, including the shield glyph that marks elevated resources in
 # `configure show` output (see Test-ConfigFileRequiresElevation below). Without this the
@@ -629,13 +629,12 @@ if ($ElevatedFiles.Count -eq 0) {
   Write-Detail 'No file to apply needs elevation.'
 }
 else {
-  Write-Host "`n$($ElevatedFiles.Count) file(s) need elevation; one UAC prompt covers them all." -ForegroundColor Yellow
-  Write-Host "Press Enter, then approve the UAC prompt when it appears..." -ForegroundColor Yellow -NoNewline
+  Write-Host "`n$($ElevatedFiles.Count) file(s) need elevation. Press Enter, then approve the UAC prompt that covers them all..." -ForegroundColor Magenta -NoNewline
   Read-Host | Out-Null
   Start-ElevatedWorker
 }
 # Everything past this point runs unattended.
-Write-Host "`nNothing else needs your input. You can step away until the run finishes." -ForegroundColor Green
+Write-Host "`nNothing else needs your input. You can step away until the run finishes." -ForegroundColor Magenta
 
 #endregion
 
@@ -723,16 +722,16 @@ if (Test-RebootPending) {
     [ordered]@{ BootTime = $BootTime.ToString('o'); Files = $ToVerify } | ConvertTo-Json | Set-Content -Path $VerifyListPath
     Write-Log "=== reboot pending at end of run -- listed for verification after reboot: $($ToVerify -join ', ') ==="
     if (Register-ChezmoiApplyOnNextLogon) {
-      Write-Host "`nWindows configuration applied. Reboot to finish; 'chezmoi apply' reruns at next logon to verify $($ToVerify.Count) file(s)." -ForegroundColor Yellow
+      Write-Host "`nWindows configuration applied. Reboot to finish; 'chezmoi apply' reruns at next logon to verify $($ToVerify.Count) file(s)." -ForegroundColor Magenta
     }
     else {
-      Write-Host "`nWindows configuration applied. Reboot, then rerun 'chezmoi apply' to verify $($ToVerify.Count) file(s)." -ForegroundColor Yellow
+      Write-Host "`nWindows configuration applied. Reboot, then rerun 'chezmoi apply' to verify $($ToVerify.Count) file(s)." -ForegroundColor Magenta
     }
     # Non-zero so chezmoi reruns this run_onchange_ script on the next apply even if nothing else
     # changed; on success it would record the script as done and skip the verification run.
     exit 1
   }
-  Write-Host "`nWindows configuration applied. Reboot to finish applying it." -ForegroundColor Yellow
+  Write-Host "`nWindows configuration applied. Reboot to finish applying it." -ForegroundColor Magenta
   Write-Log "=== reboot pending at end of run, nothing left to verify ==="
 }
 else {
