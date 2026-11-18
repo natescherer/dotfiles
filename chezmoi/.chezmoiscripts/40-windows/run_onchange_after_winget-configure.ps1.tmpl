@@ -19,8 +19,8 @@
 
 # chezmoi apply runs many scripts back to back with no indication which is running -- announce
 # this one, since it can take a while.
-Write-Host "`nApplying Windows configuration via winget configure..." -ForegroundColor Green
-Write-Host "This may pause once for an elevation prompt, and may ask for a reboot at the end.`n" -ForegroundColor Green
+Write-Host "`nApplying Windows configuration with winget configure..." -ForegroundColor Green
+Write-Host "Stay nearby until the script says you can step away. It first checks which files need elevation, then may ask you to approve a UAC prompt.`n" -ForegroundColor Green
 
 # winget writes UTF-8 to stdout, including the shield glyph that marks elevated resources in
 # `configure show` output (see Test-ConfigFileRequiresElevation below). Without this the
@@ -244,7 +244,7 @@ function Test-RebootPending {
 function Test-ConfigFileRequiresElevation {
   param([string] $Path)
   try {
-    $Output = (Invoke-WithSpinner -Activity "Checking $(Split-Path -Leaf $Path)" -ArgumentList $Path -ScriptBlock {
+    $Output = (Invoke-WithSpinner -Activity "Checking whether $(Split-Path -Leaf $Path) needs elevation" -ArgumentList $Path -ScriptBlock {
         param($Path)
         winget configure show -f $Path --disable-interactivity 2>&1
       }) -join "`n"
@@ -305,7 +305,7 @@ function Start-ElevatedWorker {
     }
   }
   catch {
-    throw "Could not start the elevated worker ($($_.Exception.Message)) -- the UAC prompt may have been declined. Rerun 'chezmoi apply' and approve it."
+    throw "Could not start the elevated process: $($_.Exception.Message) If you declined the UAC prompt, rerun 'chezmoi apply' and approve it."
   }
   $ReadyFile = Join-Path $WorkerQueueDir 'ready'
   $Timer = [System.Diagnostics.Stopwatch]::StartNew()
@@ -468,7 +468,7 @@ $MinimumWingetVersion = [version]'1.29.380'
 # -- strip any "-suffix" before casting so those builds are compared on their numeric part alone.
 $WingetVersion = [version]($WingetVersionRaw -replace '-.*$', '')
 if ($WingetVersion -lt $MinimumWingetVersion) {
-  throw "winget $WingetVersionRaw is unsupported -- winget $MinimumWingetVersion or newer is required. Update App Installer, then rerun."
+  throw "This script needs winget $MinimumWingetVersion or newer; found $WingetVersionRaw. Update App Installer, then rerun."
 }
 
 # If winget configure is disabled by Group Policy, nothing below can work. Throw rather than
@@ -526,7 +526,7 @@ if ($VerifyFiles.Count -gt 0) {
   Write-Detail "Rebooted since the last run: verifying $($VerifyFiles.Count) file(s) it applied." -Color Yellow
 }
 elseif ($PendingVerifyFiles.Count -gt 0) {
-  Write-Detail "$($PendingVerifyFiles.Count) file(s) from an earlier run still wait on a reboot to be verified." -Color Yellow
+  Write-Detail "$($PendingVerifyFiles.Count) file(s) from an earlier run will be verified after the next reboot." -Color Yellow
 }
 
 # Configuration files to apply this run: changed since their last apply, or listed for
@@ -555,11 +555,11 @@ if ($ExtendedFeaturesEnabled) {
   Write-Log "=== winget configure extended features already enabled ==="
 }
 else {
-  Write-Host "`nEnabling winget configure extended features..." -ForegroundColor Cyan
+  Write-Detail 'Enabling winget configure extended features...'
   Write-Log "=== winget configure --enable ==="
   winget configure --enable
   if ($LASTEXITCODE -ne 0) {
-    throw "Failed to enable winget configure extended features (exit code $LASTEXITCODE) -- update App Installer or see $LogPath and rerun."
+    throw "Failed to enable winget configure extended features (exit code $LASTEXITCODE). Update App Installer or see $LogPath, then rerun."
   }
   New-Item -Path $AtomicWingetConfigureKey -Force | Out-Null
   New-ItemProperty -Path $AtomicWingetConfigureKey -Name $ExtendedFeaturesValueName -Value 1 -PropertyType DWord -Force | Out-Null
@@ -570,14 +570,14 @@ else {
 # with an opaque internal error without it -- self-heal by installing it directly.
 $VCRedistKey = 'HKLM:\SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\X64'
 if ((Get-ItemProperty -Path $VCRedistKey -Name 'Installed' -ErrorAction SilentlyContinue).Installed -ne 1) {
-  Write-Host "Microsoft Visual C++ Redistributable 2015+ (x64) not found -- installing (winget configure can fail with an internal error without it)..." -ForegroundColor Yellow
+  Write-Detail 'Installing the Visual C++ 2015+ x64 redistributable, which winget configure needs...'
   Write-Log "=== Installing Microsoft.VCRedist.2015+.x64 ==="
   Invoke-WithRetry -Name 'Microsoft.VCRedist.2015+.x64 install' -ScriptBlock {
     winget install --id 'Microsoft.VCRedist.2015+.x64' --source winget --accept-package-agreements --accept-source-agreements --disable-interactivity --verbose-logs
   }
   if ($LASTEXITCODE -ne 0) {
     Write-Log "=== winget's own diagnostic logs for this failure: $WingetLogDir ==="
-    throw "Failed to install Microsoft.VCRedist.2015+.x64 (exit code $LASTEXITCODE) -- winget configure is likely to fail without it. See $LogPath and rerun."
+    throw "Failed to install Microsoft.VCRedist.2015+.x64 (exit code $LASTEXITCODE); winget configure is likely to fail without it. See $LogPath and rerun."
   }
 }
 
@@ -594,7 +594,7 @@ if (-not (Get-SufficientPSResourceGet)) {
   }
   $PSResourceGetInstalled = Get-SufficientPSResourceGet
   if (-not $PSResourceGetInstalled) {
-    Write-Host "Warning: failed to install PSResourceGet 1.3.0+ . See $LogPath" -ForegroundColor Yellow
+    Write-Host "Warning: couldn't install PSResourceGet 1.3.0+, so PSResourceList resources will fail. See $LogPath." -ForegroundColor Yellow
   }
   else {
     Write-Detail "Installed PSResourceGet $($PSResourceGetInstalled.Version) $($PSResourceGetInstalled.Prerelease)"
@@ -626,14 +626,16 @@ $ElevatedFiles = @($FilesToApply | Where-Object {
   })
 Write-Log "=== files to apply elevated: $($ElevatedFiles -join ', ') ==="
 if ($ElevatedFiles.Count -eq 0) {
-  Write-Detail 'Nothing to apply needs elevation.'
+  Write-Detail 'No file to apply needs elevation.'
 }
 else {
-  Write-Host "`n$($ElevatedFiles.Count) file(s) need elevation. Expect one UAC prompt for all of it." -ForegroundColor Yellow
+  Write-Host "`n$($ElevatedFiles.Count) file(s) need elevation; one UAC prompt covers them all." -ForegroundColor Yellow
   Write-Host "Press Enter, then approve the UAC prompt when it appears..." -ForegroundColor Yellow -NoNewline
   Read-Host | Out-Null
   Start-ElevatedWorker
 }
+# Everything past this point runs unattended.
+Write-Host "`nNothing else needs your input. You can step away until the run finishes." -ForegroundColor Green
 
 #endregion
 
@@ -647,7 +649,7 @@ $Results = [System.Collections.Generic.List[pscustomobject]]::new()
 foreach ($File in $ConfigFiles) {
   $Path = Join-Path $ConfigDir $File
   if ($File -notin $FilesToApply) {
-    Write-Detail "Skipping $File -- unchanged since last successful apply."
+    Write-Detail "Skipping ${File}: unchanged since its last apply."
     Write-Log "=== ${File}: unchanged, skipping ==="
     $Results.Add([pscustomobject]@{ File = $File; Result = 'skipped (unchanged)'; Seconds = $null; Ok = $true })
     continue
@@ -661,9 +663,10 @@ foreach ($File in $ConfigFiles) {
   }
 
   $Elevated = $File -in $ElevatedFiles
-  Write-Host "`nApplying $File via 'winget configure'$(if ($Elevated) { ' (elevated)' })..." -ForegroundColor Cyan
+  Write-Host "`nApplying $File with winget configure$(if ($Elevated) { ' (elevated)' })..." -ForegroundColor Cyan
   $ConfigureArgs = @('-f', $Path, '--accept-configuration-agreements', '--disable-interactivity', '--suppress-initial-details', '--verbose-logs', '--ignore-warnings')
-  Invoke-WithRetry -Name $File -ScriptBlock {
+  $Attempts = 3
+  Invoke-WithRetry -Name $File -MaxAttempts $Attempts -ScriptBlock {
     if ($Elevated) {
       Invoke-ElevatedRequest -Request @{ Kind = 'configure'; Args = $ConfigureArgs }
     }
@@ -677,7 +680,7 @@ foreach ($File in $ConfigFiles) {
   $Ok = $LASTEXITCODE -eq 0
   if (-not $Ok) {
     Write-Log "=== winget's own diagnostic logs for this failure: $WingetLogDir ==="
-    Write-Host "Warning: $File exited with code $LASTEXITCODE after retries. This may be a benign warning (e.g. 'module not provided') or a real failure -- see $LogPath" -ForegroundColor Yellow
+    Write-Host "Warning: winget configure exited $LASTEXITCODE for $File after $Attempts attempts. This can be a benign warning, such as 'module not provided', or a real failure; see $LogPath." -ForegroundColor Yellow
     $Result += ", exit code $LASTEXITCODE"
   }
   $Results.Add([pscustomobject]@{ File = $File; Result = $Result; Seconds = [int]$FileTimer.Elapsed.TotalSeconds; Ok = $Ok })
@@ -720,7 +723,7 @@ if (Test-RebootPending) {
     [ordered]@{ BootTime = $BootTime.ToString('o'); Files = $ToVerify } | ConvertTo-Json | Set-Content -Path $VerifyListPath
     Write-Log "=== reboot pending at end of run -- listed for verification after reboot: $($ToVerify -join ', ') ==="
     if (Register-ChezmoiApplyOnNextLogon) {
-      Write-Host "`nWindows configuration applied. Reboot -- 'chezmoi apply' reruns automatically at next logon to verify $($ToVerify.Count) file(s)." -ForegroundColor Yellow
+      Write-Host "`nWindows configuration applied. Reboot to finish; 'chezmoi apply' reruns at next logon to verify $($ToVerify.Count) file(s)." -ForegroundColor Yellow
     }
     else {
       Write-Host "`nWindows configuration applied. Reboot, then rerun 'chezmoi apply' to verify $($ToVerify.Count) file(s)." -ForegroundColor Yellow
@@ -729,11 +732,11 @@ if (Test-RebootPending) {
     # changed; on success it would record the script as done and skip the verification run.
     exit 1
   }
-  Write-Host "`nWindows configuration applied. A reboot is needed to finish putting it into effect." -ForegroundColor Yellow
+  Write-Host "`nWindows configuration applied. Reboot to finish applying it." -ForegroundColor Yellow
   Write-Log "=== reboot pending at end of run, nothing left to verify ==="
 }
 else {
-  Write-Host "`nWindows configuration applied -- no reboot needed." -ForegroundColor Green
+  Write-Host "`nWindows configuration applied; no reboot needed." -ForegroundColor Green
 }
 
 #endregion
