@@ -49,6 +49,14 @@ resources:
       id: jdx.mise
       source: winget
       installMode: silent
+  # PowerShell 7.7+ installs only as MSIX, which installs per user, so this runs unelevated to
+  # install it for the user running chezmoi rather than for whoever approves the UAC prompt.
+  - type: Microsoft.WinGet/Package
+    name: PowerShell
+    properties:
+      id: Microsoft.PowerShell
+      source: winget
+      installMode: silent
   - type: Microsoft.WinGet/Package
     name: VSCode
     properties:
