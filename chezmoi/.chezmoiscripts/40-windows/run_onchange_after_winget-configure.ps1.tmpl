@@ -16,19 +16,10 @@
 #      changes. Squeezed onto one line so "#" it all out to avoid pwsh parser errors */}}
 # {{ "\n" }}{{ range $wingetConfigFiles }}## {{ base . }} hash: {{ include . | sha256sum }}{{ "\n" }}{{ end -}}
 
-# Whether to play an audible alert when the script needs attention (an elevation prompt about to
-# appear, or a reboot needed to verify the configuration).
-$AlertSounds = $false
-
 # chezmoi apply runs many scripts back to back with no indication which is running -- announce
 # this one, since it can take a while.
 Write-Host "`nApplying Windows configuration via winget configure..." -ForegroundColor Green
-if ($AlertSounds) {
-  Write-Host "This may pause once for an elevation prompt, and may ask for a reboot at the end, each announced with an audible alert -- turn your volume up so you don't miss one.`n" -ForegroundColor Green
-}
-else {
-  Write-Host "This may pause once for an elevation prompt, and may ask for a reboot at the end.`n" -ForegroundColor Green
-}
+Write-Host "This may pause once for an elevation prompt, and may ask for a reboot at the end.`n" -ForegroundColor Green
 
 # winget writes UTF-8 to stdout, including the shield glyph that marks elevated resources in
 # `configure show` output (see Test-ConfigFileRequiresElevation below). Without this the
@@ -248,20 +239,6 @@ function Test-RebootPending {
     return $true
   }
   return $false
-}
-
-# Plays a short built-in Windows sound so someone away from the screen notices when the script
-# needs them (a reboot, or an elevation prompt about to appear). PlaySync (not Play) so the sound
-# finishes before the script moves on. Best-effort: swallowed on failure (e.g. no audio device on
-# a headless/RDP session) -- silence isn't fatal. No-op unless $AlertSounds is set.
-function Invoke-AlertSound {
-  if (-not $AlertSounds) { return }
-  try {
-    (New-Object System.Media.SoundPlayer 'C:\Windows\Media\Alarm01.wav').PlaySync()
-  }
-  catch {
-    Write-Log "=== could not play alert sound: $($_.Exception.Message) ==="
-  }
 }
 
 # Asks winget itself whether applying a config file may prompt for elevation, rather than
@@ -657,7 +634,6 @@ if ($ElevatedFiles.Count -eq 0) {
 }
 else {
   Write-Host "`n$($ElevatedFiles.Count) file(s) need elevation. Expect one UAC prompt for all of it." -ForegroundColor Yellow
-  Invoke-AlertSound
   Write-Host "Press Enter once you're ready to approve it..." -ForegroundColor Yellow -NoNewline
   Read-Host | Out-Null
   Start-ElevatedWorker
@@ -755,7 +731,6 @@ if (Test-RebootPending) {
     else {
       Write-Host "`nWindows configuration applied. Reboot, then rerun 'chezmoi apply' to verify $($ToVerify.Count) file(s)." -ForegroundColor Yellow
     }
-    Invoke-AlertSound
     # Non-zero so chezmoi reruns this run_onchange_ script on the next apply even if nothing else
     # changed; on success it would record the script as done and skip the verification run.
     exit 1
