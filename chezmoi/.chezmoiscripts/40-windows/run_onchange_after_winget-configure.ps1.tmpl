@@ -19,8 +19,7 @@
 
 # chezmoi apply runs many scripts back to back with no indication which is running -- announce
 # this one, since it can take a while.
-Write-Host "`nApplying Windows configuration with winget configure..." -ForegroundColor Green
-Write-Host "Stay nearby until the script says you can step away. It first checks which files need elevation, then may ask you to approve a UAC prompt.`n" -ForegroundColor Magenta
+Write-Host "`nApplying Windows configuration with winget configure..." -ForegroundColor White
 
 # winget writes UTF-8 to stdout, including the shield glyph that marks elevated resources in
 # `configure show` output (see Test-ConfigFileRequiresElevation below). Without this the
@@ -75,19 +74,17 @@ $SpinnerFrames = '|', '/', '-', '\'
 $SpinnerFrame = 0
 
 # Prints a header for each of the run's two phases: Prepare, which may need the user, and
-# Apply, which runs unattended. $Attendance says which, in the color of the user's cues.
+# Apply, which runs unattended.
 function Write-Phase {
-  param([Parameter(Mandatory)] [int] $Number, [Parameter(Mandatory)] [string] $Name, [Parameter(Mandatory)] [string] $Attendance)
-  Write-Host "`n=== Phase $Number of 2: $Name " -ForegroundColor White -NoNewline
-  Write-Host "($Attendance)" -ForegroundColor Magenta -NoNewline
-  Write-Host ' ===' -ForegroundColor White
+  param([Parameter(Mandatory)] [int] $Number, [Parameter(Mandatory)] [string] $Name)
+  Write-Host "`n=== Phase $Number of 2: $Name ===" -ForegroundColor White
   Write-Log "######## Phase $Number of 2: $Name ########"
 }
 
 # Prints a header for each step within a phase, so the console shows which one is underway.
 function Write-Step {
   param([Parameter(Mandatory)] [string] $Text)
-  Write-Host "`n==> $Text" -ForegroundColor Green
+  Write-Host "`n==> $Text" -ForegroundColor Cyan
   Write-Log "##### $Text #####"
 }
 
@@ -454,7 +451,8 @@ function Get-SufficientPSResourceGet {
 
 #region Preflight
 
-Write-Phase -Number 1 -Name 'Prepare' -Attendance 'stay nearby'
+Write-Phase -Number 1 -Name 'Prepare'
+Write-Host 'Stay nearby until phase 1 completes. It checks which files need elevation, then may ask you to approve a UAC prompt.' -ForegroundColor Magenta
 Write-Step 'Preflight checks'
 
 # System-state snapshot for the log, useful for troubleshooting later.
@@ -645,13 +643,13 @@ else {
   Start-ElevatedWorker
 }
 # Everything past this point runs unattended.
-Write-Host "`nNothing else needs your input. You can step away until the run finishes." -ForegroundColor Magenta
+Write-Host "`nPhase 1 complete. Nothing else needs your input; you can step away until the run finishes." -ForegroundColor Magenta
 
 #endregion
 
 #region Apply configuration files
 
-Write-Phase -Number 2 -Name 'Apply' -Attendance 'unattended'
+Write-Phase -Number 2 -Name 'Apply'
 Write-Step 'Applying configuration files'
 
 $AppliedFiles = [System.Collections.Generic.List[string]]::new()
@@ -674,7 +672,7 @@ foreach ($File in $ConfigFiles) {
   }
 
   $Elevated = $File -in $ElevatedFiles
-  Write-Host "`nApplying $File with winget configure$(if ($Elevated) { ' (elevated)' })..." -ForegroundColor Cyan
+  Write-Host "`nApplying $File with winget configure$(if ($Elevated) { ' (elevated)' })..." -ForegroundColor DarkCyan
   $ConfigureArgs = @('-f', $Path, '--accept-configuration-agreements', '--disable-interactivity', '--suppress-initial-details', '--verbose-logs', '--ignore-warnings')
   $Attempts = 3
   Invoke-WithRetry -Name $File -MaxAttempts $Attempts -ScriptBlock {
