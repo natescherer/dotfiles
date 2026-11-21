@@ -3,8 +3,8 @@
 # .chezmoiignore.tmpl (see AppData/Local/winget-configuration-chezmoi/README.md
 # for the "p" tag convention this mirrors).
 homebrew_formulas_personal:
+  - bitwarden-cli
   - firefoxpwa
-  - proton-pass-cli
 
 homebrew_casks_personal:
   - anylist
@@ -14,6 +14,5 @@ homebrew_casks_personal:
   - localsend
   - obsidian
   - proton-drive
-  - proton-pass
   - protonvpn
   - thunderbird

@@ -7,12 +7,12 @@ metadata:
     processor:
       identifier: dscv3
 resources:
-  # Force-installs the Proton Pass extension in Edge; users can't remove it. On devices that aren't
+  # Force-installs the Bitwarden extension in Edge; users can't remove it. On devices that aren't
   # domain joined, force-install only works for extensions from the Edge Add-ons store.
   # ExtensionInstallForcelist values are numbered; the value name is just a list index and the data is
   # "<extension id>;<update url>" (here, Edge's Add-ons store).
   - type: Microsoft.Windows/Registry
-    name: EdgeProtonPassExtensionForcelist
+    name: EdgeBitwardenExtensionForcelist
     metadata:
       winget:
         securityContext: elevated
@@ -20,5 +20,5 @@ resources:
       keyPath: HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Edge\ExtensionInstallForcelist
       valueName: "1"
       valueData:
-        String: gcllgfdnfnllodcaambdaknbipemelie;https://edge.microsoft.com/extensionwebstorebase/v1/crx
+        String: jbkfoedolllekgbhcbcoahefnbanhhlh;https://edge.microsoft.com/extensionwebstorebase/v1/crx
       _exist: true

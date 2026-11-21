@@ -2,13 +2,13 @@
 # Personal-only Mac App Store apps. Excluded on non-personal machines via
 # .chezmoiignore.tmpl.
 mac_app_store_apps_personal:
+  Bitwarden: 1352778147
   Kindle: 302584613
   "Microsoft Excel": 462058435
   "Microsoft PowerPoint": 462062816
   "Microsoft Word": 462054704
   Paprika: 1303222628
   "Poolsuite FM": 1514817810
-  "Proton Pass for Safari": 6502835663
   TestFlight: 899247664
   TickTick: 966085870
   "UTM Virtual Machines": 1538878817

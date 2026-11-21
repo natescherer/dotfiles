@@ -17,6 +17,14 @@ Currently managed:
 - [Azure CLI](https://learn.microsoft.com/en-us/cli/azure/) 🐧 🍎 🪟
   - Config Files
     - [chezmoi/.chezmoidata/env-vars.toml](chezmoi/.chezmoidata/env-vars.toml)
+- [Bitwarden](https://bitwarden.com/) 🐧 🍎 🪟
+  - Notes
+    - The desktop app's SSH agent serves keys; enable it in the app's settings. On Windows it listens on OpenSSH's named pipe, so it needs no config file
+    - The socket path depends on how each platform installs the app: the Mac App Store app (which bundles the Safari extension), the Ubuntu snap, or the NixOS package
+  - Config Files
+    - [chezmoi/.chezmoitemplates/bitwarden-ssh-agent-sock](chezmoi/.chezmoitemplates/bitwarden-ssh-agent-sock)
+    - [chezmoi/dot_zshenv.tmpl](chezmoi/dot_zshenv.tmpl)
+    - [chezmoi/dot_ssh/config.tmpl](chezmoi/dot_ssh/config.tmpl)
 - [Cargo](https://github.com/rust-lang/cargo) 🐧 🍎 🪟
   - Config Files
     - [chezmoi/.chezmoidata/env-vars.toml](chezmoi/.chezmoidata/env-vars.toml)
@@ -127,12 +135,6 @@ Currently managed:
     - [chezmoi/Documents/PowerShell/aliases.ps1.tmpl](chezmoi/Documents/PowerShell/aliases.ps1.tmpl)
     - [chezmoi/Documents/PowerShell/env.ps1.tmpl](chezmoi/Documents/PowerShell/env.ps1.tmpl)
     - [chezmoi/Documents/PowerShell/profile.ps1.tmpl](chezmoi/Documents/PowerShell/profile.ps1.tmpl)
-- [Proton Pass](https://proton.me/pass) 🐧 🍎 🪟
-  - Notes
-    - SSH agent vault/key selection (via [Proton Pass CLI](https://protonpass.github.io/pass-cli/)) is set with CLI flags at agent startup rather than a config file
-  - Config Files
-    - [chezmoi/dot_zshenv.tmpl](chezmoi/dot_zshenv.tmpl)
-    - [chezmoi/dot_ssh/config.tmpl](chezmoi/dot_ssh/config.tmpl)
 - [PWAsForFirefox](https://pwasforfirefox.filips.si/) 🐧 🍎 🪟
   - Notes
     - Installs the PWA list in [chezmoi/.chezmoidata/pwas.toml](chezmoi/.chezmoidata/pwas.toml) as standalone apps on a separate Firefox runtime with Widevine DRM, in a dedicated `pwas` profile; apps that leave the list are uninstalled

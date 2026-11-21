@@ -90,17 +90,18 @@ file is only written once.
 - [ ] Docker Desktop
   - [ ] Ensure socket is enabled
 {{ end -}}
-- [ ] Proton Pass Desktop
-  - [ ] Open on Startup
+- [ ] Bitwarden Desktop
+  - [ ] Start automatically on login
   - [ ] Set unlock mode
   - [ ] Enable SSH Agent
+- [ ] Bitwarden CLI
+  - [ ] Log in with `bw login`
 - [ ] Firefox
-  - [ ] Install Proton Pass & Login
-  - Proton Pass Extension Settings
-    - [ ] Auto-copy 2FA Code
-    - [ ] Basic auth autofill
-    - [ ] Use Proton Pass as your browser's default password manager
-    - [ ] Unlock with PIN Code
+  - [ ] Install Bitwarden & Login
+  - Bitwarden Extension Settings
+    - [ ] Copy TOTP automatically
+    - [ ] Make Bitwarden your default password manager
+    - [ ] Unlock with PIN
   - [ ] Set up Sync
   - [ ] Set search engine
   - [ ] Remove VPN from toolbar and pin extensions

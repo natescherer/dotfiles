@@ -12,10 +12,10 @@ in {
   # platform are skipped.
   config = lib.mkIf specialArgs.isPersonal {
     environment.systemPackages = lib.filter available [
+      pkgs.bitwarden-cli
+      pkgs.bitwarden-desktop
       pkgs.discord
       pkgs.obsidian
-      pkgs.proton-pass
-      pkgs.proton-pass-cli
       pkgs.proton-vpn
       pkgs.slack
       pkgs.thunderbird

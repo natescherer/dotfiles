@@ -1,0 +1,8 @@
+{{- /* Bitwarden desktop's SSH agent socket, which moves with each platform's install type */ -}}
+{{- if eq .chezmoi.os "darwin" -}}
+{{ .chezmoi.homeDir }}/Library/Containers/com.bitwarden.desktop/Data/.bitwarden-ssh-agent.sock
+{{- else if and (eq .chezmoi.os "linux") (eq (.chezmoi.osRelease.id | default "") "nixos") -}}
+{{ .chezmoi.homeDir }}/.bitwarden-ssh-agent.sock
+{{- else -}}
+{{ .chezmoi.homeDir }}/snap/bitwarden/current/.bitwarden-ssh-agent.sock
+{{- end -}}

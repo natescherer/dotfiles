@@ -59,8 +59,7 @@ entry, created with `mkpasswd -m yescrypt`.
 ## Known Gaps
 
 - nixpkgs has no Claude Desktop package.
-- `nixos-vmw-fus` lacks Discord, Proton Pass Desktop, and Slack, which have no
-  aarch64 build.
+- `nixos-vmw-fus` lacks Discord and Slack, which have no aarch64 build.
 - Flat mouse acceleration and tap-to-click aren't set, since KWin stores them per
   input device.
 - Copying from the guest to the host covers text only, through a bridge service.

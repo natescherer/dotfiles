@@ -22,6 +22,18 @@ resources:
       acceptAgreements: true
       installMode: silent
   - type: Microsoft.WinGet/Package
+    name: Bitwarden
+    properties:
+      id: Bitwarden.Bitwarden
+      source: winget
+      installMode: silent
+  - type: Microsoft.WinGet/Package
+    name: BitwardenCLI
+    properties:
+      id: Bitwarden.CLI
+      source: winget
+      installMode: silent
+  - type: Microsoft.WinGet/Package
     name: Claude
     properties:
       id: Anthropic.Claude
@@ -50,18 +62,6 @@ resources:
     name: ProtonDrive
     properties:
       id: Proton.ProtonDrive
-      source: winget
-      installMode: silent
-  - type: Microsoft.WinGet/Package
-    name: ProtonPass
-    properties:
-      id: Proton.ProtonPass
-      source: winget
-      installMode: silent
-  - type: Microsoft.WinGet/Package
-    name: ProtonPassCLI
-    properties:
-      id: Proton.ProtonPass.CLI
       source: winget
       installMode: silent
   - type: Microsoft.WinGet/Package
