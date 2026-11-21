@@ -27,4 +27,10 @@ rm -rf nixos-anywhere-extra-files
 '''
 
 [tools]
+# bwbio runs on the host, where the devcontainer's initialize scripts fetch the
+# sops key through it; the container skips it and node with MISE_DISABLE_TOOLS
+node = "24.22.2"
+# bwbio has too few weekly downloads for mise's default npm install policy. It
+# has no dependencies; review its source before raising this pin.
+"npm:bitwarden-cli-bio" = { version = "1.4.4", allow_low_downloads = true }
 sops = "3.13.3"

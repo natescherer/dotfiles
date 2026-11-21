@@ -1,9 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-passItem=$(grep -v '^#' .devcontainer/pass-item.txt)
+bwItem=$(grep -v '^#' .devcontainer/bw-item.txt)
+envFile=.devcontainer/.env.ssh-key
 
-trap 'rm -f .devcontainer/.env.ssh-key' ERR
+trap 'rm -f "$envFile"' ERR
 
-sshPrivateKeyB64=$(pass-cli item view "$passItem" | base64 | tr -d '\n')
-echo "SSH_PRIVATE_KEY_B64=$sshPrivateKeyB64" > .devcontainer/.env.ssh-key
+# With no terminal on stdin, bw fails instead of waiting on a master password prompt nobody sees
+# when the desktop app can't unlock the vault
+sshPrivateKeyB64=$(mise exec -- bwbio get item "$bwItem" </dev/null | jq -er .sshKey.privateKey | base64 | tr -d '\n')
+umask 077
+echo "SSH_PRIVATE_KEY_B64=$sshPrivateKeyB64" > "$envFile"

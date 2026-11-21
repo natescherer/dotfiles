@@ -9,8 +9,13 @@ The repo's flake installs NixOS with a KDE Plasma desktop. Two hosts exist:
 
 ## Preflight
 
-1. Log in to the Proton Pass CLI on your workstation with `pass-cli login`. The
-   devcontainer reads the host key from it.
+1. On your workstation, turn on biometric unlock and "Allow browser
+   integration" in the Bitwarden desktop app, and log in to the Bitwarden CLI
+   with `bw login`. The devcontainer reads the host key from the SSH key item
+   named in `.devcontainer/bw-item.txt`, through a biometric prompt each time
+   it opens.
+1. Run `mise trust` in this repo on your workstation, since the devcontainer's
+   startup runs bwbio through mise.
 1. Open this repo in its devcontainer.
 1. Create a VM with UEFI firmware, an NVMe disk, and 3D acceleration on.
 1. Boot the VM from the [NixOS minimal installer](https://nixos.org/download/)

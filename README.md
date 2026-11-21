@@ -114,7 +114,7 @@ Currently managed:
 - [NixOS](https://nixos.org/) 🐧
   - Notes
     - Installs a KDE Plasma desktop on VMware Workstation and Fusion
-    - Develop from the devcontainer, which provides Nix and reads the sops key from Proton Pass
+    - Develop from the devcontainer, which provides Nix and reads the sops key from Bitwarden through [bwbio](https://github.com/jeanregisser/bitwarden-cli-bio) biometric unlock
   - Config Files
     - [flake.nix](flake.nix)
     - [nixos](nixos)

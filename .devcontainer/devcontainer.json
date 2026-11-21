@@ -25,7 +25,9 @@
         "source=${localEnv:HOME}${localEnv:USERPROFILE}/.config/claude,target=/home/vscode/.config/claude,type=bind"
     ],
     "containerEnv": {
-        "CLAUDE_CONFIG_DIR": "/home/vscode/.config/claude"
+        "CLAUDE_CONFIG_DIR": "/home/vscode/.config/claude",
+        // Only the host's initialize scripts use these mise tools
+        "MISE_DISABLE_TOOLS": "node,npm:bitwarden-cli-bio"
     },
     // Puts Nix-profile and mise-managed tools on PATH in every shell and in VS
     // Code's extensions, with no per-shell activation
@@ -46,11 +48,13 @@
     // This uses a neat hack from https://github.com/EliahKagan/portable-initialize
     // The extensionless initialize is a bash script that runs on Linux/macOS;
     // its .cmd sibling is a batch script that runs on Windows. Both fetch the
-    // NixOS SSH/age private key from Proton Pass on the host, base64-encode it
-    // (a raw multi-line key can't survive --env-file's one-line-per-var
-    // format), and write it to an env file as SSH_PRIVATE_KEY_B64. The sops
-    // key command in mise's config decodes it back on demand, so the raw key
-    // only ever exists in memory inside the container.
+    // NixOS SSH/age private key from Bitwarden on the host with bwbio, which
+    // unlocks the vault through the desktop app's biometric prompt. They
+    // base64-encode the key (a raw multi-line key can't survive --env-file's
+    // one-line-per-var format) and write it to an env file as
+    // SSH_PRIVATE_KEY_B64. The sops key command in mise's config decodes it
+    // back on demand, so the raw key only ever exists in memory inside the
+    // container.
     "initializeCommand": [
         ".devcontainer/initialize"
     ],
@@ -60,6 +64,6 @@
     // extension activates. The extension only surfaces a clickable "install
     // missing tools" prompt, so this runs it non-interactively instead.
     "postCreateCommand": "mise trust && mise install",
-    // This cleans up the Proton Pass-derived credentials file after it's been loaded into the environment
+    // This cleans up the Bitwarden-derived credentials file after it's been loaded into the environment
     "postStartCommand": "rm -f ./.devcontainer/.env.ssh-key"
 }

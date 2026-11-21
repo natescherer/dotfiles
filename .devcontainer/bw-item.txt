@@ -1,0 +1,2 @@
+# Bitwarden SSH key item holding the NixOS SSH/age private key, by name or ID
+dotfiles-nixos-2610
