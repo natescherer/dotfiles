@@ -13,8 +13,8 @@
 {{- $overpassVersion := "3.0.5" }}
 {{- /* renovate: datasource=github-releases depName=kdeldycke/meta-package-manager */ -}}
 {{- $mpmVersion := "8.0.2" }}
-{{- if ne .chezmoi.os "darwin" }}
-{{- /* Both of these fonts are Homebrew-installable */ -}}
+{{- if and (ne .chezmoi.os "darwin") .isGraphical }}
+{{- /* Both of these fonts are Homebrew-installable, and headless machines have nothing to render them */ -}}
 ["{{ $fontDir }}/CascadiaMonoNF-Regular.otf"]
     type = "archive-file"
     url = "https://github.com/microsoft/cascadia-code/releases/download/v{{ $cascadiaVersion }}/CascadiaCode-{{ $cascadiaVersion }}.zip"

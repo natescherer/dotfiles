@@ -20,6 +20,21 @@
 .config/mise/conf.d/devcontainer.toml
 {{- end }}
 
+{{- if not .isGraphical }}
+# Ignore on headless machines (servers, devcontainers, and WSL)
+## Desktop apps' config and data
+.config/ghostty/**
+obsidian/**
+Pictures/**
+## mpm-plan, which reports pending updates as desktop notifications
+.config/mpm/**
+.config/systemd/**
+.local/libexec/**
+## Scripts for desktop editors and the desktop setup checklist
+.chezmoiscripts/90-all/editor-profiles.py
+.chezmoiscripts/91-all/setup-checklist.py
+{{- end }}
+
 {{- if eq .chezmoi.os "linux" }}
 # Ignore on Linux
 ## macOS folders
