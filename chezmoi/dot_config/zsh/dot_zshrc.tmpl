@@ -61,15 +61,3 @@ eval "$(sheldon --profile default source)"
 
 # Activate fzf
 source <(fzf --zsh)
-
-# Load VS Code's shell integration in terminals that core.json's zsh profile
-# starts. The profile runs zsh through `zsh -c`, so VS Code can't inject it.
-if [[ -n $DOTFILES_SHELL_INTEGRATION && $TERM_PROGRAM == vscode ]]; then
-    for editor in code codium; do
-        if (( $+commands[$editor] )); then
-            source "$($editor --locate-shell-integration-path zsh)"
-            break
-        fi
-    done
-    unset editor
-fi

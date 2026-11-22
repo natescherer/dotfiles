@@ -35,20 +35,24 @@ the flake's `devcontainer` package into the Nix profile, then runs
 ## Knowing When Setup Has Finished
 
 VS Code connects, and can open terminals, before the dotfiles finish
-installing. So the `zsh` terminal profile in
-[core.json](../../chezmoi/.chezmoitemplates/editors/reusable-settings/core.json)
-waits, inside a devcontainer, while the install script runs:
+installing. Before installing anything,
+[init-devcontainer.sh](../../init-devcontainer.sh) copies
+[init-devcontainer-zshenv.zsh](../../init-devcontainer-zshenv.zsh) to
+`~/.zshenv`, unless one already exists. A terminal that starts during setup
+reads it and prints:
 
 ```text
-Waiting for devcontainer setup (dotfiles) to finish. Ctrl-C skips.
-Devcontainer setup finished.
+Dotfiles are still installing; this shell does not have them.
 ```
 
-The script writes `ok` or `failed` to
-`~/.local/state/dotfiles/devcontainer-status` when it exits, and its output to
-`~/.local/state/dotfiles/init-devcontainer.log`. Every terminal reports a
-failure until a later run succeeds.
+At its first prompt after setup ends, it prints one of:
 
-The profile starts zsh through `zsh -c` everywhere, which keeps VS Code from
-injecting its shell integration, so `.zshrc` loads it instead in every terminal
-the profile starts.
+```text
+Dotfiles installed. Run exec zsh to load them.
+Dotfiles failed to install. See ~/.local/state/dotfiles/init-devcontainer.log
+```
+
+chezmoi replaces the placeholder with the real `~/.zshenv`, so terminals opened
+after setup print nothing. The script writes `ok` or `failed` to
+`~/.local/state/dotfiles/devcontainer-status` when it exits, and its output to
+`~/.local/state/dotfiles/init-devcontainer.log`.
