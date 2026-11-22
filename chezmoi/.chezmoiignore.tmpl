@@ -42,7 +42,6 @@ Library/**
 .config/swiftbar/**
 ## macOS scripts
 .chezmoiscripts/30-macos/**
-.chezmoiscripts/91-macos/**
 ## Windows folders/files
 AppData/**
 Documents/**
@@ -51,10 +50,7 @@ Documents/**
 .chezmoiscripts/40-windows/**
 .chezmoiscripts/41-windows/**
 .chezmoiscripts/42-windows/**
-.chezmoiscripts/91-windows/**
 .chezmoiscripts/00-all/mise-checker.ps1
-## Windows data
-.chezmoidata/windows-ini-patches.toml
 {{- end }}
 
 {{- if eq .chezmoi.os "darwin" }}
@@ -66,7 +62,6 @@ Documents/**
 .local/share/ansible-configuration-chezmoi/**
 ## Linux scripts
 .chezmoiscripts/10-linux/**
-.chezmoiscripts/91-linux/**
 ## Windows folders/files
 AppData/**
 Documents/**
@@ -75,10 +70,7 @@ Documents/**
 .chezmoiscripts/40-windows/**
 .chezmoiscripts/41-windows/**
 .chezmoiscripts/42-windows/**
-.chezmoiscripts/91-windows/**
 .chezmoiscripts/00-all/mise-checker.ps1
-## Windows data
-.chezmoidata/windows-ini-patches.toml
 {{- end }}
 
 {{- if eq .chezmoi.os "windows" }}
@@ -92,10 +84,8 @@ Documents/**
 .local/share/ansible-configuration-chezmoi/**
 ## Linux/macOS scripts
 .chezmoiscripts/10-linux/**
-.chezmoiscripts/91-linux/**
 .chezmoiscripts/20-linux-and-macos/**
 .chezmoiscripts/30-macos/**
-.chezmoiscripts/91-macos/**
 .chezmoiscripts/00-all/mise-checker.sh
 ## macOS folders
 Library/**
