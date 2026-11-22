@@ -102,6 +102,11 @@ path_part2 = "docker"
 comment = "Docker Desktop: Repoint config from home"
 
 [[env_vars_apps]]
+name = "DOCKER_CLI_HINTS"
+value = "false"
+comment = "Docker CLI: Disable hints and adverts after commands"
+
+[[env_vars_apps]]
 name = "LESSHISTFILE"
 value = "-"
 comment = "Less: Disable history file in home"
