@@ -53,7 +53,7 @@
       system = "aarch64-linux";
       modules = [./nixos/roles/vmware-guest.nix];
     };
-    # What install-devcontainer.sh installs into a devcontainer's Nix profile:
+    # What init-devcontainer.sh installs into a devcontainer's Nix profile:
     # chezmoi, plus the tools the dotfiles' git and zsh config expect. mise
     # comes from the project's own devcontainer, since its tools need it.
     packages =

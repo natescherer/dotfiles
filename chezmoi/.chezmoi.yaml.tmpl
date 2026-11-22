@@ -28,7 +28,7 @@
 {{- end }}
 {{- end }}
 
-{{- /* install-devcontainer.sh sets CHEZMOI_DEVCONTAINER; the stored value keeps a later bare `chezmoi init` from clearing it */}}
+{{- /* init-devcontainer.sh sets CHEZMOI_DEVCONTAINER; the stored value keeps a later bare `chezmoi init` from clearing it */}}
 {{- $isDevcontainer := or (eq (env "CHEZMOI_DEVCONTAINER") "1") (and (hasKey . "isDevcontainer") .isDevcontainer) }}
 
 {{- $applyOSConfigPrompt := "" }}
@@ -55,7 +55,7 @@
 {{- end }}
 
 {{- if $isDevcontainer }}
-# install-devcontainer.sh applies the dotfiles from VS Code's clone of this
+# init-devcontainer.sh applies the dotfiles from VS Code's clone of this
 # repo, so later chezmoi commands need to know where it is
 sourceDir: {{ .chezmoi.workingTree | quote }}
 {{- end }}
