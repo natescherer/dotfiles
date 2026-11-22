@@ -9,7 +9,7 @@
 # when its own content changes -- see the "runs unconditionally" note atop desktop-icons.ps1 itself.
 #
 # Depends on run_onchange_after_winget-configure.ps1.tmpl (installs the apps whose shortcuts this
-# cleans up) in 40-windows/ -- sorts before this script and so already ran earlier in this same
+# cleans up) in a 40 folder -- sorts before this script and so already ran earlier in this same
 # `chezmoi apply`.
 & (Join-Path $env:LOCALAPPDATA 'WindowsWorkstationDSC\desktop-icons.ps1')
 exit $LASTEXITCODE

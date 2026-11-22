@@ -4,7 +4,7 @@
 # to install them if so. Checking first via `mise ls --missing` keeps the common no-op case quiet
 # and fast instead of invoking a full `mise install` on every apply.
 #
-# Why is this in a folder called '00-all'? Directory order is what determines script
+# Why is this in a 00 folder? Directory order is what determines script
 # execution order, and 00 sorts before every other script folder, so mise-managed tools get
 # installed as early as possible for anything later in the apply run that wants them.
 #

@@ -4,7 +4,6 @@
 {{- if .isNixos }}
 # Ignore on NixOS, whose flake handles OS configuration and updates
 .local/share/ansible-configuration-chezmoi/**
-.chezmoiscripts/10-linux/ansible-configure.sh
 .config/mpm/**
 .config/systemd/**
 .local/libexec/**
@@ -20,6 +19,31 @@
 .config/mise/conf.d/devcontainer.toml
 {{- end }}
 
+{{- /* Script folders are named <order>-<platform>[-<scope>], as the README in the scripts folder
+explains, so these rules match folders rather than individual scripts */}}
+# Ignore scripts for other platforms
+{{- if ne .chezmoi.os "linux" }}
+.chezmoiscripts/*-linux*/**
+{{- end }}
+{{- if not .isUbuntuDesktop }}
+.chezmoiscripts/*-ubuntu*/**
+{{- end }}
+{{- if ne .chezmoi.os "darwin" }}
+.chezmoiscripts/*-macos*/**
+{{- end }}
+{{- if ne .chezmoi.os "windows" }}
+.chezmoiscripts/*-windows*/**
+{{- else }}
+.chezmoiscripts/*-posix*/**
+{{- end }}
+# Ignore scripts for scopes this machine doesn't have
+{{- if not .isGraphical }}
+.chezmoiscripts/*-graphical/**
+{{- end }}
+{{- if not (and .applyOSConfig .isGraphical) }}
+.chezmoiscripts/*-osconfig/**
+{{- end }}
+
 {{- if not .isGraphical }}
 # Ignore on headless machines (servers, devcontainers, and WSL)
 ## Desktop apps' config and data
@@ -30,9 +54,6 @@ Pictures/**
 .config/mpm/**
 .config/systemd/**
 .local/libexec/**
-## Scripts for desktop editors and the desktop setup checklist
-.chezmoiscripts/90-all/editor-profiles.py
-.chezmoiscripts/91-all/setup-checklist.py
 {{- end }}
 
 {{- if eq .chezmoi.os "linux" }}
@@ -40,17 +61,10 @@ Pictures/**
 ## macOS folders
 Library/**
 .config/swiftbar/**
-## macOS scripts
-.chezmoiscripts/30-macos/**
 ## Windows folders/files
 AppData/**
 Documents/**
 .wslconfig
-## Windows scripts
-.chezmoiscripts/40-windows/**
-.chezmoiscripts/41-windows/**
-.chezmoiscripts/42-windows/**
-.chezmoiscripts/00-all/mise-checker.ps1
 {{- end }}
 
 {{- if eq .chezmoi.os "darwin" }}
@@ -60,17 +74,10 @@ Documents/**
 .config/systemd/**
 .local/libexec/**
 .local/share/ansible-configuration-chezmoi/**
-## Linux scripts
-.chezmoiscripts/10-linux/**
 ## Windows folders/files
 AppData/**
 Documents/**
 .wslconfig
-## Windows scripts
-.chezmoiscripts/40-windows/**
-.chezmoiscripts/41-windows/**
-.chezmoiscripts/42-windows/**
-.chezmoiscripts/00-all/mise-checker.ps1
 {{- end }}
 
 {{- if eq .chezmoi.os "windows" }}
@@ -82,11 +89,6 @@ Documents/**
 .config/systemd/**
 .local/libexec/**
 .local/share/ansible-configuration-chezmoi/**
-## Linux/macOS scripts
-.chezmoiscripts/10-linux/**
-.chezmoiscripts/20-linux-and-macos/**
-.chezmoiscripts/30-macos/**
-.chezmoiscripts/00-all/mise-checker.sh
 ## macOS folders
 Library/**
 .config/swiftbar/**
@@ -104,7 +106,7 @@ Library/**
 git/gh/**
 ## Skip winget configuration tagged as personal
 AppData/Local/winget-configuration-chezmoi/*.{p,ep}.winget*
-.chezmoiscripts/40-windows/office-install.ps1
+.chezmoiscripts/40-windows-osconfig/office-install.ps1
 ## Skip ansible var files tagged as personal
 Library/Application Support/ansible-configuration-chezmoi/group_vars/all/*.p.yml*
 .local/share/ansible-configuration-chezmoi/group_vars/all/*.p.yml*
@@ -119,33 +121,14 @@ AppData/Local/winget-configuration-chezmoi/*.{e,ep}.winget*
 # Skip Windows PWAs: personal-only, and PWAsForFirefox is only installed by the winget
 # configuration, which needs admin rights. On macOS and Ubuntu, the playbooks install them.
 AppData/Local/WindowsWorkstationDSC/pwas.json
-.chezmoiscripts/41-windows/pwa-install.ps1
+.chezmoiscripts/41-windows-osconfig/pwa-install.ps1
 {{- end }}
 
 {{- if ne .computerModel "Late 2025 Gaming Desktop" }}
 AppData/Local/winget-configuration-chezmoi/*late2025gamingdesktop.*.winget*
 {{- end }}
 
-{{- if eq .applyOSConfig false }}
-{{- if eq .chezmoi.os "windows" }}
-.chezmoiscripts/40-windows/winget-configure.ps1
-.chezmoiscripts/40-windows/office-install.ps1
-.chezmoiscripts/42-windows/taskbar-pins.ps1
-.chezmoiscripts/42-windows/tray-pins.ps1
-.chezmoiscripts/42-windows/desktop-icons.ps1
-.chezmoiscripts/42-windows/pins-autostart.ps1
-{{- end }}
-{{- if eq .chezmoi.os "darwin" }}
-# Skip applying Ansible playbook
-.chezmoiscripts/30-macos/ansible-configure.sh
-# Skip installing macOS configuration profiles
-.chezmoiscripts/30-macos/profiles-importer.sh
-{{- end }}
-{{- if eq .chezmoi.os "linux" }}
-# Skip the Ansible playbook and applying it
+{{- if and (eq .chezmoi.os "linux") (not .applyOSConfig) }}
+# Skip the Ansible playbook, which applying OS configuration runs
 .local/share/ansible-configuration-chezmoi/**
-.chezmoiscripts/10-linux/ansible-configure.sh
-{{- end }}
-# Skip the setup checklist (its manual steps only apply once the rest of the OS config has run)
-.chezmoiscripts/91-all/setup-checklist.py
 {{- end }}

@@ -34,7 +34,7 @@ Currently managed:
     - [chezmoi/dot_config/claude/settings.json](chezmoi/dot_config/claude/settings.json)
 - [Clocker](https://abhishekbanthia.com/clocker/) 🍎
   - Notes
-    - Configuration is imported via script [chezmoi/.chezmoiscripts/30-macos/run_onchange_defaults-importer.sh.tmpl](chezmoi/.chezmoiscripts/30-macos/run_onchange_defaults-importer.sh.tmpl)
+    - Configuration is imported via script [chezmoi/.chezmoiscripts/31-macos/run_onchange_defaults-importer.sh.tmpl](chezmoi/.chezmoiscripts/31-macos/run_onchange_defaults-importer.sh.tmpl)
   - Config Files
     - [chezmoi/.scriptdata/macos-defaults/com.abhishek.Clocker.plist](chezmoi/.scriptdata/macos-defaults/com.abhishek.Clocker.plist)
       - Note this is a non-editable binary file, made via `defaults export com.abhishek.Clocker com.abhishek.Clocker.plist`
@@ -47,7 +47,7 @@ Currently managed:
     - [chezmoi/dot_config/zsh/dot_zshrc.tmpl](chezmoi/dot_config/zsh/dot_zshrc.tmpl)
 - [Ghostty](https://ghostty.org/) 🐧 🍎
   - Notes
-    - Notification permissions are pre-granted via a configuration profile, since macOS has no supported way to grant them silently. Installed via script [chezmoi/.chezmoiscripts/30-macos/run_onchange_profiles-importer.sh.tmpl](chezmoi/.chezmoiscripts/30-macos/run_onchange_profiles-importer.sh.tmpl)
+    - Notification permissions are pre-granted via a configuration profile, since macOS has no supported way to grant them silently. Installed via script [chezmoi/.chezmoiscripts/30-macos-osconfig/run_onchange_profiles-importer.sh.tmpl](chezmoi/.chezmoiscripts/30-macos-osconfig/run_onchange_profiles-importer.sh.tmpl)
   - Config Files
     - [chezmoi/dot_config/ghostty/config.tmpl](chezmoi/dot_config/ghostty/config.tmpl)
     - [chezmoi/.scriptdata/macos-profiles/notifications.mobileconfig](chezmoi/.scriptdata/macos-profiles/notifications.mobileconfig)
@@ -85,7 +85,7 @@ Currently managed:
 - [macOS](https://www.apple.com/macos/) 🍎
   - Config Files
     - [chezmoi/Library/Application Support/ansible-configuration-chezmoi](<chezmoi/Library/Application Support/ansible-configuration-chezmoi>)
-    - [chezmoi/.chezmoiscripts/30-macos/run_onchange_after_ansible-configure.sh.tmpl](chezmoi/.chezmoiscripts/30-macos/run_onchange_after_ansible-configure.sh.tmpl)
+    - [chezmoi/.chezmoiscripts/30-macos-osconfig/run_onchange_after_ansible-configure.sh.tmpl](chezmoi/.chezmoiscripts/30-macos-osconfig/run_onchange_after_ansible-configure.sh.tmpl)
 - [micro](https://micro-editor.github.io/) 🐧 🍎 🪟
   - Config Files
     - [chezmoi/dot_config/micro/settings.json](chezmoi/dot_config/micro/settings.json)
@@ -96,8 +96,8 @@ Currently managed:
 - [mpm](https://github.com/kdeldycke/meta-package-manager) 🐧 🍎 🪟
   - Notes
     - Upgrade CLI that wraps many package managers, limited by its config to Homebrew formulae and casks on macOS, Homebrew formulae on Linux, and winget on Windows. A LaunchAgent runs `mpm sync` and `mpm outdated` weekly (no privilege escalation; it refreshes package metadata but never installs anything) and posts a notification when updates are pending. Run `mpm sync && mpm outdated` to review them and `mpm upgrade` to install them.
-    - LaunchAgents are (re)loaded by [chezmoi/.chezmoiscripts/30-macos/run_onchange_after_launchagents-loader.sh.tmpl](chezmoi/.chezmoiscripts/30-macos/run_onchange_after_launchagents-loader.sh.tmpl) whenever their content changes, since launchd otherwise only picks them up at login.
-    - Notifications (on every check that finds pending updates or fails) are posted via [terminal-notifier](https://github.com/julienXX/terminal-notifier). Its notification permissions are pre-granted via a configuration profile, since macOS has no supported way to grant them silently. Installed via script [chezmoi/.chezmoiscripts/30-macos/run_onchange_profiles-importer.sh.tmpl](chezmoi/.chezmoiscripts/30-macos/run_onchange_profiles-importer.sh.tmpl)
+    - LaunchAgents are (re)loaded by [chezmoi/.chezmoiscripts/31-macos/run_onchange_after_launchagents-loader.sh.tmpl](chezmoi/.chezmoiscripts/31-macos/run_onchange_after_launchagents-loader.sh.tmpl) whenever their content changes, since launchd otherwise only picks them up at login.
+    - Notifications (on every check that finds pending updates or fails) are posted via [terminal-notifier](https://github.com/julienXX/terminal-notifier). Its notification permissions are pre-granted via a configuration profile, since macOS has no supported way to grant them silently. Installed via script [chezmoi/.chezmoiscripts/30-macos-osconfig/run_onchange_profiles-importer.sh.tmpl](chezmoi/.chezmoiscripts/30-macos-osconfig/run_onchange_profiles-importer.sh.tmpl)
     - On Windows, mpm isn't in the winget catalog, so its standalone release binary is downloaded to `~/bin`. A Scheduled Task registered by the Winget Configuration runs the same check and posts a BurntToast notification.
     - On Ubuntu, a systemd user timer enabled by the Ansible playbook runs the same check and posts a `notify-send` notification.
   - Config Files
@@ -144,7 +144,7 @@ Currently managed:
   - Config Files
     - [chezmoi/.chezmoidata/pwas.toml](chezmoi/.chezmoidata/pwas.toml)
     - [chezmoi/AppData/Local/WindowsWorkstationDSC/pwa-install.ps1](chezmoi/AppData/Local/WindowsWorkstationDSC/pwa-install.ps1)
-      - Standalone Windows installer, run by [chezmoi/.chezmoiscripts/41-windows/run_onchange_after_pwa-install.ps1.tmpl](chezmoi/.chezmoiscripts/41-windows/run_onchange_after_pwa-install.ps1.tmpl)
+      - Standalone Windows installer, run by [chezmoi/.chezmoiscripts/41-windows-osconfig/run_onchange_after_pwa-install.ps1.tmpl](chezmoi/.chezmoiscripts/41-windows-osconfig/run_onchange_after_pwa-install.ps1.tmpl)
     - [chezmoi/.chezmoitemplates/pwa-install.sh](chezmoi/.chezmoitemplates/pwa-install.sh)
       - macOS and Ubuntu installer, run by the `pwas` role of each Ansible playbook before its Dock pins
 - [Sheldon](https://github.com/rossmacarthur/sheldon) 🐧 🍎
@@ -168,7 +168,7 @@ Currently managed:
     - Ubuntu 26.04 Desktop only; other distros and WSL get dotfiles alone
   - Config Files
     - [chezmoi/dot_local/share/ansible-configuration-chezmoi](chezmoi/dot_local/share/ansible-configuration-chezmoi)
-    - [chezmoi/.chezmoiscripts/10-linux/run_onchange_after_ansible-configure.sh.tmpl](chezmoi/.chezmoiscripts/10-linux/run_onchange_after_ansible-configure.sh.tmpl)
+    - [chezmoi/.chezmoiscripts/10-ubuntu-osconfig/run_onchange_after_ansible-configure.sh.tmpl](chezmoi/.chezmoiscripts/10-ubuntu-osconfig/run_onchange_after_ansible-configure.sh.tmpl)
 - [VSCodium](https://vscodium.com/) 🐧 🍎 🪟
   - Notes
     - Configured as a single, lightweight general-purpose profile; Visual Studio Code below covers the language-specific IDE profiles, since VSCodium's default Open VSX registry doesn't carry Microsoft's own extensions (Pylance, the Kubernetes tools, etc.)
@@ -178,7 +178,7 @@ Currently managed:
       - Defines data used to provision profiles (the `[vscodium]` table)
     - [chezmoi/.chezmoitemplates/editors](chezmoi/.chezmoitemplates/editors)
       - Each file in this directory defines the settings for a profile
-    - [chezmoi/.chezmoiscripts/90-all/run_onchange_after_editor-profiles.py.tmpl](chezmoi/.chezmoiscripts/90-all/run_onchange_after_editor-profiles.py.tmpl)
+    - [chezmoi/.chezmoiscripts/90-all-graphical/run_onchange_after_editor-profiles.py.tmpl](chezmoi/.chezmoiscripts/90-all-graphical/run_onchange_after_editor-profiles.py.tmpl)
       - Performs profile provisioning and updating for both editors
 - [Visual Studio Code](https://code.visualstudio.com/) 🐧 🍎 🪟
   - Notes
@@ -189,7 +189,7 @@ Currently managed:
       - Defines data used to provision profiles (the `[vscode]` table)
     - [chezmoi/.chezmoitemplates/editors](chezmoi/.chezmoitemplates/editors)
       - Each file in this directory defines the settings for a profile
-    - [chezmoi/.chezmoiscripts/90-all/run_onchange_after_editor-profiles.py.tmpl](chezmoi/.chezmoiscripts/90-all/run_onchange_after_editor-profiles.py.tmpl)
+    - [chezmoi/.chezmoiscripts/90-all-graphical/run_onchange_after_editor-profiles.py.tmpl](chezmoi/.chezmoiscripts/90-all-graphical/run_onchange_after_editor-profiles.py.tmpl)
       - Performs profile provisioning and updating for both editors
 - [VMware Workstation](https://www.vmware.com/products/workstation-pro.html) 🪟
   - Notes
