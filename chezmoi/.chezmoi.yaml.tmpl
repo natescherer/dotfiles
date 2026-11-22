@@ -25,6 +25,26 @@
 {{- end }}
 {{- end }}
 
+{{- /* Machines this repo has OS configuration for. Only these are asked the OS configuration
+prompts, since nothing else reads their answers. */}}
+{{- $hasOSConfig := or (eq .chezmoi.os "windows") (eq .chezmoi.os "darwin") $isUbuntuDesktop }}
+
+{{- /* Whether this machine looks like a VM, the default for the isVM prompt. Checked only where
+that prompt is asked. Windows' own HypervisorPresent flag is true on physical machines that run
+virtualization-based security, so the check reads the manufacturer and model instead. */}}
+{{- $looksLikeVM := false }}
+{{- if $hasOSConfig }}
+{{- if eq .chezmoi.os "windows" }}
+{{- $looksLikeVM = output "powershell.exe" "-NoProfile" "-NonInteractive" "-Command" "$c = Get-CimInstance Win32_ComputerSystem; \"$($c.Manufacturer) $($c.Model)\"" | regexMatch "(?i)vmware|virtual|qemu|kvm|xen|parallels" }}
+{{- else if eq .chezmoi.os "darwin" }}
+{{- $looksLikeVM = eq (output "sh" "-c" "sysctl -n kern.hv_vmm_present 2>/dev/null || true" | trim) "1" }}
+{{- else }}
+{{- /* systemd-detect-virt prints "none" and exits non-zero on bare metal, which would fail output */}}
+{{- $virt := output "sh" "-c" "systemd-detect-virt --vm 2>/dev/null || true" | trim }}
+{{- $looksLikeVM = not (has $virt (list "" "none")) }}
+{{- end }}
+{{- end }}
+
 {{- /* NixOS is configured by its flake, which has already run by the time chezmoi does */}}
 {{- $isNixos := false }}
 {{- if eq .chezmoi.os "linux" }}
@@ -48,31 +68,27 @@
 
 {{- $isPersonal := promptBoolOnce . "isPersonal" "Is this a a personal computer? (Enter for default)" true }}
 
-{{- $adminRightsPrompt := "Does your regular user account have admin rights on this machine?" }}
-{{- if eq .chezmoi.os "linux" }}
-{{- $adminRightsPrompt = "Does your regular user account have sudo rights on this machine?" }}
-{{- end }}
-{{- $adminRights := promptBoolOnce . "adminRights" $adminRightsPrompt false }}
-
-{{- /* Asked only where this repo has OS configuration to apply. NixOS's flake has already applied
-its own, and other machines have none. */}}
+{{- /* OS configuration prompts. NixOS's flake has already applied its own OS configuration, and
+other machines have none. */}}
+{{- $adminRights := false }}
 {{- $applyOSConfig := $isNixos }}
-{{- $applyOSConfigPrompt := "" }}
-{{- if eq .chezmoi.os "windows" }}
-{{- $applyOSConfigPrompt = "Apply WinGet Configuration files to declaratively configure this Windows machine? (Enter for default)" }}
-{{- else if eq .chezmoi.os "darwin" }}
+{{- $isVM := false }}
+{{- if $hasOSConfig }}
+{{- $adminRightsPrompt := "Does your regular user account have admin rights on this machine? (Enter for default)" }}
+{{- $applyOSConfigPrompt := "Apply WinGet Configuration files to declaratively configure this Windows machine? (Enter for default)" }}
+{{- if eq .chezmoi.os "darwin" }}
 {{- $applyOSConfigPrompt = "Apply Ansible playbook to declaratively configure this Mac? (Enter for default)" }}
-{{- else if $isUbuntuDesktop }}
+{{- else if eq .chezmoi.os "linux" }}
+{{- $adminRightsPrompt = "Does your regular user account have sudo rights on this machine? (Enter for default)" }}
 {{- $applyOSConfigPrompt = "Apply Ansible playbook to declaratively configure this Ubuntu desktop? (Enter for default)" }}
 {{- end }}
-{{- if $applyOSConfigPrompt }}
+{{- $adminRights = promptBoolOnce . "adminRights" $adminRightsPrompt false }}
 {{- $applyOSConfig = promptBoolOnce . "applyOSConfig" $applyOSConfigPrompt false }}
+{{- $isVM = promptBoolOnce . "isVM" "Is this a VM? (Enter for default)" $looksLikeVM }}
 {{- end }}
 
-{{- $isVM := promptBoolOnce . "isVM" "Is this a VM? (Enter for default)" false }}
-
 {{- $computerModel := "None" }}
-{{- if and (eq .chezmoi.os "windows") $isPersonal }}
+{{- if eq .chezmoi.os "windows" }}
 {{- $computerModel = promptChoiceOnce . "computerModel" "What model is this computer? (Enter for default)" (list "Late 2025 Gaming Desktop" "None") "None" }}
 {{- end }}
 
