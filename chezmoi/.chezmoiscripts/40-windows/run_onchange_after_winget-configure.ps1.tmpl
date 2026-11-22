@@ -13,9 +13,10 @@
 # {{ $wingetConfigFiles := concat (joinPath $wingetConfigSourceDir "*.winget" | glob) (joinPath $wingetConfigSourceDir "*.winget.tmpl" | glob) | sortAlpha }}
 # {{ if not $wingetConfigFiles }}{{ fail (print "no *.winget files found in " $wingetConfigSourceDir) }}{{ end }}
 
-# {{/* Hashes below make this run_onchange_ script rerun when any *.winget[.tmpl] file
-#      changes. Squeezed onto one line so "#" it all out to avoid pwsh parser errors */}}
-# {{ "\n" }}{{ range $wingetConfigFiles }}## {{ base . }} hash: {{ include . | sha256sum }}{{ "\n" }}{{ end -}}
+# {{/* Hashes below make this run_onchange_ script rerun when any *.winget file changes.
+#      Templates are hashed as rendered, so data-only changes (e.g. .chezmoidata) count too.
+#      Squeezed onto one line so "#" it all out to avoid pwsh parser errors */}}
+# {{ "\n" }}{{ range $wingetConfigFiles }}## {{ base . }} hash: {{ if hasSuffix ".tmpl" . }}{{ includeTemplate . $ | sha256sum }}{{ else }}{{ include . | sha256sum }}{{ end }}{{ "\n" }}{{ end -}}
 
 # winget writes UTF-8 to stdout, including the shield glyph that marks elevated resources in
 # `configure show` output (see Test-ConfigFileRequiresElevation below). Without this the
@@ -64,8 +65,8 @@ for ($i = 0; $i -lt $BannerLines.Count; $i++) {
 $ConfigDir = Join-Path $env:LOCALAPPDATA "{{ $wingetConfigDirName }}"
 New-Item -ItemType Directory -Path $ConfigDir -Force | Out-Null
 
-# Discovered at runtime from the target dir -- the template block above hashes the *source*
-# copies only to trigger reruns.
+# Discovered at runtime from the target dir; the template block above hashes the files only to
+# trigger reruns.
 $ConfigFiles = (Get-ChildItem -Path $ConfigDir -Filter "*.winget" -File | Sort-Object Name).Name
 
 # Everything this script writes (logs, applied hashes, the worker queue) lives here, outside
