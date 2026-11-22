@@ -1,16 +1,13 @@
-# COPIER-ME
-{{- $gitEmail := promptStringOnce . "gitEmail" "What email do you want to use for Git on this machine? (Enter for default)" "376408+natescherer@users.noreply.github.com" }}
+{{- /* #region Fixed values: the same on every machine */ -}}
 
 # COPIER-ME
 {{- $editor := "micro" }}
+# COPIER-ME
+{{- $gitName := "Nate Scherer" }}
 
-{{- $isPersonal := promptBoolOnce . "isPersonal" "Is this a a personal computer? (Enter for default)" true }}
+{{- /* #endregion */}}
 
-{{- $adminRightsPrompt := "Does your regular user account have admin rights on this machine?" }}
-{{- if eq .chezmoi.os "linux" }}
-{{- $adminRightsPrompt = "Does your regular user account have sudo rights on this machine?" }}
-{{- end }}
-{{- $adminRights := promptBoolOnce . "adminRights" $adminRightsPrompt false }}
+{{- /* #region Detected values: read from the machine, with no prompts */}}
 
 {{- /* Containers on Docker Desktop for Windows run on WSL's kernel too, so they also match */}}
 {{- $isWsl := false }}
@@ -39,6 +36,24 @@
 {{- /* init-devcontainer.sh sets CHEZMOI_DEVCONTAINER; the stored value keeps a later bare `chezmoi init` from clearing it */}}
 {{- $isDevcontainer := or (eq (env "CHEZMOI_DEVCONTAINER") "1") (and (hasKey . "isDevcontainer") .isDevcontainer) }}
 
+{{- /* #endregion */}}
+
+{{- /* #region Prompts: every question `chezmoi init` asks, each with the value used when it isn't asked */}}
+
+# COPIER-ME
+{{- $gitEmail := promptStringOnce . "gitEmail" "What email do you want to use for Git on this machine? (Enter for default)" "376408+natescherer@users.noreply.github.com" }}
+
+{{- $isPersonal := promptBoolOnce . "isPersonal" "Is this a a personal computer? (Enter for default)" true }}
+
+{{- $adminRightsPrompt := "Does your regular user account have admin rights on this machine?" }}
+{{- if eq .chezmoi.os "linux" }}
+{{- $adminRightsPrompt = "Does your regular user account have sudo rights on this machine?" }}
+{{- end }}
+{{- $adminRights := promptBoolOnce . "adminRights" $adminRightsPrompt false }}
+
+{{- /* Asked only where this repo has OS configuration to apply. NixOS's flake has already applied
+its own, and other machines have none. */}}
+{{- $applyOSConfig := $isNixos }}
 {{- $applyOSConfigPrompt := "" }}
 {{- if eq .chezmoi.os "windows" }}
 {{- $applyOSConfigPrompt = "Apply WinGet Configuration files to declaratively configure this Windows machine? (Enter for default)" }}
@@ -47,12 +62,8 @@
 {{- else if $isUbuntuDesktop }}
 {{- $applyOSConfigPrompt = "Apply Ansible playbook to declaratively configure this Ubuntu desktop? (Enter for default)" }}
 {{- end }}
-
-{{- $applyOSConfig := false }}
-{{- if or (eq .chezmoi.os "windows") (eq .chezmoi.os "darwin") $isUbuntuDesktop }}
+{{- if $applyOSConfigPrompt }}
 {{- $applyOSConfig = promptBoolOnce . "applyOSConfig" $applyOSConfigPrompt false }}
-{{- else if $isNixos }}
-{{- $applyOSConfig = true }}
 {{- end }}
 
 {{- $isVM := promptBoolOnce . "isVM" "Is this a VM? (Enter for default)" false }}
@@ -61,6 +72,10 @@
 {{- if and (eq .chezmoi.os "windows") $isPersonal }}
 {{- $computerModel = promptChoiceOnce . "computerModel" "What model is this computer? (Enter for default)" (list "Late 2025 Gaming Desktop" "None") "None" }}
 {{- end }}
+
+{{- /* #endregion */}}
+
+{{- /* #region Config: the chezmoi config file this template renders */}}
 
 {{- if $isDevcontainer }}
 # init-devcontainer.sh applies the dotfiles from VS Code's clone of this
@@ -73,8 +88,7 @@ cd:
 {{- end }}
 data:
     editor: {{ $editor }}
-    # COPIER-ME
-    gitName: Nate Scherer
+    gitName: {{ $gitName }}
     gitEmail: {{ $gitEmail }}
     applyOSConfig: {{ $applyOSConfig }}
     isPersonal: {{ $isPersonal }}
@@ -105,3 +119,5 @@ interpreters:
         - --
         - uv
         - run
+
+{{- /* #endregion */}}

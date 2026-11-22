@@ -24,6 +24,15 @@
     "files.trimFinalNewlines": false // Windows Terminal is brittle about settings format
   },
   "git.branchProtection": [],
+  "maptz.regionfolder": {
+    // Go template comments, which render to nothing, unlike the YAML comments [yaml] uses
+    "[yaml-gotmpl]": {
+      "foldStart": "{{- /* #region [NAME] */}}",
+      "foldStartRegex": "\\{\\{-?\\s*/\\*\\s*#region\\s*(.*?)\\s*\\*/",
+      "foldEnd": "{{- /* #endregion */}}",
+      "foldEndRegex": "\\{\\{-?\\s*/\\*\\s*#endregion"
+    }
+  },
   "python.analysis.ignore": [
     "**/*.py.tmpl"
   ],
