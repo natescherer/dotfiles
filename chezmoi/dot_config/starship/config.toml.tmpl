@@ -72,12 +72,12 @@ symbol = " "
 style = "bg:section6 fg:black"
 format = "[ $symbol$version 󰓾 $tfm ]($style)"
 
-# Shown only over SSH, which sets SSH_CONNECTION. The OS module's leading space separates the
-# two icons.
+# Shown only over SSH, which sets SSH_CONNECTION. Its trailing space and the OS module's leading
+# space both separate the two icons, since a wide icon covers the space after it.
 [env_var.SSH_CONNECTION]
 symbol = "󰌘"
 style = "bg:section1 fg:black"
-format = "[ $symbol]($style)"
+format = "[ $symbol ]($style)"
 
 [git_branch]
 symbol = " "
@@ -152,7 +152,8 @@ format = "[ $symbol$version ]($style)"
 [os]
 disabled = false
 style = "bg:section1 fg:black"
-format = "[ $symbol]($style)"
+# The extra space keeps the wide OS icon from touching the hostname
+format = "[ $symbol ]($style)"
 
 [os.symbols]
 Alpine = " "
