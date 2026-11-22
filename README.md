@@ -178,7 +178,7 @@ Currently managed:
       - Defines data used to provision profiles (the `[vscodium]` table)
     - [chezmoi/.chezmoitemplates/editors](chezmoi/.chezmoitemplates/editors)
       - Each file in this directory defines the settings for a profile
-    - [chezmoi/.chezmoiscripts/90-all-graphical/run_onchange_after_editor-profiles.py.tmpl](chezmoi/.chezmoiscripts/90-all-graphical/run_onchange_after_editor-profiles.py.tmpl)
+    - [chezmoi/.chezmoiscripts/90-all-workstation/run_onchange_after_editor-profiles.py.tmpl](chezmoi/.chezmoiscripts/90-all-workstation/run_onchange_after_editor-profiles.py.tmpl)
       - Performs profile provisioning and updating for both editors
 - [Visual Studio Code](https://code.visualstudio.com/) 🐧 🍎 🪟
   - Notes
@@ -189,7 +189,7 @@ Currently managed:
       - Defines data used to provision profiles (the `[vscode]` table)
     - [chezmoi/.chezmoitemplates/editors](chezmoi/.chezmoitemplates/editors)
       - Each file in this directory defines the settings for a profile
-    - [chezmoi/.chezmoiscripts/90-all-graphical/run_onchange_after_editor-profiles.py.tmpl](chezmoi/.chezmoiscripts/90-all-graphical/run_onchange_after_editor-profiles.py.tmpl)
+    - [chezmoi/.chezmoiscripts/90-all-workstation/run_onchange_after_editor-profiles.py.tmpl](chezmoi/.chezmoiscripts/90-all-workstation/run_onchange_after_editor-profiles.py.tmpl)
       - Performs profile provisioning and updating for both editors
 - [VMware Workstation](https://www.vmware.com/products/workstation-pro.html) 🪟
   - Notes

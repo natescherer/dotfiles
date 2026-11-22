@@ -56,7 +56,7 @@ virtualization-based security, so the check reads the manufacturer and model ins
 {{- /* init-devcontainer.sh sets CHEZMOI_DEVCONTAINER; the stored value keeps a later bare `chezmoi init` from clearing it */}}
 {{- $isDevcontainer := or (eq (env "CHEZMOI_DEVCONTAINER") "1") (and (hasKey . "isDevcontainer") .isDevcontainer) }}
 
-{{- /* Whether a desktop shell is present, the default for the isGraphical prompt */}}
+{{- /* Whether a desktop shell is present, the default for the isWorkstation prompt */}}
 {{- $hasDesktop := ne (or (lookPath "gnome-shell") (lookPath "plasmashell") (env "XDG_CURRENT_DESKTOP")) "" }}
 
 {{- /* #endregion */}}
@@ -92,12 +92,12 @@ other machines have none. */}}
 {{- $computerModel = promptChoiceOnce . "computerModel" "What model is this computer? (Enter for default)" (list "Late 2025 Gaming Desktop" "None") "None" }}
 {{- end }}
 
-{{- /* Whether this machine has a graphical desktop. False marks it headless (a server,
-devcontainer, or WSL), which skips config for desktop apps, fonts, and keyrings. Windows,
-macOS, and Ubuntu desktops are always graphical; other Linux machines are asked. */}}
-{{- $isGraphical := not (or $isDevcontainer $isWsl) }}
-{{- if and (eq .chezmoi.os "linux") (not $isUbuntuDesktop) $isGraphical }}
-{{- $isGraphical = promptBoolOnce . "isGraphical" "Does this machine have a graphical desktop? (Enter for default)" $hasDesktop }}
+{{- /* Whether this is a machine you work at directly. Only workstations get desktop app config,
+fonts, keyrings, and the global mise tools; servers, devcontainers, and WSL don't. Windows,
+macOS, and Ubuntu desktops are always workstations; other Linux machines are asked. */}}
+{{- $isWorkstation := not (or $isDevcontainer $isWsl) }}
+{{- if and (eq .chezmoi.os "linux") (not $isUbuntuDesktop) $isWorkstation }}
+{{- $isWorkstation = promptBoolOnce . "isWorkstation" "Is this a workstation, a desktop or laptop you work at directly? (Enter for default)" $hasDesktop }}
 {{- end }}
 
 {{- /* #endregion */}}
@@ -122,7 +122,7 @@ data:
     adminRights: {{ $adminRights }}
     isVM: {{ $isVM }}
     isDevcontainer: {{ $isDevcontainer }}
-    isGraphical: {{ $isGraphical }}
+    isWorkstation: {{ $isWorkstation }}
     isNixos: {{ $isNixos }}
     isUbuntuDesktop: {{ $isUbuntuDesktop }}
     isWsl: {{ $isWsl }}
