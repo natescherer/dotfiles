@@ -9,6 +9,30 @@
 - Always pass `--use-builtin-diff` when running `chezmoi diff`. The user might
   use an interactive, GUI diff tool like Visual Studio Code.
 
+## Machine classes
+
+`chezmoi/.chezmoi.yaml.tmpl` classifies each machine, and templates read the
+result as data. Use these values instead of checking the OS release again:
+
+- `isWorkstation`: a machine you work at directly. Windows, macOS, and Ubuntu
+  26.04 desktops always are; servers, WSL, and devcontainers never are; other
+  Linux machines are asked. Put anything useful only where you work behind it:
+  desktop app config, fonts, keyrings and credential helpers, the global mise
+  tools, and scripts for desktop editors.
+- `applyOSConfig`, `adminRights`, and `isVM`: asked only on machines this repo
+  has OS configuration for (Windows, macOS, and Ubuntu 26.04 desktops), since
+  nothing else reads them.
+- `isNixos`, `isUbuntuDesktop`, `isWsl`, and `isDevcontainer`: detected, never
+  asked.
+
+Keep the set of questions stable. Ask a question only for a fact that can't be
+detected and that a template reads, and make whether it's asked depend only on
+detected values, not on other answers. Where a value can be detected, use it as
+the prompt's default.
+
+Script folders follow a naming scheme that the ignore template relies on; see
+the README in `chezmoi/.chezmoiscripts/`.
+
 ## Choosing a package manager
 
 Use mise only for development environments that might need different versions

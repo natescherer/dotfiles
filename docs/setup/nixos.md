@@ -40,7 +40,8 @@ eval "$(mise env -s zsh)"
 chezmoi init --apply natescherer
 ```
 
-Answer yes when asked whether your account has sudo rights.
+Answer yes when asked whether the machine is a workstation; on Plasma, that's
+the default.
 
 ## Updates
 
