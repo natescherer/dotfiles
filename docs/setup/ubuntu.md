@@ -1,7 +1,7 @@
 # Ubuntu Setup
 
-Ubuntu 26.04 Desktop only; for other distros and WSL, see
-[Other Linux Distros](linux.md).
+Ubuntu 26.04 Desktop only; for servers, WSL, and other distros, see
+[Linux Servers and WSL](linux.md).
 
 ## Preflight
 

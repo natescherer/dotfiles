@@ -216,5 +216,5 @@ Currently managed:
 - [macOS](docs/setup/macos.md) 🍎
 - [NixOS](docs/setup/nixos.md) 🐧
 - [Ubuntu](docs/setup/ubuntu.md) 🐧
-- [Other Linux Distros](docs/setup/linux.md) 🐧
+- [Linux Servers and WSL](docs/setup/linux.md) 🐧
 - [Windows](docs/setup/windows.md) 🪟

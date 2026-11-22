@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+# Where mise provides these tools, the mise checker installed them earlier in this apply, after
+# chezmoi's own PATH was set, so look in mise's shims too
+PATH="$PATH:$HOME/.local/share/mise/shims"
+
 dependencies=("starship" "fzf" "sheldon" "mise" "delta")
 
 for dep in "${dependencies[@]}"; do

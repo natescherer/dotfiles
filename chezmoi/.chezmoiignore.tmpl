@@ -12,9 +12,11 @@
 {{- if .isDevcontainer }}
 # Ignore in devcontainers, which the project's devcontainer.json provisions
 .chezmoiscripts/**
-{{- else }}
-# Ignore outside devcontainers, which install these tools another way
-.config/mise/conf.d/devcontainer.toml
+{{- end }}
+
+{{- if or .isWorkstation .isNixos }}
+# Ignore where OS package lists provide the dotfiles' tools: workstations and NixOS
+.config/mise/conf.d/dotfiles-tools.toml
 {{- end }}
 
 {{- /* Script folders are named <order>-<platform>[-<scope>], as the README in the scripts folder

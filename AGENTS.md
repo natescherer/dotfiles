@@ -20,8 +20,10 @@ in sync:
 - Windows: the winget configuration
 - macOS and Ubuntu: their separate Ansible Homebrew lists
 - NixOS: the Nix package lists
-- Devcontainers: the devcontainer-only mise config, since mise is the one
-  package manager every devcontainer has
+- Servers, WSL, and devcontainers: the mise config for the dotfiles' own tools,
+  since mise is the one package manager all of them can rely on. NixOS servers
+  are the exception: their flake provides these tools, since mise's generic
+  Linux binaries don't run on NixOS.
 
 ## Renovate `schedule` cron syntax is not standard cron
 

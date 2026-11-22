@@ -4,8 +4,8 @@
 # docs/setup/devcontainer.md). It installs chezmoi and the tools the dotfiles
 # need with mise, then applies the dotfiles with chezmoi. isDevcontainer
 # (see .chezmoi.yaml.tmpl and .chezmoiignore.tmpl) skips the run_ scripts,
-# which provision a host, and the host's global mise tools, so the container
-# gets only these tools and the project's.
+# which provision a host. A devcontainer isn't a workstation, so it skips the
+# global mise tools too and gets only these tools and the project's.
 #
 # VS Code can open terminals before this finishes. Their zsh reads a
 # placeholder ~/.zshenv, which this script writes before installing anything.
@@ -55,7 +55,7 @@ fi
 # Stages the tool list that chezmoi manages later, since mise has to install
 # chezmoi before chezmoi can apply anything
 mkdir -p "$HOME/.config/mise/conf.d"
-cp "$repo/chezmoi/dot_config/mise/conf.d/devcontainer.toml" "$HOME/.config/mise/conf.d/"
+cp "$repo/chezmoi/dot_config/mise/conf.d/dotfiles-tools.toml" "$HOME/.config/mise/conf.d/"
 
 # Runs mise from $HOME, so it reads only the global config, not a project's
 cd "$HOME"

@@ -26,13 +26,13 @@ set:
 When VS Code creates a devcontainer, the Dev Containers extension clones this
 repo to `~/dotfiles` and runs
 [init-devcontainer.sh](../../init-devcontainer.sh). The script copies
-[devcontainer.toml](../../chezmoi/dot_config/mise/conf.d/devcontainer.toml)
+[dotfiles-tools.toml](../../chezmoi/dot_config/mise/conf.d/dotfiles-tools.toml)
 to `~/.config/mise/conf.d/` and runs `mise install`, which installs chezmoi,
 Delta, fzf, Sheldon and Starship. It then runs `chezmoi init --apply` with
 `CHEZMOI_DEVCONTAINER=1`. That sets chezmoi's `isDevcontainer`, which skips
-the `run_` scripts and `~/.config/mise/conf.d/tools.toml`, and adds mise's
-shims directory to `PATH` in `~/.zshenv`, since `.zshrc` runs Sheldon before
-it activates mise.
+the `run_` scripts. A devcontainer isn't a workstation, so it also skips
+`~/.config/mise/conf.d/tools.toml`, and `~/.zshenv` adds mise's shims
+directory to `PATH`, since `.zshrc` runs Sheldon before it activates mise.
 
 ## Knowing When Setup Has Finished
 
