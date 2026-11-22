@@ -17,6 +17,13 @@
 .local/libexec/**
 {{- end }}
 
+{{- if .isDevcontainer }}
+# Ignore in devcontainers, which the project's devcontainer.json provisions
+.chezmoiscripts/**
+## Global mise tools: the container only gets the project's mise.toml tools
+.config/mise/conf.d/tools.toml
+{{- end }}
+
 {{- if eq .chezmoi.os "linux" }}
 # Ignore on Linux
 ## macOS folders

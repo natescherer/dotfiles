@@ -1,9 +1,6 @@
 ## WARNING: This file is chezmoi-managed and should not be manually edited!
 
-[tools]
-go = "1.27.2"
-python = "3.14.7"
-uv = "0.12.13"
+# Global tools live in conf.d/tools.toml
 
 [settings]
 activate_shims = false
