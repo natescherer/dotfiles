@@ -50,6 +50,7 @@
                 "github.vscode-github-actions",
                 "hverlin.mise-vscode",
                 "igorkramar.gotmpl-yaml-highlighter",
+                "jimeh.actionlint",
                 "jnoortheen.nix-ide",
                 "ms-python.debugpy",
                 "ms-python.python",
