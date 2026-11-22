@@ -16,7 +16,9 @@
 [user]
     name = {{ .gitName }}
     email = {{ .gitEmail }}
-{{- if or (eq .chezmoi.os "darwin") (eq .chezmoi.os "linux") }}
+{{- /* Workstations only: other machines have no keyring for GCM, and an empty helper would clear
+the helpers they do have, such as the one VS Code sets up in devcontainers */}}
+{{- if and (or (eq .chezmoi.os "darwin") (eq .chezmoi.os "linux")) .isWorkstation }}
 [credential]
 {{- if eq .chezmoi.os "linux" }}
     credentialStore = secretservice
