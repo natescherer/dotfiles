@@ -1,14 +1,7 @@
 # Ignore files that are processed by scripts
 .scriptdata/**
 
-{{- $isNixos := false }}
-{{- if eq .chezmoi.os "linux" }}
-{{- if eq (.chezmoi.osRelease.id | default "") "nixos" }}
-{{- $isNixos = true }}
-{{- end }}
-{{- end }}
-
-{{- if $isNixos }}
+{{- if .isNixos }}
 # Ignore on NixOS, whose flake handles OS configuration and updates
 .local/share/ansible-configuration-chezmoi/**
 .chezmoiscripts/10-linux/ansible-configure.sh

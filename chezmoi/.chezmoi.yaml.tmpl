@@ -12,10 +12,18 @@
 {{- end }}
 {{- $adminRights := promptBoolOnce . "adminRights" $adminRightsPrompt false }}
 
+{{- /* Containers on Docker Desktop for Windows run on WSL's kernel too, so they also match */}}
+{{- $isWsl := false }}
+{{- if eq .chezmoi.os "linux" }}
+{{- if .chezmoi.kernel.osrelease | default "" | lower | contains "microsoft" }}
+{{- $isWsl = true }}
+{{- end }}
+{{- end }}
+
 {{- /* The Linux playbook targets Ubuntu 26.04 Desktop only: not WSL, servers, or other distros */}}
 {{- $isUbuntuDesktop := false }}
 {{- if eq .chezmoi.os "linux" }}
-{{- if and (eq (.chezmoi.osRelease.id | default "") "ubuntu") (eq (.chezmoi.osRelease.versionID | default "") "26.04") (not (.chezmoi.kernel.osrelease | default "" | lower | contains "microsoft")) (lookPath "gnome-shell") }}
+{{- if and (eq (.chezmoi.osRelease.id | default "") "ubuntu") (eq (.chezmoi.osRelease.versionID | default "") "26.04") (not $isWsl) (lookPath "gnome-shell") }}
 {{- $isUbuntuDesktop = true }}
 {{- end }}
 {{- end }}
@@ -73,6 +81,9 @@ data:
     adminRights: {{ $adminRights }}
     isVM: {{ $isVM }}
     isDevcontainer: {{ $isDevcontainer }}
+    isNixos: {{ $isNixos }}
+    isUbuntuDesktop: {{ $isUbuntuDesktop }}
+    isWsl: {{ $isWsl }}
     computerModel: {{ $computerModel | quote }}
 diff:
     pager: "delta"

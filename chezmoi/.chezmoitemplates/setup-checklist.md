@@ -1,11 +1,6 @@
 {{- $os := .chezmoi.os -}}
 {{- $sep := "/" }}{{ if eq $os "windows" }}{{ $sep = "\\" }}{{ end -}}
-{{- $isNixos := false -}}
-{{- if eq $os "linux" -}}
-{{- if eq (.chezmoi.osRelease.id | default "") "nixos" -}}
-{{- $isNixos = true -}}
-{{- end -}}
-{{- end -}}
+{{- $isNixos := .isNixos -}}
 # {{ if $isNixos }}NixOS{{ else }}{{ get (dict "darwin" "macOS" "linux" "Ubuntu" "windows" "Windows") $os }}{{ end }} Setup Checklist
 
 Manual steps that {{ if eq $os "windows" }}WinGet Configuration{{ else if $isNixos }}the Nix flake{{ else }}the Ansible playbook{{ end }} can't handle by itself. Check items off as you go; this
