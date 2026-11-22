@@ -92,6 +92,7 @@ Currently managed:
 - [mise](https://mise.jdx.dev) 🐧 🍎 🪟
   - Config Files
     - [chezmoi/dot_config/mise/config.toml](chezmoi/dot_config/mise/config.toml)
+    - [chezmoi/dot_config/mise/conf.d/tools.toml](chezmoi/dot_config/mise/conf.d/tools.toml)
 - [mpm](https://github.com/kdeldycke/meta-package-manager) 🐧 🍎 🪟
   - Notes
     - Upgrade CLI that wraps many package managers, limited by its config to Homebrew formulae and casks on macOS, Homebrew formulae on Linux, and winget on Windows. A LaunchAgent runs `mpm sync` and `mpm outdated` weekly (no privilege escalation; it refreshes package metadata but never installs anything) and posts a notification when updates are pending. Run `mpm sync && mpm outdated` to review them and `mpm upgrade` to install them.
@@ -211,6 +212,7 @@ Currently managed:
 
 ## Loading this Config
 
+- [Devcontainers](docs/setup/devcontainer.md) 🐧
 - [macOS](docs/setup/macos.md) 🍎
 - [NixOS](docs/setup/nixos.md) 🐧
 - [Ubuntu](docs/setup/ubuntu.md) 🐧

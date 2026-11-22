@@ -19,6 +19,8 @@
     "diffEditor.experimental.showMoves": true,
     "diffEditor.experimental.useTrueInlineView": true,
     "diffEditor.ignoreTrimWhitespace": false,
+    "dotfiles.installCommand": "install-devcontainer.sh", // See docs/setup/devcontainer.md
+    "dotfiles.repository": "natescherer/dotfiles", // COPIER-ME
     "editor.autoIndentOnPaste": true,
     "editor.fontFamily": "Cascadia Mono NF, Menlo, Monaco, 'Courier New', monospace",
     "editor.formatOnPaste": true,
