@@ -11,7 +11,7 @@ set -euo pipefail
 repo=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 
 if ! command -v nix >/dev/null; then
-    echo "install-devcontainer.sh: nix isn't on PATH. Add the ghcr.io/devcontainers/features/nix feature to the devcontainer." >&2
+    echo "init-devcontainer.sh: nix isn't on PATH. Add the ghcr.io/devcontainers/features/nix feature to the devcontainer." >&2
     exit 1
 fi
 
