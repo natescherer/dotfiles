@@ -36,12 +36,24 @@
     },
     "customizations": {
         "vscode": {
+            // Mirrors the host's Chezmoi editor profile, minus extensions that
+            // run on the UI side or need tools this container lacks (Python,
+            // PowerShell). GitHub PR arrives through the host's
+            // remote.defaultExtensionsIfInstalledLocally setting.
             "extensions": [
                 "anthropic.claude-code",
+                "editorconfig.editorconfig",
+                "github.vscode-github-actions",
                 "hverlin.mise-vscode",
+                "igorkramar.gotmpl-yaml-highlighter",
                 "jnoortheen.nix-ide",
+                "owenlamont.ryl",
+                "redhat.vscode-yaml",
+                "rvben.rumdl",
                 "signageos.signageos-vscode-sops",
-                "tombi-toml.tombi"
+                "tekumara.typos-vscode",
+                "tombi-toml.tombi",
+                "usernamehw.errorlens"
             ]
         }
     },
