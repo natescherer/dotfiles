@@ -50,7 +50,7 @@
             "experimental.retroTerminalEffect": false,
             "font": 
             {
-                "face": "Cascadia Mono NF"
+                "face": "CaskaydiaMono Nerd Font"
             },
             "opacity": 90,
             "rightClickContextMenu": true,

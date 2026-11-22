@@ -34,7 +34,7 @@ homebrew_casks:
   - brave-browser
 #  - browsers # disabled until https://github.com/Browsers-software/homebrew-tap/pull/3 is merged
   - firefox
-  - font-cascadia-mono-nf
+  - font-caskaydia-mono-nerd-font
   - font-overpass
   - gcloud-cli
   - ghostty

@@ -7,18 +7,21 @@
     {{- /* This is a staging directory, fonts will be installed from here as part of WinGet configuration */ -}}
     {{- $fontDir = "AppData/Local/chezmoifonts" }}
 {{- end }}
-{{- /* renovate: datasource=github-releases depName=microsoft/cascadia-code */ -}}
-{{- $cascadiaVersion := "2407.24" }}
+{{- /* renovate: datasource=github-releases depName=ryanoasis/nerd-fonts */ -}}
+{{- $nerdFontsVersion := "3.5.1" }}
 {{- /* renovate: datasource=github-releases depName=RedHatOfficial/Overpass */ -}}
 {{- $overpassVersion := "3.0.5" }}
 {{- /* renovate: datasource=github-releases depName=kdeldycke/meta-package-manager */ -}}
 {{- $mpmVersion := "8.0.2" }}
 {{- if and (ne .chezmoi.os "darwin") .isWorkstation }}
 {{- /* Both of these fonts are Homebrew-installable, and only workstations have a desktop to render them */ -}}
-["{{ $fontDir }}/CascadiaMonoNF-Regular.otf"]
+{{- /* The Nerd Fonts project's Cascadia Mono build, whose icons are drawn wider than one cell */ -}}
+{{- range list "Regular" "Bold" "Italic" "BoldItalic" }}
+["{{ $fontDir }}/CaskaydiaMonoNerdFont-{{ . }}.ttf"]
     type = "archive-file"
-    url = "https://github.com/microsoft/cascadia-code/releases/download/v{{ $cascadiaVersion }}/CascadiaCode-{{ $cascadiaVersion }}.zip"
-    path = "otf/static/CascadiaMonoNF-Regular.otf"
+    url = "https://github.com/ryanoasis/nerd-fonts/releases/download/v{{ $nerdFontsVersion }}/CascadiaMono.zip"
+    path = "CaskaydiaMonoNerdFont-{{ . }}.ttf"
+{{- end }}
 ["{{ $fontDir }}/overpass-regular.otf"]
     type = "archive-file"
     url = "https://github.com/RedHatOfficial/Overpass/releases/download/v{{ $overpassVersion }}/overpass-{{ $overpassVersion }}.zip"
