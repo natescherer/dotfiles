@@ -87,6 +87,14 @@
         "HOME": null // This causes problems with a lot of tools when it gets set on Windows. Can't find what sets it.
     },
     "terminal.integrated.initialHint": false,
+    "terminal.integrated.profiles.linux": {
+        // In a devcontainer, waits while init-devcontainer.sh runs and reports
+        // its status before starting zsh. See docs/setup/devcontainer.md.
+        "zsh": {
+            "path": "zsh",
+            "args": ["-c", "f=~/.local/state/dotfiles/devcontainer-status\nexport DOTFILES_SHELL_INTEGRATION=1\nif [[ $REMOTE_CONTAINERS == true ]]; then\n  if pgrep -f '[i]nit-devcontainer\\.sh' >/dev/null; then\n    waited=1\n    echo 'Waiting for devcontainer setup (dotfiles) to finish. Ctrl-C skips.'\n    trap 'skip=1' INT\n    while [[ -z $skip ]] && pgrep -f '[i]nit-devcontainer\\.sh' >/dev/null; do sleep 1; done\n    trap - INT\n  fi\n  case $(cat $f 2>/dev/null) in\n    ok) [[ -n $waited && -z $skip ]] && echo 'Devcontainer setup finished.';;\n    failed) echo 'Devcontainer setup failed. See ~/.local/state/dotfiles/init-devcontainer.log';;\n  esac\nfi\nexec zsh"]
+        }
+    },
     "terminal.integrated.scrollback": 5000,
     "terminal.integrated.smoothScrolling": true,
     "terminal.integrated.stickyScroll.enabled": false,

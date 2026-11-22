@@ -6,9 +6,17 @@
 # (see .chezmoi.yaml.tmpl and .chezmoiignore.tmpl) skips the run_ scripts,
 # which provision a host, and mise's global tools, so the container only gets
 # the project's tools.
+#
+# The zsh terminal profile in core.json waits while this script runs, then
+# reports the status it writes on exit: ok or failed.
 set -euo pipefail
 
 repo=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+state="$HOME/.local/state/dotfiles"
+
+mkdir -p "$state"
+exec > >(tee "$state/init-devcontainer.log") 2>&1
+trap 'if [ $? -eq 0 ]; then echo ok; else echo failed; fi > "$state/devcontainer-status"' EXIT
 
 if ! command -v nix >/dev/null; then
     echo "init-devcontainer.sh: nix isn't on PATH. Add the ghcr.io/devcontainers/features/nix feature to the devcontainer." >&2
