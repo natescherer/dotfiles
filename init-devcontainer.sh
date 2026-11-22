@@ -8,9 +8,9 @@
 # gets only these tools and the project's.
 #
 # VS Code can open terminals before this finishes. Their zsh reads a
-# placeholder ~/.zshenv, init-devcontainer-zshenv.zsh, which says the dotfiles
-# are still installing and reports the status this script writes on exit: ok
-# or failed.
+# placeholder ~/.zshenv, which this script writes before installing anything.
+# It says the dotfiles are still installing and reports the status this script
+# writes on exit: ok or failed.
 set -euo pipefail
 
 repo=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
@@ -23,7 +23,28 @@ trap 'if [ $? -eq 0 ]; then echo ok; else echo failed; fi > "$state/devcontainer
 
 # Never replaces a real ~/.zshenv, only stages one for chezmoi to replace
 if [ ! -e "$HOME/.zshenv" ]; then
-    cp "$repo/init-devcontainer-zshenv.zsh" "$HOME/.zshenv"
+    # The quoted delimiter writes the zsh code as is, with no bash expansion
+    cat > "$HOME/.zshenv" <<'EOF'
+# Placeholder from init-devcontainer.sh. chezmoi replaces it with the real
+# ~/.zshenv, so only shells that start while the dotfiles are still installing
+# read it.
+if [[ -o interactive ]]; then
+    print 'Dotfiles are still installing; this shell does not have them.'
+
+    # Reports once, at the first prompt after init-devcontainer.sh exits
+    _dotfiles_check() {
+        case $(cat ~/.local/state/dotfiles/devcontainer-status 2>/dev/null) in
+            ok) print 'Dotfiles installed. Run exec zsh to load them.' ;;
+            failed) print 'Dotfiles failed to install. See ~/.local/state/dotfiles/init-devcontainer.log' ;;
+            *) return ;;
+        esac
+        add-zsh-hook -d precmd _dotfiles_check
+    }
+
+    autoload -Uz add-zsh-hook
+    add-zsh-hook precmd _dotfiles_check
+fi
+EOF
 fi
 
 if ! command -v mise >/dev/null; then

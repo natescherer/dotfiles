@@ -38,8 +38,7 @@ it activates mise.
 
 VS Code connects, and can open terminals, before the dotfiles finish
 installing. Before installing anything,
-[init-devcontainer.sh](../../init-devcontainer.sh) copies
-[init-devcontainer-zshenv.zsh](../../init-devcontainer-zshenv.zsh) to
+[init-devcontainer.sh](../../init-devcontainer.sh) writes a placeholder
 `~/.zshenv`, unless one already exists. A terminal that starts during setup
 reads it and prints:
 
