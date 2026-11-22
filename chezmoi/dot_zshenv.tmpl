@@ -32,6 +32,9 @@ export SSH_AUTH_SOCK="{{ template "bitwarden-ssh-agent-sock" . }}" # SSH: Set Bi
 
 # PATH additions
 export PATH="$PATH:{{ .chezmoi.homeDir }}/bin"
+{{- if .isDevcontainer }}
+export PATH="$PATH:{{ .chezmoi.homeDir }}/.local/share/mise/shims" # mise: Global devcontainer tools, which .zshrc runs before activating mise
+{{- end }}
 {{- if eq .chezmoi.os "darwin" }}
 export PATH="$PATH:{{ .chezmoi.homeDir }}/.docker/bin" # Docker Desktop: CLI tools
 {{- end }}

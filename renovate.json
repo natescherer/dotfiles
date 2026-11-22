@@ -43,7 +43,7 @@
     }
   ],
   "mise": {
-    "managerFilePatterns": ["chezmoi/dot_config/mise/config.toml", "chezmoi/dot_config/mise/conf.d/tools.toml", "mise.toml", "mise.devcontainer.toml"]
+    "managerFilePatterns": ["chezmoi/dot_config/mise/config.toml", "chezmoi/dot_config/mise/conf.d/tools.toml", "chezmoi/dot_config/mise/conf.d/devcontainer.toml", "mise.toml", "mise.devcontainer.toml"]
   },
   "nix": {
     "enabled": true

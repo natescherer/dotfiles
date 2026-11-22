@@ -53,24 +53,5 @@
       system = "aarch64-linux";
       modules = [./nixos/roles/vmware-guest.nix];
     };
-    # What init-devcontainer.sh installs into a devcontainer's Nix profile:
-    # chezmoi, plus the tools the dotfiles' git and zsh config expect. mise
-    # comes from the project's own devcontainer, since its tools need it.
-    packages =
-      nixpkgs.lib.genAttrs ["x86_64-linux" "aarch64-linux"]
-      (system: let
-        pkgs = nixpkgs.legacyPackages.${system};
-      in {
-        devcontainer = pkgs.buildEnv {
-          name = "dotfiles-devcontainer";
-          paths = [
-            pkgs.chezmoi
-            pkgs.delta
-            pkgs.fzf
-            pkgs.sheldon
-            pkgs.starship
-          ];
-        };
-      });
   };
 }

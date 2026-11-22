@@ -22,6 +22,9 @@
 .chezmoiscripts/**
 ## Global mise tools: the container only gets the project's mise.toml tools
 .config/mise/conf.d/tools.toml
+{{- else }}
+# Ignore outside devcontainers, which install these tools another way
+.config/mise/conf.d/devcontainer.toml
 {{- end }}
 
 {{- if eq .chezmoi.os "linux" }}

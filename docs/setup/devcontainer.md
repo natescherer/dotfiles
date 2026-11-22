@@ -7,11 +7,10 @@ tools: the project's `devcontainer.json` provides everything else.
 
 The devcontainer needs:
 
-- The `ghcr.io/devcontainers/features/nix` feature, which
-  [init-devcontainer.sh](../../init-devcontainer.sh) uses to install
-  chezmoi, Delta, fzf, Sheldon and Starship from this repo's flake
-- mise, for the project's own tools
-- Zsh, which the `mcr.microsoft.com/devcontainers/base` images include
+- A Debian-based image, such as `mcr.microsoft.com/devcontainers/base:debian`,
+  which includes Zsh
+- mise, from the `ghcr.io/devcontainers-extra/features/mise` feature, which
+  installs both the project's tools and the tools the dotfiles need
 
 ## Installation
 
@@ -26,11 +25,14 @@ set:
 
 When VS Code creates a devcontainer, the Dev Containers extension clones this
 repo to `~/dotfiles` and runs
-[init-devcontainer.sh](../../init-devcontainer.sh). The script installs
-the flake's `devcontainer` package into the Nix profile, then runs
-`chezmoi init --apply` with `CHEZMOI_DEVCONTAINER=1`. That sets chezmoi's
-`isDevcontainer`, which skips the `run_` scripts and
-`~/.config/mise/conf.d/tools.toml`.
+[init-devcontainer.sh](../../init-devcontainer.sh). The script copies
+[devcontainer.toml](../../chezmoi/dot_config/mise/conf.d/devcontainer.toml)
+to `~/.config/mise/conf.d/` and runs `mise install`, which installs chezmoi,
+Delta, fzf, Sheldon and Starship. It then runs `chezmoi init --apply` with
+`CHEZMOI_DEVCONTAINER=1`. That sets chezmoi's `isDevcontainer`, which skips
+the `run_` scripts and `~/.config/mise/conf.d/tools.toml`, and adds mise's
+shims directory to `PATH` in `~/.zshenv`, since `.zshrc` runs Sheldon before
+it activates mise.
 
 ## Knowing When Setup Has Finished
 

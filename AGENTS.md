@@ -20,6 +20,8 @@ in sync:
 - Windows: the winget configuration
 - macOS and Ubuntu: their separate Ansible Homebrew lists
 - NixOS: the Nix package lists
+- Devcontainers: the devcontainer-only mise config, since mise is the one
+  package manager every devcontainer has
 
 ## Renovate `schedule` cron syntax is not standard cron
 
