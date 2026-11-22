@@ -31,3 +31,28 @@ the flake's `devcontainer` package into the Nix profile, then runs
 `chezmoi init --apply` with `CHEZMOI_DEVCONTAINER=1`. That sets chezmoi's
 `isDevcontainer`, which skips the `run_` scripts and
 `~/.config/mise/conf.d/tools.toml`.
+
+## Knowing When Setup Has Finished
+
+VS Code connects, and can open terminals, before the dotfiles finish
+installing. Before installing anything,
+[init-devcontainer.sh](../../init-devcontainer.sh) copies
+[init-devcontainer-zshenv.zsh](../../init-devcontainer-zshenv.zsh) to
+`~/.zshenv`, unless one already exists. A terminal that starts during setup
+reads it and prints:
+
+```text
+Dotfiles are still installing; this shell does not have them.
+```
+
+At its first prompt after setup ends, it prints one of:
+
+```text
+Dotfiles installed. Run exec zsh to load them.
+Dotfiles failed to install. See ~/.local/state/dotfiles/init-devcontainer.log
+```
+
+chezmoi replaces the placeholder with the real `~/.zshenv`, so terminals opened
+after setup print nothing. The script writes `ok` or `failed` to
+`~/.local/state/dotfiles/devcontainer-status` when it exits, and its output to
+`~/.local/state/dotfiles/init-devcontainer.log`.

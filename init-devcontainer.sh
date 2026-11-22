@@ -6,9 +6,25 @@
 # (see .chezmoi.yaml.tmpl and .chezmoiignore.tmpl) skips the run_ scripts,
 # which provision a host, and mise's global tools, so the container only gets
 # the project's tools.
+#
+# VS Code can open terminals before this finishes. Their zsh reads a
+# placeholder ~/.zshenv, init-devcontainer-zshenv.zsh, which says the dotfiles
+# are still installing and reports the status this script writes on exit: ok
+# or failed.
 set -euo pipefail
 
 repo=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+state="$HOME/.local/state/dotfiles"
+
+mkdir -p "$state"
+rm -f "$state/devcontainer-status"
+exec > >(tee "$state/init-devcontainer.log") 2>&1
+trap 'if [ $? -eq 0 ]; then echo ok; else echo failed; fi > "$state/devcontainer-status"' EXIT
+
+# Never replaces a real ~/.zshenv, only stages one for chezmoi to replace
+if [ ! -e "$HOME/.zshenv" ]; then
+    cp "$repo/init-devcontainer-zshenv.zsh" "$HOME/.zshenv"
+fi
 
 if ! command -v nix >/dev/null; then
     echo "init-devcontainer.sh: nix isn't on PATH. Add the ghcr.io/devcontainers/features/nix feature to the devcontainer." >&2
