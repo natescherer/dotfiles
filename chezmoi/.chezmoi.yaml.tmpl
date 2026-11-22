@@ -36,6 +36,9 @@
 {{- /* init-devcontainer.sh sets CHEZMOI_DEVCONTAINER; the stored value keeps a later bare `chezmoi init` from clearing it */}}
 {{- $isDevcontainer := or (eq (env "CHEZMOI_DEVCONTAINER") "1") (and (hasKey . "isDevcontainer") .isDevcontainer) }}
 
+{{- /* Whether a desktop shell is present, the default for the isGraphical prompt */}}
+{{- $hasDesktop := ne (or (lookPath "gnome-shell") (lookPath "plasmashell") (env "XDG_CURRENT_DESKTOP")) "" }}
+
 {{- /* #endregion */}}
 
 {{- /* #region Prompts: every question `chezmoi init` asks, each with the value used when it isn't asked */}}
@@ -73,6 +76,14 @@ its own, and other machines have none. */}}
 {{- $computerModel = promptChoiceOnce . "computerModel" "What model is this computer? (Enter for default)" (list "Late 2025 Gaming Desktop" "None") "None" }}
 {{- end }}
 
+{{- /* Whether this machine has a graphical desktop. False marks it headless (a server,
+devcontainer, or WSL), which skips config for desktop apps, fonts, and keyrings. Windows,
+macOS, and Ubuntu desktops are always graphical; other Linux machines are asked. */}}
+{{- $isGraphical := not (or $isDevcontainer $isWsl) }}
+{{- if and (eq .chezmoi.os "linux") (not $isUbuntuDesktop) $isGraphical }}
+{{- $isGraphical = promptBoolOnce . "isGraphical" "Does this machine have a graphical desktop? (Enter for default)" $hasDesktop }}
+{{- end }}
+
 {{- /* #endregion */}}
 
 {{- /* #region Config: the chezmoi config file this template renders */}}
@@ -95,6 +106,7 @@ data:
     adminRights: {{ $adminRights }}
     isVM: {{ $isVM }}
     isDevcontainer: {{ $isDevcontainer }}
+    isGraphical: {{ $isGraphical }}
     isNixos: {{ $isNixos }}
     isUbuntuDesktop: {{ $isUbuntuDesktop }}
     isWsl: {{ $isWsl }}
