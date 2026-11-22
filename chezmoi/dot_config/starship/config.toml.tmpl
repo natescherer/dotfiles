@@ -4,6 +4,7 @@ command_timeout = 5000
 
 format = """
 [](fg:section1)\
+${env_var.SSH_CONNECTION}\
 $os\
 $hostname\
 $container\
@@ -71,6 +72,13 @@ symbol = " "
 style = "bg:section6 fg:black"
 format = "[ $symbol$version 󰓾 $tfm ]($style)"
 
+# Shown only over SSH, which sets SSH_CONNECTION. The OS module's leading space separates the
+# two icons.
+[env_var.SSH_CONNECTION]
+symbol = "󰌘"
+style = "bg:section1 fg:black"
+format = "[ $symbol]($style)"
+
 [git_branch]
 symbol = " "
 style = "bg:section5 fg:black"
@@ -102,9 +110,8 @@ style = "bg:section6 fg:black"
 format = "[ $symbol$version ]($style)"
 
 [hostname]
-ssh_symbol = "󰣀 "
 style = "bg:section1 fg:black"
-format = "[$ssh_symbol$hostname ]($style)"
+format = "[$hostname ]($style)"
 ssh_only = false
 
 [kubernetes]
