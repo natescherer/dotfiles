@@ -75,8 +75,6 @@ extension_sets = ["python", "containers"]
 extensions = [
   "ms-vscode.powershell",  # PowerShell extension
   "IgorKramar.gotmpl-yaml-highlighter", # YAML Go template highlighting for Chezmoi
-  "jnoortheen.nix-ide",  # Nix language server
-  "signageos.signageos-vscode-sops",  # SOPS support for secret management
 ]
 
 [[vscode.profiles]]
