@@ -27,7 +27,9 @@
     "containerEnv": {
         "CLAUDE_CONFIG_DIR": "/home/vscode/.config/claude",
         // Only the host's initialize scripts use these mise tools
-        "MISE_DISABLE_TOOLS": "node,npm:bitwarden-cli-bio"
+        "MISE_DISABLE_TOOLS": "node,npm:bitwarden-cli-bio",
+        // Loads the container-only mise config alongside the shared one
+        "MISE_ENV": "devcontainer"
     },
     // Puts Nix-profile and mise-managed tools on PATH in every shell and in VS
     // Code's extensions, with no per-shell activation
@@ -37,19 +39,27 @@
     "customizations": {
         "vscode": {
             // Mirrors the host's Chezmoi editor profile, minus extensions that
-            // run on the UI side or need tools this container lacks (Python,
-            // PowerShell). GitHub PR arrives through the host's
+            // run on the UI side or cover file types this repo lacks. GitHub
+            // PR arrives through the host's
             // remote.defaultExtensionsIfInstalledLocally setting.
             "extensions": [
                 "anthropic.claude-code",
+                "astral-sh.ty",
+                "charliermarsh.ruff",
                 "editorconfig.editorconfig",
                 "github.vscode-github-actions",
                 "hverlin.mise-vscode",
                 "igorkramar.gotmpl-yaml-highlighter",
                 "jnoortheen.nix-ide",
+                "ms-python.debugpy",
+                "ms-python.python",
+                "ms-python.vscode-pylance",
+                "ms-python.vscode-python-envs",
+                "ms-vscode.powershell",
                 "owenlamont.ryl",
                 "redhat.vscode-yaml",
                 "rvben.rumdl",
+                "samuelcolvin.jinjahtml",
                 "signageos.signageos-vscode-sops",
                 "tekumara.typos-vscode",
                 "tombi-toml.tombi",

@@ -1,0 +1,6 @@
+# Loaded only inside the devcontainer, which sets MISE_ENV=devcontainer. The
+# host's initialize scripts call mise exec, which would otherwise install these
+# on the host too.
+[tools]
+powershell = "7.7.0"
+python = "3.15.2"
