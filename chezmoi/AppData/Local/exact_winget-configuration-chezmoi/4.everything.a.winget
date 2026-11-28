@@ -1,0 +1,76 @@
+## WARNING: This file is chezmoi-managed and should not be manually edited!
+
+# yaml-language-server: $schema=https://aka.ms/configuration-dsc-schema/0.3
+$schema: https://raw.githubusercontent.com/PowerShell/DSC/main/schemas/2023/08/config/document.json
+metadata:
+  winget:
+    processor:
+      identifier: dscv3
+resources:
+  - type: Microsoft.DSC.Transitional/PowerShellScript
+    name: EverythingIndexSettings
+    metadata:
+      description: >-
+        Sets keys in the current user's Everything.ini, where Everything (installed by the
+        Windhawk configuration file, on machines with admin rights) keeps its settings next to
+        window positions and other state it writes back on exit. Everything overwrites the file
+        when it exits, so setScript closes Everything before editing the file and starts it again
+        afterwards. The start runs unelevated, matching the logon Run entry the installer adds: an
+        elevated Everything would refuse queries from Explorer, which runs unelevated. The
+        resource always runs setScript without consulting testScript, so setScript leaves
+        Everything running untouched when every key already has its value. Without Everything
+        installed, there is nothing to configure.
+    properties:
+      input:
+        # Tools > Options > Indexes > "Index file size" and "Index folder size", which the
+        # explorer-details-better-file-sizes Windhawk mod reads folder sizes from.
+        index_size: "1"
+        index_folder_size: "1"
+      getScript: |
+        param([object] $Keys)
+        $Ini = Join-Path $env:APPDATA 'Everything\Everything.ini'
+        $Lines = @(Get-Content -Path $Ini -ErrorAction SilentlyContinue)
+        $Result = [ordered]@{}
+        foreach ($Key in $Keys.PSObject.Properties.Name) {
+          $Line = $Lines | Where-Object { $_ -like "$Key=*" } | Select-Object -First 1
+          $Result[$Key] = if ($Line) { $Line.Substring($Key.Length + 1) } else { $null }
+        }
+        [pscustomobject]$Result
+      testScript: |
+        param([object] $Keys)
+        if (-not (Test-Path (Join-Path $env:ProgramFiles 'Everything\Everything.exe'))) { return $true }
+        $Ini = Join-Path $env:APPDATA 'Everything\Everything.ini'
+        $Lines = @(Get-Content -Path $Ini -ErrorAction SilentlyContinue)
+        foreach ($Key in $Keys.PSObject.Properties) {
+          if ("$($Key.Name)=$($Key.Value)" -notin $Lines) { return $false }
+        }
+        $true
+      setScript: |
+        param([object] $Keys)
+        $ErrorActionPreference = 'Stop'
+        $Exe = Join-Path $env:ProgramFiles 'Everything\Everything.exe'
+        if (-not (Test-Path $Exe)) {
+          Write-Verbose "$Exe not installed; nothing to configure"
+          return
+        }
+        $Ini = Join-Path $env:APPDATA 'Everything\Everything.ini'
+        $Lines = [System.Collections.Generic.List[string]]@(Get-Content -Path $Ini -ErrorAction SilentlyContinue)
+        $Missing = @($Keys.PSObject.Properties | Where-Object { "$($_.Name)=$($_.Value)" -notin $Lines })
+        if ($Missing.Count -eq 0) {
+          Write-Verbose 'Everything.ini already has every key'
+          return
+        }
+        # -exit asks a running Everything to close and -wait returns once it has; with none
+        # running it returns at once.
+        Start-Process -FilePath $Exe -ArgumentList '-exit', '-wait' -Wait
+        # Everything wrote its state on exit, so read the file again.
+        $Lines = [System.Collections.Generic.List[string]]@(Get-Content -Path $Ini -ErrorAction SilentlyContinue)
+        if ($Lines -notcontains '[Everything]') { $Lines.Insert(0, '[Everything]') }
+        foreach ($Key in $Keys.PSObject.Properties) {
+          $Index = $Lines.FindIndex({ param($Line) $Line -like "$($Key.Name)=*" })
+          if ($Index -ge 0) { $Lines[$Index] = "$($Key.Name)=$($Key.Value)" }
+          else { $Lines.Insert($Lines.IndexOf('[Everything]') + 1, "$($Key.Name)=$($Key.Value)") }
+        }
+        New-Item -ItemType Directory -Path (Split-Path $Ini) -Force | Out-Null
+        Set-Content -Path $Ini -Value $Lines
+        Start-Process -FilePath $Exe -ArgumentList '-startup'

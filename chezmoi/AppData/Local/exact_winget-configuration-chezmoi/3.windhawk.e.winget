@@ -7,6 +7,16 @@ metadata:
     processor:
       identifier: dscv3
 resources:
+  # Supplies folder sizes to the explorer-details-better-file-sizes mod below.
+  - type: Microsoft.WinGet/Package
+    name: Everything
+    metadata:
+      winget:
+        securityContext: elevated
+    properties:
+      id: voidtools.Everything
+      source: winget
+      installMode: silent
   - type: Microsoft.DSC.Transitional/PowerShellScript
     name: Windhawk
     metadata:
@@ -80,6 +90,15 @@ resources:
           settings:
             horizontalPlacement: right
             verticalPlacement: top
+        # Folder sizes and MB/GB units in Explorer's Details view. Folder sizes come from the
+        # Everything package above, with folder size indexing turned on by the Everything settings
+        # file that runs after this one.
+        - id: explorer-details-better-file-sizes
+          settings:
+            calculateFolderSizes: everything
+        # Dark mode for classic Win32 menus, such as context menus and menu bars.
+        - id: dark-menus
+          settings: {}
       getScript: |
         param([object[]] $Mods)
         $Cli = Join-Path $env:ProgramFiles 'Windhawk\windhawk-cli.exe'
