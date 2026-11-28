@@ -1,0 +1,126 @@
+## WARNING: This file is chezmoi-managed and should not be manually edited!
+
+# yaml-language-server: $schema=https://aka.ms/configuration-dsc-schema/0.3
+$schema: https://raw.githubusercontent.com/PowerShell/DSC/main/schemas/2023/08/config/document.json
+metadata:
+  winget:
+    processor:
+      identifier: dscv3
+resources:
+  - type: Microsoft.DSC.Transitional/PowerShellScript
+    name: Windhawk
+    metadata:
+      description: >-
+        Installs Windhawk from its GitHub release rather than through Microsoft.WinGet/Package,
+        because winget carries only 1.x and windhawk-cli.exe (which the WindhawkMods resource
+        needs) ships with 2.0. The resource always runs setScript without consulting testScript,
+        so setScript skips the install when this version or a newer one is present; Windhawk
+        updates itself, and a newer self-installed version is left alone. When Renovate bumps
+        the version, update sha256 to the new release's windhawk_setup.exe digest (shown on the
+        GitHub release page) in the same change. The installer is 32-bit, so its uninstall entry
+        is under WOW6432Node.
+      winget:
+        securityContext: elevated
+    properties:
+      input:
+        # renovate: datasource=github-releases depName=ramensoftware/windhawk
+        version: "2.0.0-alpha.8"
+        sha256: 7327471e2d93a8c58481321cce546632adb146cf125d17d7144d0e7d2a064967
+      getScript: |
+        param([object] $Pinned)
+        $Key = Get-ItemProperty -Path 'HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Windhawk' -ErrorAction SilentlyContinue
+        [pscustomobject]@{ version = $Key.DisplayVersion }
+      testScript: |
+        param([object] $Pinned)
+        $Key = Get-ItemProperty -Path 'HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Windhawk' -ErrorAction SilentlyContinue
+        $Installed = $null
+        [bool]($Key -and [System.Management.Automation.SemanticVersion]::TryParse($Key.DisplayVersion, [ref] $Installed) -and
+          $Installed -ge [System.Management.Automation.SemanticVersion] $Pinned.version)
+      setScript: |
+        param([object] $Pinned)
+        $ErrorActionPreference = 'Stop'
+        $Wanted = [System.Management.Automation.SemanticVersion] $Pinned.version
+        $Key = Get-ItemProperty -Path 'HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Windhawk' -ErrorAction SilentlyContinue
+        $Installed = $null
+        if ($Key -and [System.Management.Automation.SemanticVersion]::TryParse($Key.DisplayVersion, [ref] $Installed) -and $Installed -ge $Wanted) {
+          Write-Verbose "Windhawk $Installed already installed"
+          return [pscustomobject]@{ version = $Key.DisplayVersion }
+        }
+        $Dir = Join-Path ([IO.Path]::GetTempPath()) "windhawk-setup-$([guid]::NewGuid())"
+        New-Item -ItemType Directory -Path $Dir | Out-Null
+        try {
+          $Setup = Join-Path $Dir 'windhawk_setup.exe'
+          $ProgressPreference = 'SilentlyContinue'
+          Invoke-WebRequest -Uri "https://github.com/ramensoftware/windhawk/releases/download/$($Pinned.version)/windhawk_setup.exe" -OutFile $Setup
+          $Hash = (Get-FileHash -Path $Setup -Algorithm SHA256).Hash
+          if ($Hash -ne $Pinned.sha256) { throw "windhawk_setup.exe $($Pinned.version) has SHA256 $Hash, expected $($Pinned.sha256)" }
+          # NSIS switches: /S installs silently, /STANDARD picks the standard (not portable) install.
+          $Process = Start-Process -FilePath $Setup -ArgumentList '/S', '/STANDARD' -Wait -PassThru
+          if ($Process.ExitCode -ne 0) { throw "windhawk_setup.exe exited $($Process.ExitCode)" }
+        }
+        finally {
+          Remove-Item -Path $Dir -Recurse -Force -ErrorAction SilentlyContinue
+        }
+        [pscustomobject]@{ version = $Pinned.version }
+  - type: Microsoft.DSC.Transitional/PowerShellScript
+    name: WindhawkMods
+    metadata:
+      description: >-
+        Installs each listed mod from the Windhawk repository through windhawk-cli.exe and sets
+        the listed settings, leaving unlisted settings at the mod's defaults. Mods installed by
+        hand are left alone, and a listed mod already installed keeps its version, so Windhawk's
+        own mod updates stay in charge of versions. Setting keys come from the mod's
+        WindhawkModSettings block, also printed by `windhawk-cli mod settings defaults <id>`.
+      winget:
+        securityContext: elevated
+    properties:
+      input:
+        # Moves toast notifications to the top-right corner.
+        - id: notifications-placement
+          settings:
+            horizontalPlacement: right
+            verticalPlacement: top
+      getScript: |
+        param([object[]] $Mods)
+        $Cli = Join-Path $env:ProgramFiles 'Windhawk\windhawk-cli.exe'
+        $Installed = @((& $Cli mod list --json | ConvertFrom-Json).data.mods)
+        foreach ($Mod in $Mods) {
+          $Row = $Installed | Where-Object id -EQ $Mod.id
+          [pscustomobject]@{ id = $Mod.id; version = $Row.version; enabled = $Row.enabled }
+        }
+      testScript: |
+        param([object[]] $Mods)
+        $Cli = Join-Path $env:ProgramFiles 'Windhawk\windhawk-cli.exe'
+        if (-not (Test-Path $Cli)) { return $false }
+        $Installed = @((& $Cli mod list --json | ConvertFrom-Json).data.mods.id)
+        foreach ($Mod in $Mods) {
+          if ($Mod.id -notin $Installed) { return $false }
+          $Current = (& $Cli mod settings get $Mod.id --json | ConvertFrom-Json).data.settings
+          foreach ($Setting in $Mod.settings.PSObject.Properties) {
+            if ("$($Current.($Setting.Name))" -ne "$($Setting.Value)") { return $false }
+          }
+        }
+        $true
+      setScript: |
+        param([object[]] $Mods)
+        $ErrorActionPreference = 'Stop'
+        $Cli = Join-Path $env:ProgramFiles 'Windhawk\windhawk-cli.exe'
+        if (-not (Test-Path $Cli)) { throw "$Cli not found; the Windhawk resource installs it" }
+        $Installed = @((& $Cli mod list --json | ConvertFrom-Json).data.mods.id)
+        foreach ($Mod in $Mods) {
+          if ($Mod.id -notin $Installed) {
+            Write-Verbose "Installing Windhawk mod $($Mod.id)"
+            & $Cli mod install $Mod.id --yes --quiet | Out-Null
+            if ($LASTEXITCODE -ne 0) { throw "windhawk-cli mod install $($Mod.id) exited $LASTEXITCODE" }
+          }
+          $Pairs = @($Mod.settings.PSObject.Properties | ForEach-Object { "$($_.Name)=$($_.Value)" })
+          if ($Pairs.Count -gt 0) {
+            & $Cli mod settings set $Mod.id @Pairs --quiet | Out-Null
+            if ($LASTEXITCODE -ne 0) { throw "windhawk-cli mod settings set $($Mod.id) exited $LASTEXITCODE" }
+          }
+        }
+        $Installed = @((& $Cli mod list --json | ConvertFrom-Json).data.mods)
+        foreach ($Mod in $Mods) {
+          $Row = $Installed | Where-Object id -EQ $Mod.id
+          [pscustomobject]@{ id = $Mod.id; version = $Row.version; enabled = $Row.enabled }
+        }

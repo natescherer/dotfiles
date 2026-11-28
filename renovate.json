@@ -34,6 +34,7 @@
       "description": "Values annotated with a preceding '# renovate: ...' comment giving datasource+depName(+registryUrl), tracking the 'key: \"value\"' line right after it",
       "managerFilePatterns": [
         "chezmoi/AppData/Local/exact_winget-configuration-chezmoi/2.pwsh.a.winget",
+        "chezmoi/AppData/Local/exact_winget-configuration-chezmoi/3.windhawk.e.winget",
         "chezmoi/dot_local/share/ansible-configuration-chezmoi/group_vars/all/apt_repos.a.yml"
       ],
       "matchStrings": [
